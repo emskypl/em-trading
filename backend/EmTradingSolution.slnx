@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="EmTrading.App/EmTrading.App.csproj" />
+  <Project Path="EmTrading.Application/EmTrading.Application.csproj" />
+  <Project Path="EmTrading.Domain/EmTrading.Domain.csproj" />
+  <Project Path="EmTrading.Infrastructure/EmTrading.Infrastructure.csproj" />
+  <Project Path="EmTrading.Presentation/EmTrading.Presentation.csproj" />
+  <Project Path="EmTrading.Wpf.Controls/EmTrading.Wpf.Controls.csproj" />
+</Solution>

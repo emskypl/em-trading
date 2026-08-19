@@ -1,0 +1,6 @@
+@em_trading_app_HostAddress = http://localhost:5258
+
+GET {{em_trading_app_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

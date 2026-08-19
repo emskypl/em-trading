@@ -1,0 +1,22 @@
+﻿<Window x:Class="EmTrading.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EmTrading.App"
+        mc:Ignorable="d"
+        Title="{Binding Title}" Height="450" Width="800"> <!-- BINDING TYTUŁU OKNA -->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        
+        <!-- Wyświetlanie tekstu statusu -->
+        <TextBlock Text="{Binding StatusMessage}" 
+                   FontSize="20" 
+                   Margin="10"/>
+        
+        <!-- Podpięcie przycisku pod komendę z ViewModelu -->
+        <Button Content="Odśwież Dane" 
+                Command="{Binding RefreshDataCommand}" 
+                Padding="10,5"/>
+        
+    </StackPanel>
+</Window>
