@@ -1,32 +1,38 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EmTrading.Application.Interfaces;
+using EmTrading.Infrastructure.Services;
 
 namespace EmTrading.Presentation;
 
 // Klasa MUSI być partial i dziedziczyć po ObservableObject
 public partial class MainViewModel : ObservableObject
 {
-    // Przykład wstrzykiwania logiki z warstwy Application przez konstruktor
-    // private readonly IGetProductsUseCase _getProductsUseCase;
-    // public MainViewModel(IGetProductsUseCase getProductsUseCase) { ... }
-
-    public MainViewModel()
+    private readonly ITradingEngineService _tradingEngineService;
+    public IAsyncRelayCommand StartBacktestCommand { get; }
+    
+    public MainViewModel(ITradingEngineService tradingEngineService)
     {
-        // Tutaj opcjonalnie inicjalizujesz stan początkowy
+        _tradingEngineService = tradingEngineService;
+        StartBacktestCommand = new AsyncRelayCommand(ExecuteBacktestAsync);
         Title = "Aplikacja Handlowa EmTrading";
     }
 
-    // 1. WŁAŚCIWOŚĆ (Property)
-    // Generator kodu automatycznie utworzy publiczną właściwość "Title" (z wielkiej litery)
-    // oraz zaimplementuje dla niej powiadomienie widoku o zmianie (INotifyPropertyChanged)
+    private async Task ExecuteBacktestAsync()
+    {
+        var downloader = new DataDownloaderService("C:\\TradingData");
+
+        await downloader.EnsureSystemFilesExistAsync();
+        await downloader.DownloadDailyDataAsync("aapl");
+        await _tradingEngineService.RunBacktestAsync("SmaCrossStrategy", DateTime.Now.AddYears(-1), DateTime.Now);
+    }
+    
     [ObservableProperty]
     private string _title = string.Empty;
 
     [ObservableProperty]
     private string _statusMessage = "Gotowy";
-
-    // 2. KOMENDA (ICommand) - odpowiednik zdarzenia kliknięcia przycisku
-    // Generator automatycznie utworzy właściwość "RefreshDataCommand"
+    
     [RelayCommand]
     private async Task RefreshDataAsync()
     {

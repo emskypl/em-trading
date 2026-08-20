@@ -21,6 +21,8 @@ public partial class App : System.Windows.Application
         var services = new ServiceCollection();
 
         services.AddApplicationServices();
+        services.AddInfrastructureServices();
+        
         
         // // 2. Rejestracja ViewModels z warstwy Prezentacji
         services.AddTransient<MainViewModel>();

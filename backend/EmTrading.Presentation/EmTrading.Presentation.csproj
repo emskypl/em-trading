@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EmTrading.Application\EmTrading.Application.csproj" />
+    <ProjectReference Include="..\EmTrading.Infrastructure\EmTrading.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

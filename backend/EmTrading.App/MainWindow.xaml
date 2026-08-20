@@ -7,16 +7,19 @@
         mc:Ignorable="d"
         Title="{Binding Title}" Height="450" Width="800"> <!-- BINDING TYTUŁU OKNA -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        
+
         <!-- Wyświetlanie tekstu statusu -->
-        <TextBlock Text="{Binding StatusMessage}" 
-                   FontSize="20" 
-                   Margin="10"/>
-        
+        <TextBlock Text="{Binding StatusMessage}"
+                   FontSize="20"
+                   Margin="10" />
+
         <!-- Podpięcie przycisku pod komendę z ViewModelu -->
-        <Button Content="Odśwież Dane" 
-                Command="{Binding RefreshDataCommand}" 
-                Padding="10,5"/>
-        
+        <Button Content="Odśwież Dane"
+                Command="{Binding RefreshDataCommand}"
+                Padding="10,5" />
+
+        <Button Content="Backtest"
+                Command="{Binding StartBacktestCommand}"
+                Padding="10,5 " />
     </StackPanel>
 </Window>
