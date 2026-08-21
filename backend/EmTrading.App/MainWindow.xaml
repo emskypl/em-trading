@@ -3,29 +3,101 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         xmlns:local="clr-namespace:EmTrading.App"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="{Binding Title}" Height="450" Width="800">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-        <ComboBox x:Name="SymbolsComboBox"
-                  Width="150"
-                  Margin="0,0,0,10"
-                  SelectedValuePath="Content">
-            <ComboBoxItem Content="AAPL" IsSelected="True"/>
-            <ComboBoxItem Content="AMZN"/>
-            <ComboBoxItem Content="MMM"/>
-            <ComboBoxItem Content="MSFT"/>
-        </ComboBox>
 
-        <Button Content="Pobierz dane"
-                Command="{Binding DownloadDataCommand}"                                
-                CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}" 
-                Padding="10,5" />
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Przyciski i ComboBox -->
+            <RowDefinition Height="Auto" /> <!-- Kafelki ze statystykami -->
+            <RowDefinition Height="*" />    <!-- Wykres -->
+        </Grid.RowDefinitions>
 
-        <Button Content="Backtest"
-                Command="{Binding ExecuteBacktestCommand}"
-                CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}" 
-                Padding="10,5" />
-    </StackPanel>
+        <!-- Sekcja sterowania (Twoja obecna) -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <ComboBox x:Name="SymbolsComboBox"
+                      Width="150"
+                      Margin="0,0,0,10"
+                      SelectedValuePath="Content">
+                <ComboBoxItem Content="AAPL" IsSelected="True" />
+                <ComboBoxItem Content="AMZN" />
+                <ComboBoxItem Content="MMM" />
+                <ComboBoxItem Content="MSFT" />
+            </ComboBox>
+
+            <Button Content="Pobierz dane"
+                    Command="{Binding DownloadDataCommand}"
+                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
+                    Padding="10,5" />
+
+            <Button Content="Backtest"
+                    Command="{Binding ExecuteBacktestCommand}"
+                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
+                    Padding="10,5" />
+            <Button Content="Wczytaj Wyniki" 
+                    Command="{Binding LoadBacktestResultsCommand}" 
+                    Padding="10,5"/>
+        </StackPanel>
+        
+        <UniformGrid Grid.Row="1" Columns="5" Margin="0,0,0,15">
+            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Roczna stopa zwrotu" FontSize="12" Foreground="Gray" />
+                    <TextBlock Text="{Binding CompoundingReturn}" FontSize="20" FontWeight="Bold" Foreground="#2E7D32" />
+                </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Max Obsunięcie (DD)" FontSize="12" Foreground="Gray" />
+                    <TextBlock Text="{Binding MaxDrawdown}" FontSize="20" FontWeight="Bold" Foreground="#C62828" />
+                </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Skuteczność (Win Rate)" FontSize="12" Foreground="Gray" />
+                    <TextBlock Text="{Binding WinRate}" FontSize="20" FontWeight="Bold" Foreground="#1565C0" />
+                </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Wskaźnik Sharpe'a" FontSize="12" Foreground="Gray" />
+                    <TextBlock Text="{Binding SharpeRatio}" FontSize="20" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Liczba transakcji" FontSize="12" Foreground="Gray" />
+                    <TextBlock Text="{Binding TotalTrades}" FontSize="20" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+        
+        <Border Grid.Row="2" Background="White" CornerRadius="5" Padding="10" BorderBrush="#E0E0E3" BorderThickness="1">
+            <lvc:CartesianChart Series="{Binding EquitySeriesCollection}" LegendLocation="None">
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Data transakcji" Labels="{Binding ChartLabels}">
+                        <lvc:Axis.Separator>
+                            <lvc:Separator Step="50" /> <!-- Wyświetl datę co 50 punktów, żeby osie były czytelne -->
+                        </lvc:Axis.Separator>
+                    </lvc:Axis>
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis Title="Wartość portfela ($)">
+                        <lvc:Axis.LabelFormatter>
+                            <Binding Source="{x:Static System:String.Empty}" /> <!-- Proste formatowanie osi Y -->
+                        </lvc:Axis.LabelFormatter>
+                    </lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+        </Border>
+    </Grid>
 </Window>

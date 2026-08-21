@@ -1,5 +1,6 @@
 ﻿using QuantConnect;
 using QuantConnect.Algorithm;
+using QuantConnect.Data;
 using QuantConnect.Data.Consolidators;
 using QuantConnect.Data.Market;
 using QuantConnect.Indicators;
@@ -29,16 +30,14 @@ public class SmaCrossStrategy : QCAlgorithm
         SetStartDate(2025, 1, 4);
         SetEndDate(2026, 12, 14);
         SetCash(1000000);
-
         // Read symbol passed into the algorithm parameters (fallback to AAPL)
         var symbolParam = GetParameter("symbol") ?? "AAPL";
         var ticker = symbolParam.Trim().ToUpperInvariant();
 
         // Subscribe to the requested equity FIRST
         _symbol = AddEquity(ticker, Resolution.Minute).Symbol;
-
         // Now it's safe to set holdings for that Symbol
-        SetHoldings(_symbol, 0.1m);
+        SetHoldings(_symbol, 0.85);
 
         // RollingWindow for 200 daily closes
         _dailyCloses = new RollingWindow<decimal>(201);
@@ -47,12 +46,13 @@ public class SmaCrossStrategy : QCAlgorithm
         SubscriptionManager.AddConsolidator(_symbol, dailyConsolidator);
 
         // 15-minute consolidator (use the period you actually want)
-        var cons15m = new TradeBarConsolidator(TimeSpan.FromMinutes(1));
+        var cons15m = new TradeBarConsolidator(TimeSpan.FromMinutes(15));
 
         _emaFast = new ExponentialMovingAverage(26);
         _emaSlow = new ExponentialMovingAverage(130);
         _adx = new AverageDirectionalIndex(14);
         _atr = new AverageTrueRange(14);
+        SetWarmUp(TimeSpan.FromDays(30)); 
 
         RegisterIndicator(_symbol, _emaFast, cons15m);
         RegisterIndicator(_symbol, _emaSlow, cons15m);
@@ -73,14 +73,11 @@ public class SmaCrossStrategy : QCAlgorithm
         var close100 = _dailyCloses[100];
         var close200 = _dailyCloses[200];
         
-        // Warunki trendu dziennego
         bool dailyLongFilter = price > close100 && price > close200;
         bool dailyShortFilter = price < close100 && price < close200;
-
-        // Warunek ADX
+        
         bool adxFilter = _adx.Current.Value > 24m;
-
-        // Logika wejścia
+        
         if (!Portfolio.Invested)
         {
             if (dailyLongFilter && adxFilter && _emaFast.Current.Value > _emaSlow.Current.Value)
@@ -92,7 +89,7 @@ public class SmaCrossStrategy : QCAlgorithm
                 ExecuteTrade(OrderDirection.Sell, price);
             }
         }
-        else // Zarządzanie pozycją (Trailing Stop)
+        else
         {
             UpdateTrailingStop(price);
         }
@@ -100,7 +97,6 @@ public class SmaCrossStrategy : QCAlgorithm
 
     private void ExecuteTrade(OrderDirection direction, decimal currentPrice)
     {
-        // Obliczenie wielkości pozycji
         decimal riskPerTrade = Portfolio.TotalPortfolioValue * 0.01m;
         decimal stopDistance = _atr.Current.Value * 1.5m;
         
@@ -143,8 +139,31 @@ public class SmaCrossStrategy : QCAlgorithm
         }
     }
     
+    public override void OnData(Slice data)
+    {
+        if (IsWarmingUp) return;
+        
+        if (!data.Bars.ContainsKey(_symbol) || !_emaFast.IsReady || !_emaSlow.IsReady) return;
+
+        // Logika przecięcia średnich
+        if (_emaFast > _emaSlow)
+        {
+            if (!Portfolio[_symbol].Invested)
+            {
+                SetHoldings(_symbol, 0.80m);
+            }
+        }
+        else if (_emaFast < _emaSlow)
+        {
+            if (Portfolio[_symbol].Invested)
+            {
+                Liquidate(_symbol);
+            }
+        }
+    }
+
     public override void OnEndOfAlgorithm()
     {
-        Liquidate(); // Odpowiednik strategy.close_all na koniec testu
+        Liquidate(); 
     }
 }

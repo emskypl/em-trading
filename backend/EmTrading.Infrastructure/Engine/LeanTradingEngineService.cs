@@ -1,75 +1,57 @@
 ﻿using EmTrading.Application.Events;
 using EmTrading.Application.Interfaces;
-using QuantConnect.Configuration;
-using QuantConnect.Lean.Engine.Server;
-using QuantConnect.Lean.Engine;
-using QuantConnect.Util;
-using System.Reflection;
-using QuantConnect.Algorithm.CSharp;
+using System.Diagnostics;
 
 namespace EmTrading.Infrastructure.Engine;
 
 public class LeanTradingEngineService : ITradingEngineService
 {
-    public async Task RunBacktestAsync(string strategyName, DateTime start, DateTime end, string symbol, CancellationToken cancellationToken = default)
+    public event EventHandler<BacktestProgressEventArgs>? ProgressUpdated;
+    public event EventHandler<TradeExecutedEventArgs>? TradeExecuted;
+
+    public async Task RunBacktestAsync(string strategyName, DateTime start, DateTime end, string symbol,
+        CancellationToken cancellationToken = default)
     {
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
-            var currentAssemblyLocation = typeof(LeanTradingEngineService).Assembly.Location;
+            var engineExePath = Path.Combine(@"D:\development\my_projects\em-trading-app\backend\EmTrading.EngineRunner\bin\Debug\net10.0", "EmTrading.EngineRunner.exe");
 
-            // Basic LEAN config
-            Config.Set("environment", "backtesting");
-            Config.Set("algorithm-type-name", strategyName);
-            Config.Set("algorithm-location", currentAssemblyLocation);
-            Config.Set("result-handler", typeof(WpfResultHandler).AssemblyQualifiedName);
-            Config.Set("data-folder", "C:\\TradingData");
-
-            // Pass dates into config (LEAN will pick them up)
-            Config.Set("start-date", start.ToString("yyyy-MM-dd"));
-            Config.Set("end-date", end.ToString("yyyy-MM-dd"));
-
-            // IMPORTANT: provide algorithm parameters so QCAlgorithm.GetParameter("symbol") returns the symbol
-            // You can pass multiple parameters as "k1=v1,k2=v2"
-            Config.Set("algorithm-parameters", $"symbol={symbol}");
-
-            bool liveMode = Config.GetBool("live-mode", false);
-
-            var composer = Composer.Instance;
-            var systemHandlers = LeanEngineSystemHandlers.FromConfiguration(composer);
-
-            // Ensure there is no real lean manager in this context
-            var leanManagerField = typeof(LeanEngineSystemHandlers)
-                .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .FirstOrDefault(f => typeof(ILeanManager).IsAssignableFrom(f.FieldType));
-
-            leanManagerField?.SetValue(systemHandlers, new NullLeanManager());
-
-            systemHandlers.Initialize();
-
-            var algorithmHandlers = LeanEngineAlgorithmHandlers.FromConfiguration(composer);
-
-            // Obtain job from the queue (existing flow) - fallback to assembly path if needed
-            var job = systemHandlers.JobQueue.NextJob(out var algorithmPath);
-
-            if (string.IsNullOrEmpty(algorithmPath) || !File.Exists(algorithmPath))
+            if (!File.Exists(engineExePath))
             {
-                algorithmPath = currentAssemblyLocation;
+                throw new FileNotFoundException($"Nie znaleziono pliku silnika: {engineExePath}");
             }
 
-            var algorithmManager = new AlgorithmManager(liveMode, job);
+            var args = $"\"{strategyName}\" \"{start:yyyy-MM-dd}\" \"{end:yyyy-MM-dd}\" \"{symbol}\"";
 
-            var engine = new QuantConnect.Lean.Engine.Engine(systemHandlers, algorithmHandlers, liveMode: false);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = engineExePath,
+                Arguments = args,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                // Jeśli nie chcesz na razie czytać logów w WPF, najlepiej ustawić na false, 
+                // co całkowicie eliminuje problem zakleszczenia bufora Windows!
+                RedirectStandardOutput = false, 
+                RedirectStandardError = false
+            };
 
-            engine.Run(
-                job,
-                algorithmManager,
-                algorithmPath,
-                WorkerThread.Instance
-            );
+            using var process = new Process { StartInfo = startInfo };
+
+            process.Start();
+            
+            await process.WaitForExitAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception($"Silnik zakończył pracę z błędem (Kod zakończenia: {process.ExitCode})");
+            }
+
+            var resultJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{strategyName}.json");
+            if (File.Exists(resultJsonPath))
+            {
+                string jsonContent = await File.ReadAllTextAsync(resultJsonPath, cancellationToken);
+            }
 
         }, cancellationToken);
     }
-
-    public event EventHandler<BacktestProgressEventArgs>? ProgressUpdated;
-    public event EventHandler<TradeExecutedEventArgs>? TradeExecuted;
 }
