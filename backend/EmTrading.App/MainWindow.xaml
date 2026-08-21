@@ -5,27 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EmTrading.App"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="450" Width="800"> <!-- BINDING TYTUŁU OKNA -->
+        Title="{Binding Title}" Height="450" Width="800">
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-        <!-- Wyświetlanie tekstu statusu -->
-        <!-- <TextBlock Text="{Binding StatusMessage}" -->
-        <!--            FontSize="20" -->
-        <!--            Margin="10" /> -->
-        <ComboBox x:Name="SymbolsComboBox" Width="150" Margin="0,0,0,10">
+        <ComboBox x:Name="SymbolsComboBox"
+                  Width="150"
+                  Margin="0,0,0,10"
+                  SelectedValuePath="Content">
             <ComboBoxItem Content="AAPL" IsSelected="True"/>
             <ComboBoxItem Content="AMZN"/>
             <ComboBoxItem Content="MMM"/>
             <ComboBoxItem Content="MSFT"/>
         </ComboBox>
-        <!-- Podpięcie przycisku pod komendę z ViewModelu -->
+
         <Button Content="Pobierz dane"
-                Command="{Binding DownloadDataAsyncCommand}"
-                CommandParameter="{Binding SelectedItem, ElementName=SymbolsComboBox}"
+                Command="{Binding DownloadDataCommand}"                                
+                CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}" 
                 Padding="10,5" />
 
         <Button Content="Backtest"
-                Command="{Binding ExecuteBacktestAsyncCommand}"
-                Padding="10,5 " />
+                Command="{Binding ExecuteBacktestCommand}"
+                CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}" 
+                Padding="10,5" />
     </StackPanel>
 </Window>

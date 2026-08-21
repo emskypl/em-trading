@@ -16,9 +16,9 @@ public partial class MainViewModel : ObservableObject
     }
     
     [RelayCommand]
-    private async Task ExecuteBacktestAsync()
+    private async Task ExecuteBacktestAsync(string symbol)
     {
-        await _tradingEngineService.RunBacktestAsync("SmaCrossStrategy", DateTime.Now.AddYears(-1), DateTime.Now);
+        await _tradingEngineService.RunBacktestAsync("SmaCrossStrategy", DateTime.Now.AddYears(-1), DateTime.Now, symbol);
     }
     
     [ObservableProperty]

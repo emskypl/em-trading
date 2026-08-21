@@ -29,20 +29,26 @@ public class SmaCrossStrategy : QCAlgorithm
         SetStartDate(2025, 1, 4);
         SetEndDate(2026, 12, 14);
         SetCash(1000000);
-        SetHoldings("aapl", 0.1);
-        // Subskrypcja bazy (minutowej)
-        _symbol = AddEquity("aapl", Resolution.Minute).Symbol;
 
-        // 1. Inicjalizacja RollingWindow dla 200 dni (aby sprawdzić trend)
+        // Read symbol passed into the algorithm parameters (fallback to AAPL)
+        var symbolParam = GetParameter("symbol") ?? "AAPL";
+        var ticker = symbolParam.Trim().ToUpperInvariant();
+
+        // Subscribe to the requested equity FIRST
+        _symbol = AddEquity(ticker, Resolution.Minute).Symbol;
+
+        // Now it's safe to set holdings for that Symbol
+        SetHoldings(_symbol, 0.1m);
+
+        // RollingWindow for 200 daily closes
         _dailyCloses = new RollingWindow<decimal>(201);
-        
         var dailyConsolidator = new TradeBarConsolidator(TimeSpan.FromDays(1));
         dailyConsolidator.DataConsolidated += (s, bar) => _dailyCloses.Add(bar.Close);
         SubscriptionManager.AddConsolidator(_symbol, dailyConsolidator);
 
-        // 2. Inicjalizacja wskaźników i konsolidatora 15m
+        // 15-minute consolidator (use the period you actually want)
         var cons15m = new TradeBarConsolidator(TimeSpan.FromMinutes(1));
-        
+
         _emaFast = new ExponentialMovingAverage(26);
         _emaSlow = new ExponentialMovingAverage(130);
         _adx = new AverageDirectionalIndex(14);
@@ -53,11 +59,10 @@ public class SmaCrossStrategy : QCAlgorithm
         RegisterIndicator(_symbol, _adx, cons15m);
         RegisterIndicator(_symbol, _atr, cons15m);
 
-        // Podpięcie logiki decyzyjnej po zamknięciu każdej świecy 15m
         cons15m.DataConsolidated += On15mBar;
         SubscriptionManager.AddConsolidator(_symbol, cons15m);
 
-        SetWarmUp(201, Resolution.Daily); // Rozgrzanie algorytmu (201 dni)
+        SetWarmUp(201, Resolution.Daily);
     }
 
     private void On15mBar(object sender, TradeBar bar)
