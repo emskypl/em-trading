@@ -5,6 +5,7 @@ using QuantConnect.Lean.Engine.Server;
 using QuantConnect.Lean.Engine;
 using QuantConnect.Util;
 using System.Reflection;
+using QuantConnect.Algorithm.CSharp;
 
 namespace EmTrading.Infrastructure.Engine;
 

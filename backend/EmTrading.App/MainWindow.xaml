@@ -9,17 +9,23 @@
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
         <!-- Wyświetlanie tekstu statusu -->
-        <TextBlock Text="{Binding StatusMessage}"
-                   FontSize="20"
-                   Margin="10" />
-
+        <!-- <TextBlock Text="{Binding StatusMessage}" -->
+        <!--            FontSize="20" -->
+        <!--            Margin="10" /> -->
+        <ComboBox x:Name="SymbolsComboBox" Width="150" Margin="0,0,0,10">
+            <ComboBoxItem Content="AAPL" IsSelected="True"/>
+            <ComboBoxItem Content="AMZN"/>
+            <ComboBoxItem Content="MMM"/>
+            <ComboBoxItem Content="MSFT"/>
+        </ComboBox>
         <!-- Podpięcie przycisku pod komendę z ViewModelu -->
-        <Button Content="Odśwież Dane"
-                Command="{Binding RefreshDataCommand}"
+        <Button Content="Pobierz dane"
+                Command="{Binding DownloadDataAsyncCommand}"
+                CommandParameter="{Binding SelectedItem, ElementName=SymbolsComboBox}"
                 Padding="10,5" />
 
         <Button Content="Backtest"
-                Command="{Binding StartBacktestCommand}"
+                Command="{Binding ExecuteBacktestAsyncCommand}"
                 Padding="10,5 " />
     </StackPanel>
 </Window>
