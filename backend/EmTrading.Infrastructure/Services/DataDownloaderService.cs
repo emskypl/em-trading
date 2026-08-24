@@ -76,7 +76,8 @@ public class DataDownloaderService
     public async Task DownloadMinuteDataAsync(
         string symbol, 
         DateTime startDate, 
-        DateTime endDate, 
+        DateTime endDate,
+        IProgress<int> progress,
         CancellationToken cancellationToken = default)
     {
         symbol = symbol.Trim().ToUpperInvariant();

@@ -9,15 +9,13 @@
         mc:Ignorable="d"
         Title="{Binding Title}" Height="450" Width="800">
 
-
     <Grid Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" /> <!-- Przyciski i ComboBox -->
-            <RowDefinition Height="Auto" /> <!-- Kafelki ze statystykami -->
-            <RowDefinition Height="*" />    <!-- Wykres -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />  
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <!-- Sekcja sterowania (Twoja obecna) -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
             <ComboBox x:Name="SymbolsComboBox"
                       Width="150"
@@ -86,18 +84,42 @@
                 <lvc:CartesianChart.AxisX>
                     <lvc:Axis Title="Data transakcji" Labels="{Binding ChartLabels}">
                         <lvc:Axis.Separator>
-                            <lvc:Separator Step="50" /> <!-- Wyświetl datę co 50 punktów, żeby osie były czytelne -->
+                            <lvc:Separator Step="50" />
                         </lvc:Axis.Separator>
                     </lvc:Axis>
                 </lvc:CartesianChart.AxisX>
                 <lvc:CartesianChart.AxisY>
                     <lvc:Axis Title="Wartość portfela ($)">
                         <lvc:Axis.LabelFormatter>
-                            <Binding Source="{x:Static System:String.Empty}" /> <!-- Proste formatowanie osi Y -->
+                            <Binding Source="{x:Static System:String.Empty}" />
                         </lvc:Axis.LabelFormatter>
                     </lvc:Axis>
                 </lvc:CartesianChart.AxisY>
             </lvc:CartesianChart>
         </Border>
+        <StatusBar Grid.Row="3" Grid.Column="0">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+
+            <!-- Section 1 (Left 50%): Progress Bar -->
+            <StatusBarItem Grid.Column="0" HorizontalContentAlignment="Stretch">
+                <ProgressBar Value="{Binding CurrentProgress, Mode=OneWay}" 
+                             Visibility="{Binding ProgressVisibility}" 
+                             Height="16" />
+            </StatusBarItem>
+
+            <!-- Section 2 (Right 50%): Text / Status Message -->
+            <StatusBarItem Grid.Column="1">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

@@ -1,9 +1,8 @@
 ﻿using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
 using EmTrading.Application;
 using EmTrading.Infrastructure;
 using EmTrading.Presentation;
-using EmTrading.Wpf.Controls;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EmTrading.App;
 
@@ -12,32 +11,24 @@ namespace EmTrading.App;
 /// </summary>
 public partial class App : System.Windows.Application
 {
-    public static IServiceProvider ServiceProvider { get; private set; } = null;
+    private static IServiceProvider ServiceProvider { get; set; } = null;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         
         var services = new ServiceCollection();
-
         services.AddApplicationServices();
         services.AddInfrastructureServices();
         
-        
-        // // 2. Rejestracja ViewModels z warstwy Prezentacji
         services.AddTransient<MainViewModel>();
-        
-        // 3. Rejestracja Widoków z warstwy WPF (Główne okno)
         services.AddSingleton<MainWindow>(provider => new MainWindow
         {
-            // Automatyczne wstrzykiwanie ViewModelu do DataContext okna
             DataContext = provider.GetRequiredService<MainViewModel>()
         });
-
-        // Budowanie kontenera
+        
         ServiceProvider = services.BuildServiceProvider();
-
-        // Ręczne pobranie głównego okna z DI i jego wyświetlenie
+        
         var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
     }

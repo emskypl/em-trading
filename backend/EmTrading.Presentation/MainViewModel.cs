@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EmTrading.Application.Interfaces;
@@ -13,15 +14,24 @@ namespace EmTrading.Presentation;
 public partial class MainViewModel : ObservableObject
 {
     private readonly ITradingEngineService _tradingEngineService;
+    
+    [ObservableProperty] 
+    private int _currentProgress;
+    
+    [ObservableProperty]
+    private bool _progressVisible;
+    
+    [ObservableProperty] 
+    private string _statusMessage = "Ready";
 
-    // 1. Właściwości tekstowe dla widoku WPF
+    // Backtest results
     [ObservableProperty] private string _compoundingReturn = "0%";
     [ObservableProperty] private string _maxDrawdown = "0%";
     [ObservableProperty] private string _winRate = "0%";
     [ObservableProperty] private string _sharpeRatio = "0";
     [ObservableProperty] private string _totalTrades = "0";
-
-    // 2. Właściwości dla wykresu LiveCharts
+    
+    // Livechart
     [ObservableProperty] private SeriesCollection _equitySeriesCollection;
     [ObservableProperty] private List<string> _chartLabels;
     [ObservableProperty] private string _title = string.Empty;
@@ -35,53 +45,88 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task ExecuteBacktestAsync(string symbol)
     {
-        // debug/log to confirm symbol coming from UI
-        System.Diagnostics.Debug.WriteLine($"ExecuteBacktestAsync symbol='{symbol}'");
-        await _tradingEngineService.RunBacktestAsync("SmaCrossStrategy", DateTime.Now.AddYears(-1), DateTime.Now,
-            symbol);
-        System.Diagnostics.Debug.WriteLine($"ExecuteBacktestAsync symbol='{symbol}'");
+        ProgressVisible = true;
+        CurrentProgress = 0;
+        StatusMessage = $"Running backtest for {symbol}...";
+        
+        var progress = new Progress<int>(percent => CurrentProgress = percent);
+
+        try
+        {
+            // Pass 'progress' (IProgress<int>) to your engine service method
+            await _tradingEngineService.RunBacktestAsync(
+                "SmaCrossStrategy", 
+                DateTime.Now.AddYears(-1), 
+                DateTime.Now, 
+                symbol,
+                progress);
+            
+            CurrentProgress = 100;
+            StatusMessage = "Backtest completed.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Backtest failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private async Task DownloadDataAsync(string symbol)
     {
-        var downloader = new DataDownloaderService("PKPS4AAP4UX4NVC56SVANZMEOT",
-            "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq", "C:\\TradingData");
-        await downloader.EnsureSystemFilesExistAsync();
-        await downloader.DownloadMinuteDataAsync(symbol, DateTime.Now.AddYears(-1), DateTime.Now);
-        // await downloader.DownloadDailyDataAsync("aapl");
-        // await LeanDataConverterService.ConvertDukascopyToLeanMinute("MMMUSUSD",@"D:\QuantDataManager125\export\2026.8.21MMMUSUSD-M1-No Session.csv");
+        CurrentProgress = 0;
+        StatusMessage = $"Downloading data for {symbol}...";
+
+        var progress = new Progress<int>(percent => CurrentProgress = percent);
+
+        try
+        {
+            var downloader = new DataDownloaderService(
+                "PKPS4AAP4UX4NVC56SVANZMEOT",
+                "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq", 
+                @"C:\TradingData");
+
+            await downloader.EnsureSystemFilesExistAsync();
+
+            // Pass 'progress' (IProgress<int>) to your downloader service method
+            await downloader.DownloadMinuteDataAsync(
+                symbol, 
+                DateTime.Now.AddYears(-1), 
+                DateTime.Now, 
+                progress);
+
+            CurrentProgress = 100;
+            StatusMessage = "Download completed.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Download failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]
-    private void LoadBacktestResults()
+    private async Task LoadBacktestResultsAsync()
     {
+        CurrentProgress = 0;
         // Podaj realną ścieżkę, gdzie Twój DownloadData/Lean Engine zapisuje plik JSON
         string filePath = @"D:\development\my_projects\em-trading-app\backend\EmTrading.App\bin\Debug\net10.0-windows\SmaCrossStrategy.json";
 
         if (!File.Exists(filePath)) return;
 
-        string jsonContent = File.ReadAllText(filePath);
+        string jsonContent = await File.ReadAllTextAsync(filePath);
         var result = JsonConvert.DeserializeObject<LeanResult>(jsonContent);
 
         if (result == null) return;
 
-        // --- A. ŁADOWANIE STATYSTYK TEKSTOWYCH ---
-        if (result.Statistics != null)
-        {
-            CompoundingReturn = result.Statistics.GetValueOrDefault("Compounding Annual Return", "0%");
-            MaxDrawdown = result.Statistics.GetValueOrDefault("Drawdown", "0%");
-            WinRate = result.Statistics.GetValueOrDefault("Win Rate", "0%");
-            SharpeRatio = result.Statistics.GetValueOrDefault("Sharpe Ratio", "0");
-            TotalTrades = result.Statistics.GetValueOrDefault("Total Orders", "0");
-        }
+        CompoundingReturn = result.Statistics.GetValueOrDefault("Compounding Annual Return", "0%");
+        MaxDrawdown = result.Statistics.GetValueOrDefault("Drawdown", "0%");
+        WinRate = result.Statistics.GetValueOrDefault("Win Rate", "0%");
+        SharpeRatio = result.Statistics.GetValueOrDefault("Sharpe Ratio", "0");
+        TotalTrades = result.Statistics.GetValueOrDefault("Total Orders", "0");
 
-        // --- B. ŁADOWANIE I KONWERSJA DANYCH DO WYKRESU ---
-        // Wyciągamy wykres "Strategy Equity" i serię "Equity"
-        if (result.Charts != null && result.Charts.ContainsKey("Strategy Equity"))
+        if (result.Charts.ContainsKey("Strategy Equity"))
         {
             var equityChart = result.Charts["Strategy Equity"];
-            if (equityChart.Series != null && equityChart.Series.ContainsKey("Equity"))
+            if (equityChart.Series.ContainsKey("Equity"))
             {
                 var rawValues = equityChart.Series["Equity"].Values;
 
@@ -96,7 +141,7 @@ public partial class MainViewModel : ObservableObject
                     }
                 }
 
-                // Przygotowanie danych dla LiveCharts
+                CurrentProgress = 50;
                 var chartValues = new ChartValues<double>(points.Select(p => p.Value));
 
                 EquitySeriesCollection = new SeriesCollection
@@ -105,7 +150,7 @@ public partial class MainViewModel : ObservableObject
                     {
                         Title = "Kapitał ($)",
                         Values = chartValues,
-                        PointGeometry = null, // wyłącza kropki na linii (zwiększa wydajność)
+                        PointGeometry = null,
                         StrokeThickness = 2
                     }
                 };
@@ -114,5 +159,7 @@ public partial class MainViewModel : ObservableObject
                 ChartLabels = points.Select(p => p.DateTime.ToString("yyyy-MM-dd")).ToList();
             }
         }
+        CurrentProgress = 100;
+        StatusMessage = "Results loaded.";
     }
 }
