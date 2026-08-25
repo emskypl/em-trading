@@ -2,6 +2,9 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using Accord;
+using EmTrading.Domain.Alpaca;
+using EmTrading.Infrastructure.Helpers;
 
 namespace EmTrading.Infrastructure.Services;
 
@@ -17,10 +20,16 @@ public class DataDownloaderService
     /// Wprowadź swoje klucze API ze strony Alpaca (dostępne za darmo po darmowej rejestracji).
     /// </summary>
     public DataDownloaderService(
+        string dataFolderPath,
         string apiKey = "TWOJ_ALPACA_API_KEY", 
-        string apiSecret = "TWOJ_ALPACA_API_SECRET", 
-        string dataFolderPath = "C:\\TradingData")
+        string apiSecret = "TWOJ_ALPACA_API_SECRET") 
     {
+        if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
+            throw new ArgumentException("API key or secret is missing");
+
+        if (string.IsNullOrEmpty(dataFolderPath))
+            dataFolderPath = PathHelper.GetSharedDataFolderPath();
+        
         _apiKey = apiKey;
         _apiSecret = apiSecret;
         _dataFolderPath = dataFolderPath;
@@ -30,51 +39,16 @@ public class DataDownloaderService
         _httpClient.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", _apiSecret);
     }
     
-    public async Task DownloadDailyDataAsync(
-        string symbol, 
-        DateTime startDate, 
-        DateTime endDate, 
-        CancellationToken cancellationToken = default)
-    {
-        symbol = symbol.Trim().ToUpperInvariant();
-        var bars = await FetchBarsFromAlpacaAsync(symbol, "1Day", startDate, endDate, cancellationToken);
-
-        if (bars.Count == 0)
-            throw new Exception($"Brak danych dziennych dla symbolu: {symbol}");
-
-        var leanCsvBuilder = new StringBuilder();
-
-        foreach (var bar in bars.OrderBy(b => b.Timestamp))
-        {
-            var estTime = ConvertToEasternTime(bar.Timestamp);
-            var dateStr = estTime.ToString("yyyyMMdd 00:00", CultureInfo.InvariantCulture);
-
-            var row = $"{dateStr}," +
-                      $"{bar.Open.ToString(CultureInfo.InvariantCulture)}," +
-                      $"{bar.High.ToString(CultureInfo.InvariantCulture)}," +
-                      $"{bar.Low.ToString(CultureInfo.InvariantCulture)}," +
-                      $"{bar.Close.ToString(CultureInfo.InvariantCulture)}," +
-                      $"{bar.Volume}";
-
-            leanCsvBuilder.AppendLine(row);
-        }
-
-        var destinationFolder = Path.Combine(_dataFolderPath, "equity", "usa", "daily");
-        Directory.CreateDirectory(destinationFolder);
-
-        var filePath = Path.Combine(destinationFolder, $"{symbol.ToLowerInvariant()}.csv");
-        await File.WriteAllTextAsync(filePath, leanCsvBuilder.ToString(), cancellationToken);
-    }
-
-    public async Task DownloadMinuteDataAsync(
+    public async Task DownloadDataAsync(
         string symbol, 
         DateTime startDate, 
         DateTime endDate,
         IProgress<int> progress,
+        AlpacaTimeframe timeFrame,
         CancellationToken cancellationToken = default)
     {
         symbol = symbol.Trim().ToUpperInvariant();
-        var bars = await FetchBarsFromAlpacaAsync(symbol, "1Min", startDate, endDate, cancellationToken);
+        var bars = await FetchBarsFromAlpacaAsync(symbol, timeFrame.GetDescription(), startDate, endDate, cancellationToken);
 
         if (bars.Count == 0)
             throw new Exception($"Brak danych minutowych dla symbolu: {symbol}");

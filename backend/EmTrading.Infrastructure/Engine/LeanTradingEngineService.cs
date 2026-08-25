@@ -1,7 +1,7 @@
 ﻿using EmTrading.Application.Events;
 using EmTrading.Application.Interfaces;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
+using EmTrading.Infrastructure.Helpers;
 
 namespace EmTrading.Infrastructure.Engine;
 
@@ -10,10 +10,15 @@ public class LeanTradingEngineService : ITradingEngineService
     public event EventHandler<BacktestProgressEventArgs>? ProgressUpdated;
     public event EventHandler<TradeExecutedEventArgs>? TradeExecuted;
 
-    public async Task RunBacktestAsync(string strategyName, DateTime start, DateTime end, string symbol,
+    public async Task RunBacktestAsync(string strategyName,
+        DateTime start,
+        DateTime end,
+        string symbol,
         IProgress<int> progress,
         CancellationToken cancellationToken = default)
     {
+        if (strategyName == null) throw new ArgumentNullException(nameof(strategyName));
+
         await Task.Run(async () =>
         {
             var engineExePath = GetEngineExecutablePath();
@@ -33,8 +38,8 @@ public class LeanTradingEngineService : ITradingEngineService
                 CreateNoWindow = true,
                 // Jeśli nie chcesz na razie czytać logów w WPF, najlepiej ustawić na false, 
                 // co całkowicie eliminuje problem zakleszczenia bufora Windows!
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
+                RedirectStandardOutput = false,
+                RedirectStandardError = false
             };
 
             using var process = new Process { StartInfo = startInfo };
@@ -50,11 +55,12 @@ public class LeanTradingEngineService : ITradingEngineService
 
             progress.Report(30);
 
-            var resultJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{strategyName}.json");
-            if (File.Exists(resultJsonPath))
-            {
-                string jsonContent = await File.ReadAllTextAsync(resultJsonPath, cancellationToken);
-            }
+            Directory.CreateDirectory(Path.Combine(PathHelper.GetSharedDataFolderPath(), "results"));
+            var resultJsonPath = Path.Combine(Path.Combine(PathHelper.GetSharedDataFolderPath(), "results"),
+                $"{strategyName}.json");
+
+            string jsonContent = await File.ReadAllTextAsync(resultJsonPath, cancellationToken);
+
 
             progress.Report(100);
         }, cancellationToken);
@@ -72,7 +78,7 @@ public class LeanTradingEngineService : ITradingEngineService
 #else
         const string configuration = "Release";
 #endif
-        
+
         var relativeDevPath = Path.Combine(
             baseDir,
             "..", "..", "..", "..",

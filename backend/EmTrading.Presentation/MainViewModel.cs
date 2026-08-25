@@ -2,7 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EmTrading.Application.Interfaces;
+using EmTrading.Domain.Alpaca;
 using EmTrading.Domain.Lean;
+using EmTrading.Infrastructure.Helpers;
 using EmTrading.Infrastructure.Services;
 using LiveCharts;
 using LiveCharts.Wpf;
@@ -79,18 +81,18 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var downloader = new DataDownloaderService(
+                PathHelper.GetSharedDataFolderPath(),
                 "PKPS4AAP4UX4NVC56SVANZMEOT",
-                "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq", 
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TradingData"));
-
+                "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq");
+            
             await downloader.EnsureSystemFilesExistAsync();
 
-            // Pass 'progress' (IProgress<int>) to your downloader service method
-            await downloader.DownloadMinuteDataAsync(
-                symbol, 
-                DateTime.Now.AddYears(-1), 
-                DateTime.Now, 
-                progress);
+            await downloader.DownloadDataAsync(
+                symbol,
+                DateTime.Now.AddYears(-1),
+                DateTime.Now,
+                progress,
+                AlpacaTimeframe.Minute1);
 
             CurrentProgress = 100;
             StatusMessage = "Download completed.";

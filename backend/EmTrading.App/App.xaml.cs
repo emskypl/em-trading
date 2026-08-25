@@ -21,8 +21,10 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
         
+        //Lean folders
         string dataFolderPath = PathHelper.GetSharedDataFolderPath();
         LeanDataFolderInitializer.Initialize(dataFolderPath);
+        
         
         var services = new ServiceCollection();
         services.AddApplicationServices();
