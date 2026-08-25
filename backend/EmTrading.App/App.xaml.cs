@@ -1,6 +1,10 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Windows;
 using EmTrading.Application;
 using EmTrading.Infrastructure;
+using EmTrading.Infrastructure.Helpers;
+using EmTrading.Infrastructure.Services;
 using EmTrading.Presentation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +20,9 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        
+        string dataFolderPath = PathHelper.GetSharedDataFolderPath();
+        LeanDataFolderInitializer.Initialize(dataFolderPath);
         
         var services = new ServiceCollection();
         services.AddApplicationServices();

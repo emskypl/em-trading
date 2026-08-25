@@ -10,12 +10,13 @@ public class LeanTradingEngineService : ITradingEngineService
     public event EventHandler<BacktestProgressEventArgs>? ProgressUpdated;
     public event EventHandler<TradeExecutedEventArgs>? TradeExecuted;
 
-    public async Task RunBacktestAsync(string strategyName, DateTime start, DateTime end, string symbol, IProgress<int> progress,
+    public async Task RunBacktestAsync(string strategyName, DateTime start, DateTime end, string symbol,
+        IProgress<int> progress,
         CancellationToken cancellationToken = default)
     {
         await Task.Run(async () =>
         {
-            var engineExePath = Path.Combine(@"D:\development\my_projects\em-trading-app\backend\EmTrading.EngineRunner\bin\Debug\net10.0", "EmTrading.EngineRunner.exe");
+            var engineExePath = GetEngineExecutablePath();
             progress.Report(1);
             if (!File.Exists(engineExePath))
             {
@@ -32,7 +33,7 @@ public class LeanTradingEngineService : ITradingEngineService
                 CreateNoWindow = true,
                 // Jeśli nie chcesz na razie czytać logów w WPF, najlepiej ustawić na false, 
                 // co całkowicie eliminuje problem zakleszczenia bufora Windows!
-                RedirectStandardOutput = true, 
+                RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
 
@@ -46,6 +47,7 @@ public class LeanTradingEngineService : ITradingEngineService
             {
                 throw new Exception($"Silnik zakończył pracę z błędem (Kod zakończenia: {process.ExitCode})");
             }
+
             progress.Report(30);
 
             var resultJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{strategyName}.json");
@@ -53,8 +55,31 @@ public class LeanTradingEngineService : ITradingEngineService
             {
                 string jsonContent = await File.ReadAllTextAsync(resultJsonPath, cancellationToken);
             }
-            progress.Report(100);
 
+            progress.Report(100);
         }, cancellationToken);
+    }
+
+    private static string GetEngineExecutablePath()
+    {
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+        var localPath = Path.Combine(baseDir, "EmTrading.EngineRunner.exe");
+        if (File.Exists(localPath)) return localPath;
+
+#if DEBUG
+        const string configuration = "Debug";
+#else
+        const string configuration = "Release";
+#endif
+        
+        var relativeDevPath = Path.Combine(
+            baseDir,
+            "..", "..", "..", "..",
+            "EmTrading.EngineRunner", "bin", configuration, "net10.0",
+            "EmTrading.EngineRunner.exe"
+        );
+
+        return Path.GetFullPath(relativeDevPath);
     }
 }

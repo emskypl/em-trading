@@ -29,10 +29,7 @@ public class DataDownloaderService
         _httpClient.DefaultRequestHeaders.Add("APCA-API-KEY-ID", _apiKey);
         _httpClient.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", _apiSecret);
     }
-
-    /// <summary>
-    /// Pobiera dane DZIENNE (Daily) z Alpaca i zapisuje w formacie CSV dla Lean
-    /// </summary>
+    
     public async Task DownloadDailyDataAsync(
         string symbol, 
         DateTime startDate, 
@@ -49,7 +46,6 @@ public class DataDownloaderService
 
         foreach (var bar in bars.OrderBy(b => b.Timestamp))
         {
-            // Przeliczenie na czas nowojorski (EST/EDT) - Lean wymaga czasu rynkowego
             var estTime = ConvertToEasternTime(bar.Timestamp);
             var dateStr = estTime.ToString("yyyyMMdd 00:00", CultureInfo.InvariantCulture);
 
@@ -70,9 +66,6 @@ public class DataDownloaderService
         await File.WriteAllTextAsync(filePath, leanCsvBuilder.ToString(), cancellationToken);
     }
 
-    /// <summary>
-    /// Pobiera dane MINUTOWE (1Min) z Alpaca i zapisuje w formacie paczek ZIP dla Lean
-    /// </summary>
     public async Task DownloadMinuteDataAsync(
         string symbol, 
         DateTime startDate, 
@@ -89,8 +82,7 @@ public class DataDownloaderService
         var symbolLower = symbol.ToLowerInvariant();
         var destinationFolder = Path.Combine(_dataFolderPath, "equity", "usa", "minute", symbolLower);
         Directory.CreateDirectory(destinationFolder);
-
-        // Grupowanie świeczek według DNI w strefie czasowej Nowego Jorku (US Eastern)
+        
         var groupedByDate = bars
             .Select(b => new
             {
@@ -117,7 +109,6 @@ public class DataDownloaderService
             {
                 var msSinceMidnight = (long)item.EstTime.TimeOfDay.TotalMilliseconds;
                 
-                // Lean przelicza ceny w plikach minutowych jako liczby całkowite (* 10 000)
                 var open = (long)(item.Bar.Open * 10000m);
                 var high = (long)(item.Bar.High * 10000m);
                 var low = (long)(item.Bar.Low * 10000m);
@@ -153,7 +144,7 @@ public class DataDownloaderService
                       $"&start={startIso}" +
                       $"&end={endIso}" +
                       $"&limit=1000" +
-                      $"&feed=iex"; // 'iex' jest bezpłatnym źródłem danych Alpaca
+                      $"&feed=iex"; 
 
             if (!string.IsNullOrEmpty(pageToken))
             {
@@ -190,7 +181,7 @@ public class DataDownloaderService
                 : null;
 
         } while (!string.IsNullOrEmpty(pageToken));
-        Console.WriteLine($"Pobierano {allBars.Count} dni danych dla symbolu: {symbol}");
+        Console.WriteLine($"Pobrano {allBars.Count} dni danych dla symbolu: {symbol}");
         return allBars;
     }
 

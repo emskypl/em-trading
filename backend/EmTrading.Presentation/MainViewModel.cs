@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.IO;
+﻿using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EmTrading.Application.Interfaces;
@@ -53,7 +52,6 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            // Pass 'progress' (IProgress<int>) to your engine service method
             await _tradingEngineService.RunBacktestAsync(
                 "SmaCrossStrategy", 
                 DateTime.Now.AddYears(-1), 
@@ -83,7 +81,7 @@ public partial class MainViewModel : ObservableObject
             var downloader = new DataDownloaderService(
                 "PKPS4AAP4UX4NVC56SVANZMEOT",
                 "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq", 
-                @"C:\TradingData");
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TradingData"));
 
             await downloader.EnsureSystemFilesExistAsync();
 
@@ -107,7 +105,6 @@ public partial class MainViewModel : ObservableObject
     private async Task LoadBacktestResultsAsync()
     {
         CurrentProgress = 0;
-        // Podaj realną ścieżkę, gdzie Twój DownloadData/Lean Engine zapisuje plik JSON
         string filePath = @"D:\development\my_projects\em-trading-app\backend\EmTrading.App\bin\Debug\net10.0-windows\SmaCrossStrategy.json";
 
         if (!File.Exists(filePath)) return;
