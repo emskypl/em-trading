@@ -104,13 +104,15 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task LoadBacktestResultsAsync()
+    private async Task LoadBacktestResultsAsync(string symbol)
     {
         CurrentProgress = 0;
-        string filePath = @"D:\development\my_projects\em-trading-app\backend\EmTrading.App\bin\Debug\net10.0-windows\SmaCrossStrategy.json";
+        string filePath = Path.Combine(PathHelper.GetResultsFolderPath(), symbol, $"2025-08-25_{symbol}_SmaCrossStrategy.json");
 
         if (!File.Exists(filePath)) return;
-
+        
+        
+        
         string jsonContent = await File.ReadAllTextAsync(filePath);
         var result = JsonConvert.DeserializeObject<LeanResult>(jsonContent);
 

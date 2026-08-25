@@ -27,14 +27,16 @@ namespace EmTrading.EngineRunner
             {
                 var currentAssemblyLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EmTrading.Infrastructure.dll");
                 
+                var dataFolderPath = InitializeDataAndResultFolders(symbol, out var resultsFolderPath, out var resultsDestinationFolderPath);
+
                 Config.Set("environment", "backtesting");
                 Config.Set("algorithm-type-name", strategyName);
                 Config.Set("algorithm-location", currentAssemblyLocation);
-                Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.BacktestingResultHandler");
-
-                var dataFolderPath = PathHelper.GetSharedDataFolderPath();
-                Directory.CreateDirectory(dataFolderPath);
                 Config.Set("data-folder", dataFolderPath);
+                
+                Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.BacktestingResultHandler");
+                Config.Set("results-destination-folder", resultsDestinationFolderPath);
+
                 Config.Set("start-date", start);
                 Config.Set("end-date", end);
                 Config.Set("algorithm-parameters", $"symbol={symbol}");
@@ -59,6 +61,12 @@ namespace EmTrading.EngineRunner
                 
                 if (job != null)
                 {
+                    // Ustawienie BacktestId pozwala wygenerować plik <strategyName>.json w result-destination-folder
+                    if (job is QuantConnect.Packets.BacktestNodePacket backtestJob)
+                    {
+                        backtestJob.BacktestId = start + "_" + symbol + "_" + strategyName;
+                    }
+
                     try
                     {
                         var prop = job.GetType().GetProperty("Parameters")
@@ -107,7 +115,7 @@ namespace EmTrading.EngineRunner
                     workerThread
                 );
 
-                Console.WriteLine("BACKTEST ZAKONCZONY");
+                Console.WriteLine($"BACKTEST ZAKONCZONY. Plik JSON zapisany w: {Path.Combine(resultsFolderPath, strategyName + ".json")}");
                 Environment.Exit(0);
             }
             catch (Exception ex)
@@ -118,17 +126,16 @@ namespace EmTrading.EngineRunner
             }
         }
 
-        private static string GetDataFolderPath(string dataFolderPath, string appPath)
+        private static string InitializeDataAndResultFolders(string symbol, out string resultsFolderPath,
+            out string resultsDestinationFolderPath)
         {
-            if (!Directory.Exists(dataFolderPath))
-            {
-                var devDataPath = Path.GetFullPath(Path.Combine(appPath, @"..\..\..\..\TradingData"));
-                if (Directory.Exists(devDataPath))
-                {
-                    dataFolderPath = devDataPath;
-                }
-            }
-
+            var dataFolderPath = PathHelper.GetSharedDataFolderPath();
+            Directory.CreateDirectory(dataFolderPath);
+            var baseDirectory = Path.GetDirectoryName(dataFolderPath) ?? AppDomain.CurrentDomain.BaseDirectory;
+            resultsFolderPath = Path.Combine(baseDirectory, "Results");
+            Directory.CreateDirectory(resultsFolderPath);
+            resultsDestinationFolderPath = Path.Combine(resultsFolderPath, symbol);
+            Directory.CreateDirectory(resultsDestinationFolderPath);
             return dataFolderPath;
         }
     }

@@ -38,6 +38,7 @@
                     Padding="10,5" />
             <Button Content="Wczytaj Wyniki" 
                     Command="{Binding LoadBacktestResultsCommand}" 
+                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
                     Padding="10,5"/>
         </StackPanel>
         

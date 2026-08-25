@@ -41,27 +41,20 @@ public class LeanTradingEngineService : ITradingEngineService
                 RedirectStandardOutput = false,
                 RedirectStandardError = false
             };
-
-            using var process = new Process { StartInfo = startInfo };
-
-            process.Start();
             progress.Report(10);
+
+            using var process = new Process();
+            process.StartInfo = startInfo;
+            process.Start();
+            
+            progress.Report(30);
             await process.WaitForExitAsync(cancellationToken);
 
             if (process.ExitCode != 0)
             {
                 throw new Exception($"Silnik zakończył pracę z błędem (Kod zakończenia: {process.ExitCode})");
             }
-
-            progress.Report(30);
-
-            Directory.CreateDirectory(Path.Combine(PathHelper.GetSharedDataFolderPath(), "results"));
-            var resultJsonPath = Path.Combine(Path.Combine(PathHelper.GetSharedDataFolderPath(), "results"),
-                $"{strategyName}.json");
-
-            string jsonContent = await File.ReadAllTextAsync(resultJsonPath, cancellationToken);
-
-
+            
             progress.Report(100);
         }, cancellationToken);
     }
