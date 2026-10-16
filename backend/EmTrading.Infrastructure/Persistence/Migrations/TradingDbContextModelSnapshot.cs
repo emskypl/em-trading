@@ -99,6 +99,36 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
 
                     b.ToTable("BacktestRuns", (string)null);
                 });
+
+            modelBuilder.Entity("EmTrading.Domain.MarketData.MarketDataSet", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Coverage")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastDownloadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Timeframe")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Symbol");
+
+                    b.ToTable("MarketDataSets", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }

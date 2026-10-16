@@ -1,4 +1,5 @@
 using EmTrading.Domain.Backtesting;
+using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,8 @@ namespace EmTrading.Infrastructure.Persistence;
 internal sealed class TradingDbContext(DbContextOptions<TradingDbContext> options) : DbContext(options)
 {
     public DbSet<BacktestRun> BacktestRuns => Set<BacktestRun>();
+
+    public DbSet<MarketDataSet> MarketDataSets => Set<MarketDataSet>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TradingDbContext).Assembly);
