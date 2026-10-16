@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EmTrading.Application.Abstractions.Jobs;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Backtesting;
@@ -8,7 +9,6 @@ using EmTrading.Application.Backtesting.GetBacktestHistory;
 using EmTrading.Application.Backtesting.GetBacktestReport;
 using EmTrading.Application.Backtesting.GetLatestBacktestReport;
 using EmTrading.Application.Backtesting.RunBacktest;
-using EmTrading.Application.MarketData.DownloadMarketData;
 using EmTrading.Domain.MarketData;
 using LiveCharts;
 using LiveCharts.Wpf;
@@ -21,16 +21,24 @@ public partial class MainViewModel : ObservableObject
     private const string DefaultStrategy = "SmaCrossStrategy";
 
     private readonly IDispatcher _dispatcher;
+    private readonly IJobQueue _jobQueue;
+    private readonly IJobMonitor _jobMonitor;
     private readonly ILogger<MainViewModel> _logger;
+
+    // Captured on the UI thread; background notifications are posted back through it.
+    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
 
     // Progress<T> posts to the UI thread asynchronously, so a report can arrive after its operation ended.
     // Reports are only applied while their operation is the current one.
     private int _operationId;
 
-    public MainViewModel(IDispatcher dispatcher, ILogger<MainViewModel> logger)
+    public MainViewModel(IDispatcher dispatcher, IJobQueue jobQueue, IJobMonitor jobMonitor, ILogger<MainViewModel> logger)
     {
         _dispatcher = dispatcher;
+        _jobQueue = jobQueue;
+        _jobMonitor = jobMonitor;
         _logger = logger;
+        _jobMonitor.JobsChanged += OnJobsChanged;
     }
 
     public string Title => "EmTrading";
@@ -51,7 +59,6 @@ public partial class MainViewModel : ObservableObject
 
     // Status
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DownloadDataCommand))]
     [NotifyCanExecuteChangedFor(nameof(RunBacktestCommand))]
     [NotifyCanExecuteChangedFor(nameof(LoadLatestResultsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
@@ -87,24 +94,6 @@ public partial class MainViewModel : ObservableObject
     public Func<double, string> EquityFormatter { get; } = value => value.ToString("N0", CultureInfo.CurrentCulture);
 
     private bool CanStartOperation() => !IsBusy;
-
-    [RelayCommand(CanExecute = nameof(CanStartOperation))]
-    private async Task DownloadDataAsync(CancellationToken cancellationToken)
-    {
-        if (!TryGetDateRange(out var start, out var end))
-            return;
-
-        await RunOperationAsync($"Downloading {SelectedTimeframe} data for {Symbol}...", async operationId =>
-        {
-            var command = new DownloadMarketDataCommand(Symbol, SelectedTimeframe, start, end)
-            {
-                Progress = CreateProgress<int>(operationId, percent => CurrentProgress = percent)
-            };
-
-            var result = await _dispatcher.SendAsync(command, cancellationToken);
-            return result.Match(r => $"Downloaded {r.BarCount:N0} bars for {r.Symbol}.", Describe);
-        });
-    }
 
     [RelayCommand(CanExecute = nameof(CanStartOperation))]
     private async Task RunBacktestAsync(CancellationToken cancellationToken)
@@ -195,7 +184,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(IsBusy))]
     private void Cancel()
     {
-        DownloadDataCommand.Cancel();
         RunBacktestCommand.Cancel();
         LoadLatestResultsCommand.Cancel();
         OpenHistoryRunCommand.Cancel();

@@ -99,6 +99,9 @@
                         </GroupBox>
 
                         <!-- Akcje / Przyciski -->
+                        <TextBlock Text="Symbole do pobrania (oddzielone przecinkami):" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding DownloadSymbols, UpdateSourceTrigger=PropertyChanged}" Padding="4" Margin="0,0,0,6"
+                                 ToolTip="Każdy symbol to osobne zadanie w tle; pobierane są tylko brakujące dni. SPY (benchmark) jest dodawany automatycznie."/>
                         <Button Content="1. Pobierz dane"
                                 Command="{Binding DownloadDataCommand}"
                                 Padding="8" Margin="0,0,0,8" Height="34"/>
@@ -271,6 +274,71 @@
                                     <DataGridTextColumn Header="Postęp" Binding="{Binding Progress, StringFormat=\{0\}%}" Width="60" />
                                     <DataGridTextColumn Header="Czas" Binding="{Binding Duration, StringFormat=hh\\:mm\\:ss}" Width="70" />
                                     <DataGridTextColumn Header="Błąd" Binding="{Binding FailureReason}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </TabItem>
+
+                    <!-- Zakładka 5: Zadania w tle -->
+                    <TabItem Header="Zadania">
+                        <DockPanel Margin="5">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Button Content="Wyczyść zakończone" Command="{Binding ClearFinishedJobsCommand}" Padding="10,3"/>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Jobs}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      Background="White" RowHeight="28">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Zadanie" Binding="{Binding Title}" Width="280" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
+                                    <DataGridTemplateColumn Header="Postęp" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="2">
+                                                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Height="16" />
+                                                    <TextBlock Text="{Binding Progress, StringFormat=\{0\}%}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Czas" Binding="{Binding Duration, StringFormat=hh\\:mm\\:ss}" Width="70" />
+                                    <DataGridTextColumn Header="Komunikat" Binding="{Binding Message}" Width="*" />
+                                    <DataGridTemplateColumn Header="" Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Anuluj" Margin="2" Padding="6,0"
+                                                        IsEnabled="{Binding IsActive}"
+                                                        Command="{Binding DataContext.CancelJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding Id}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </TabItem>
+
+                    <!-- Zakładka 6: Dane rynkowe zapisane lokalnie -->
+                    <TabItem Header="Dane rynkowe">
+                        <DockPanel Margin="5">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Button Content="Odśwież" Command="{Binding RefreshCoverageCommand}" Padding="10,3"/>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding MarketDataCoverage}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      Background="White" RowHeight="26">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
+                                    <DataGridTextColumn Header="Interwał" Binding="{Binding Timeframe}" Width="80" />
+                                    <DataGridTextColumn Header="Dni" Binding="{Binding CoveredDays}" Width="60" />
+                                    <DataGridTextColumn Header="Ostatnie pobranie" Binding="{Binding LastDownloadedAt.LocalDateTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="130" />
+                                    <DataGridTextColumn Header="Zakresy" Binding="{Binding RangesText}" Width="*" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </DockPanel>
