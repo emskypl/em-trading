@@ -1,6 +1,7 @@
-﻿using QuantConnect;
+using System.Globalization;
+using EmTrading.Application.Backtesting;
+using QuantConnect;
 using QuantConnect.Algorithm;
-using QuantConnect.Data;
 using QuantConnect.Data.Consolidators;
 using QuantConnect.Data.Market;
 using QuantConnect.Indicators;
@@ -8,86 +9,86 @@ using QuantConnect.Orders;
 
 namespace EmTrading.Infrastructure.Strategies;
 
+/// <summary>
+/// Trend following on 15-minute bars: EMA fast/slow cross, filtered by ADX and by the price relative to the
+/// 100 and 200 day closes. Positions are sized for 1% risk and exited by an ATR trailing stop.
+/// </summary>
+/// <remarks>
+/// Parameters (see <see cref="StrategyParameterNames"/>): symbol, start-date, end-date, cash, fast-period, slow-period.
+/// The daily filter needs 200 trading days of data before the start date for warm-up.
+/// </remarks>
 public class SmaCrossStrategy : QCAlgorithm
 {
-    private Symbol _symbol;
-    
-    // Wskaźniki 15m
-    private ExponentialMovingAverage _emaFast;
-    private ExponentialMovingAverage _emaSlow;
-    private AverageDirectionalIndex _adx;
-    private AverageTrueRange _atr;
-    
-    // Pamięć danych dziennych
-    private RollingWindow<decimal> _dailyCloses;
-    
-    // Zmienne do Trailing Stop
+    private const int DailyLookback = 200;
+    private const decimal AdxThreshold = 24m;
+    private const decimal RiskPerTrade = 0.01m;
+    private const decimal AtrStopMultiplier = 1.5m;
+
+    private Symbol _symbol = null!;
+
+    // 15-minute indicators
+    private ExponentialMovingAverage _emaFast = null!;
+    private ExponentialMovingAverage _emaSlow = null!;
+    private AverageDirectionalIndex _adx = null!;
+    private AverageTrueRange _atr = null!;
+
+    // Daily closes for the trend filter
+    private RollingWindow<decimal> _dailyCloses = null!;
+
+    // Trailing stop state
     private decimal _stopLossPrice;
     private bool _isLong;
 
     public override void Initialize()
     {
-        SetStartDate(2025, 1, 4);
-        SetEndDate(2026, 12, 14);
-        SetCash(1000000);
-        // Read symbol passed into the algorithm parameters (fallback to AAPL)
-        var symbolParam = GetParameter("symbol") ?? "AAPL";
-        var ticker = symbolParam.Trim().ToUpperInvariant();
+        SetStartDate(GetDateParameter(StrategyParameterNames.StartDate, new DateTime(2025, 1, 1)));
+        SetEndDate(GetDateParameter(StrategyParameterNames.EndDate, DateTime.Today));
+        SetCash(GetParameter(StrategyParameterNames.Cash, 1_000_000m));
 
-        // Subscribe to the requested equity FIRST
+        var ticker = GetParameter(StrategyParameterNames.Symbol, "AAPL").Trim().ToUpperInvariant();
         _symbol = AddEquity(ticker, Resolution.Minute).Symbol;
-        // Now it's safe to set holdings for that Symbol
-        SetHoldings(_symbol, 0.85);
 
-        // RollingWindow for 200 daily closes
-        _dailyCloses = new RollingWindow<decimal>(201);
+        _dailyCloses = new RollingWindow<decimal>(DailyLookback + 1);
         var dailyConsolidator = new TradeBarConsolidator(TimeSpan.FromDays(1));
-        dailyConsolidator.DataConsolidated += (s, bar) => _dailyCloses.Add(bar.Close);
+        dailyConsolidator.DataConsolidated += (_, bar) => _dailyCloses.Add(bar.Close);
         SubscriptionManager.AddConsolidator(_symbol, dailyConsolidator);
 
-        // 15-minute consolidator (use the period you actually want)
-        var cons15m = new TradeBarConsolidator(TimeSpan.FromMinutes(15));
-
-        _emaFast = new ExponentialMovingAverage(26);
-        _emaSlow = new ExponentialMovingAverage(130);
+        var consolidator15M = new TradeBarConsolidator(TimeSpan.FromMinutes(15));
+        _emaFast = new ExponentialMovingAverage(GetParameter(StrategyParameterNames.FastPeriod, 26));
+        _emaSlow = new ExponentialMovingAverage(GetParameter(StrategyParameterNames.SlowPeriod, 130));
         _adx = new AverageDirectionalIndex(14);
         _atr = new AverageTrueRange(14);
-        SetWarmUp(TimeSpan.FromDays(30)); 
 
-        RegisterIndicator(_symbol, _emaFast, cons15m);
-        RegisterIndicator(_symbol, _emaSlow, cons15m);
-        RegisterIndicator(_symbol, _adx, cons15m);
-        RegisterIndicator(_symbol, _atr, cons15m);
+        RegisterIndicator(_symbol, _emaFast, consolidator15M);
+        RegisterIndicator(_symbol, _emaSlow, consolidator15M);
+        RegisterIndicator(_symbol, _adx, consolidator15M);
+        RegisterIndicator(_symbol, _atr, consolidator15M);
 
-        cons15m.DataConsolidated += On15mBar;
-        SubscriptionManager.AddConsolidator(_symbol, cons15m);
+        consolidator15M.DataConsolidated += On15MinuteBar;
+        SubscriptionManager.AddConsolidator(_symbol, consolidator15M);
 
-        SetWarmUp(201, Resolution.Daily);
+        SetWarmUp(DailyLookback + 1, Resolution.Daily);
     }
 
-    private void On15mBar(object sender, TradeBar bar)
+    private void On15MinuteBar(object? sender, TradeBar bar)
     {
-        if (IsWarmingUp || !_dailyCloses.IsReady || !_adx.IsReady) return;
+        if (IsWarmingUp || !_dailyCloses.IsReady || !_adx.IsReady || !_emaSlow.IsReady)
+            return;
 
         var price = bar.Close;
         var close100 = _dailyCloses[100];
-        var close200 = _dailyCloses[200];
-        
-        bool dailyLongFilter = price > close100 && price > close200;
-        bool dailyShortFilter = price < close100 && price < close200;
-        
-        bool adxFilter = _adx.Current.Value > 24m;
-        
+        var close200 = _dailyCloses[DailyLookback];
+
+        var dailyLongFilter = price > close100 && price > close200;
+        var dailyShortFilter = price < close100 && price < close200;
+        var adxFilter = _adx.Current.Value > AdxThreshold;
+
         if (!Portfolio.Invested)
         {
             if (dailyLongFilter && adxFilter && _emaFast.Current.Value > _emaSlow.Current.Value)
-            {
-                ExecuteTrade(OrderDirection.Buy, price);
-            }
+                EnterPosition(OrderDirection.Buy, price);
             else if (dailyShortFilter && adxFilter && _emaFast.Current.Value < _emaSlow.Current.Value)
-            {
-                ExecuteTrade(OrderDirection.Sell, price);
-            }
+                EnterPosition(OrderDirection.Sell, price);
         }
         else
         {
@@ -95,15 +96,16 @@ public class SmaCrossStrategy : QCAlgorithm
         }
     }
 
-    private void ExecuteTrade(OrderDirection direction, decimal currentPrice)
+    private void EnterPosition(OrderDirection direction, decimal currentPrice)
     {
-        decimal riskPerTrade = Portfolio.TotalPortfolioValue * 0.01m;
-        decimal stopDistance = _atr.Current.Value * 1.5m;
-        
-        decimal positionSizeDecimal = riskPerTrade / stopDistance;
-        int shares = (int)Math.Floor(positionSizeDecimal);
-        
-        if (shares == 0) return;
+        var stopDistance = _atr.Current.Value * AtrStopMultiplier;
+        if (stopDistance <= 0)
+            return;
+
+        var riskAmount = Portfolio.TotalPortfolioValue * RiskPerTrade;
+        var shares = (int)Math.Floor(riskAmount / stopDistance);
+        if (shares == 0)
+            return;
 
         if (direction == OrderDirection.Buy)
         {
@@ -121,49 +123,32 @@ public class SmaCrossStrategy : QCAlgorithm
 
     private void UpdateTrailingStop(decimal currentPrice)
     {
-        decimal stopDistance = _atr.Current.Value * 1.5m;
+        var stopDistance = _atr.Current.Value * AtrStopMultiplier;
 
         if (_isLong)
         {
-            decimal newStop = currentPrice - stopDistance;
-            if (newStop > _stopLossPrice) _stopLossPrice = newStop; // Przesuń SL wyżej
-            
-            if (currentPrice <= _stopLossPrice) Liquidate(_symbol, "Trailing Stop Long");
+            _stopLossPrice = Math.Max(_stopLossPrice, currentPrice - stopDistance);
+            if (currentPrice <= _stopLossPrice)
+                Liquidate(symbol: _symbol, tag: "Trailing Stop Long");
         }
         else
         {
-            decimal newStop = currentPrice + stopDistance;
-            if (newStop < _stopLossPrice) _stopLossPrice = newStop; // Przesuń SL niżej
-            
-            if (currentPrice >= _stopLossPrice) Liquidate(_symbol, "Trailing Stop Short");
-        }
-    }
-    
-    public override void OnData(Slice data)
-    {
-        if (IsWarmingUp) return;
-        
-        if (!data.Bars.ContainsKey(_symbol) || !_emaFast.IsReady || !_emaSlow.IsReady) return;
-
-        // Logika przecięcia średnich
-        if (_emaFast > _emaSlow)
-        {
-            if (!Portfolio[_symbol].Invested)
-            {
-                SetHoldings(_symbol, 0.80m);
-            }
-        }
-        else if (_emaFast < _emaSlow)
-        {
-            if (Portfolio[_symbol].Invested)
-            {
-                Liquidate(_symbol);
-            }
+            _stopLossPrice = Math.Min(_stopLossPrice, currentPrice + stopDistance);
+            if (currentPrice >= _stopLossPrice)
+                Liquidate(symbol: _symbol, tag: "Trailing Stop Short");
         }
     }
 
     public override void OnEndOfAlgorithm()
     {
-        Liquidate(); 
+        Liquidate();
+    }
+
+    private DateTime GetDateParameter(string name, DateTime defaultValue)
+    {
+        var value = GetParameter(name);
+        return DateTime.TryParseExact(value, StrategyParameterNames.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : defaultValue;
     }
 }
