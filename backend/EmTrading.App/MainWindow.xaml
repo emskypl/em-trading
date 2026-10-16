@@ -5,100 +5,248 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         xmlns:local="clr-namespace:EmTrading.App"
-        xmlns:System="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="450" Width="800">
+        Title="{Binding Title}" Height="800" Width="1250"
+        Background="#F4F5F7">
 
-    <Grid Margin="15">
+    <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />  
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <ComboBox x:Name="SymbolsComboBox"
-                      Width="150"
-                      Margin="0,0,0,10"
-                      SelectedValuePath="Content">
-                <ComboBoxItem Content="AAPL" IsSelected="True" />
-                <ComboBoxItem Content="AMZN" />
-                <ComboBoxItem Content="MMM" />
-                <ComboBoxItem Content="MSFT" />
-            </ComboBox>
 
-            <Button Content="Pobierz dane"
-                    Command="{Binding DownloadDataCommand}"
-                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
-                    Padding="10,5" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Background="White" BorderBrush="#E0E0E3" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="PARAMETRY WEJŚCIOWE" FontWeight="Bold" FontSize="14" Foreground="#333" Margin="0,0,0,15" />
 
-            <Button Content="Backtest"
-                    Command="{Binding ExecuteBacktestCommand}"
-                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
-                    Padding="10,5" />
-            <Button Content="Wczytaj Wyniki" 
-                    Command="{Binding LoadBacktestResultsCommand}" 
-                    CommandParameter="{Binding SelectedValue, ElementName=SymbolsComboBox}"
-                    Padding="10,5"/>
-        </StackPanel>
-        
-        <UniformGrid Grid.Row="1" Columns="5" Margin="0,0,0,15">
-            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Roczna stopa zwrotu" FontSize="12" Foreground="Gray" />
-                    <TextBlock Text="{Binding CompoundingReturn}" FontSize="20" FontWeight="Bold" Foreground="#2E7D32" />
-                </StackPanel>
+                        <!-- Sekcja 1: Aktywo i Czas -->
+                        <GroupBox Header="Aktywo i Zakres Czasu" Margin="0,0,0,15" Padding="8">
+                            <StackPanel>
+                                <TextBlock Text="Symbol:" Margin="0,5,0,2" FontSize="11" Foreground="Gray"/>
+                                <ComboBox IsEditable="True"
+                                          ItemsSource="{Binding Symbols}"
+                                          Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="Interwał pobieranych danych:" Margin="0,8,0,2" FontSize="11" Foreground="Gray"/>
+                                <ComboBox ItemsSource="{Binding Timeframes}" SelectedItem="{Binding SelectedTimeframe}" />
+
+                                <TextBlock Text="Data Od:" Margin="0,8,0,2" FontSize="11" Foreground="Gray"/>
+                                <DatePicker SelectedDate="{Binding StartDate}" />
+
+                                <TextBlock Text="Data Do:" Margin="0,8,0,2" FontSize="11" Foreground="Gray"/>
+                                <DatePicker SelectedDate="{Binding EndDate}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Sekcja 2: Strategia -->
+                        <GroupBox Header="Strategia i Wskaźniki" Margin="0,0,0,15" Padding="8">
+                            <StackPanel>
+                                <TextBlock Text="Wybór Strategii:" Margin="0,5,0,2" FontSize="11" Foreground="Gray"/>
+                                <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}" />
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                        <TextBlock Text="Fast Period:" FontSize="11" Foreground="Gray"/>
+                                        <TextBox Text="{Binding FastPeriod}" Padding="4"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                        <TextBlock Text="Slow Period:" FontSize="11" Foreground="Gray"/>
+                                        <TextBox Text="{Binding SlowPeriod}" Padding="4"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Sekcja 3: Zarządzanie Kapitałem i Ryzykiem -->
+                        <GroupBox Header="Kapitał i Ryzyko" Margin="0,0,0,15" Padding="8">
+                            <StackPanel>
+                                <TextBlock Text="Kapitał Początkowy ($):" Margin="0,5,0,2" FontSize="11" Foreground="Gray"/>
+                                <TextBox Text="{Binding InitialCapital}" Padding="4"/>
+
+                                <!-- Not supported by SmaCrossStrategy yet (it exits with an ATR trailing stop). -->
+                                <StackPanel IsEnabled="False" ToolTipService.ShowOnDisabled="True"
+                                            ToolTip="Jeszcze nieobsługiwane przez wybraną strategię">
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="Stop Loss (%):" FontSize="11" Foreground="Gray"/>
+                                            <TextBox Text="2.0" Padding="4"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="Take Profit (%):" FontSize="11" Foreground="Gray"/>
+                                            <TextBox Text="4.0" Padding="4"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="Prowizja giełdowa (%):" Margin="0,8,0,2" FontSize="11" Foreground="Gray"/>
+                                    <TextBox Text="0.1" Padding="4"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Akcje / Przyciski -->
+                        <Button Content="1. Pobierz dane"
+                                Command="{Binding DownloadDataCommand}"
+                                Padding="8" Margin="0,0,0,8" Height="34"/>
+
+                        <Button Content="2. Uruchom Backtest"
+                                Command="{Binding RunBacktestCommand}"
+                                Background="#1565C0" Foreground="White" FontWeight="Bold"
+                                Padding="8" Margin="0,0,0,8" Height="36"/>
+
+                        <Button Content="Wczytaj Zapisane Wyniki"
+                                Command="{Binding LoadLatestResultsCommand}"
+                                Padding="6" Margin="0,0,0,8" Height="30"/>
+
+                        <Button Content="Anuluj"
+                                Command="{Binding CancelCommand}"
+                                Padding="6" Height="30"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
-            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Max Obsunięcie (DD)" FontSize="12" Foreground="Gray" />
-                    <TextBlock Text="{Binding MaxDrawdown}" FontSize="20" FontWeight="Bold" Foreground="#C62828" />
-                </StackPanel>
-            </Border>
-            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Skuteczność (Win Rate)" FontSize="12" Foreground="Gray" />
-                    <TextBlock Text="{Binding WinRate}" FontSize="20" FontWeight="Bold" Foreground="#1565C0" />
-                </StackPanel>
-            </Border>
-            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Wskaźnik Sharpe'a" FontSize="12" Foreground="Gray" />
-                    <TextBlock Text="{Binding SharpeRatio}" FontSize="20" FontWeight="Bold" />
-                </StackPanel>
-            </Border>
-            <Border Background="White" CornerRadius="5" Margin="5" Padding="10" BorderBrush="#E0E0E3"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Liczba transakcji" FontSize="12" Foreground="Gray" />
-                    <TextBlock Text="{Binding TotalTrades}" FontSize="20" FontWeight="Bold" />
-                </StackPanel>
-            </Border>
-        </UniformGrid>
-        
-        <Border Grid.Row="2" Background="White" CornerRadius="5" Padding="10" BorderBrush="#E0E0E3" BorderThickness="1">
-            <lvc:CartesianChart Series="{Binding EquitySeriesCollection}" LegendLocation="None">
-                <lvc:CartesianChart.AxisX>
-                    <lvc:Axis Title="Data transakcji" Labels="{Binding ChartLabels}">
-                        <lvc:Axis.Separator>
-                            <lvc:Separator Step="50" />
-                        </lvc:Axis.Separator>
-                    </lvc:Axis>
-                </lvc:CartesianChart.AxisX>
-                <lvc:CartesianChart.AxisY>
-                    <lvc:Axis Title="Wartość portfela ($)">
-                        <lvc:Axis.LabelFormatter>
-                            <Binding Source="{x:Static System:String.Empty}" />
-                        </lvc:Axis.LabelFormatter>
-                    </lvc:Axis>
-                </lvc:CartesianChart.AxisY>
-            </lvc:CartesianChart>
-        </Border>
-        <StatusBar Grid.Row="3" Grid.Column="0">
+
+            <!-- ================= MAIN CONTENT: WYNIKI I ANALLIZA ================= -->
+            <Grid Grid.Column="1" Margin="15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Panel KPI (Karty wyników) -->
+                <UniformGrid Grid.Row="0" Columns="6" Margin="0,0,0,15">
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Stopa zwrotu" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding CompoundingReturn}" FontSize="18" FontWeight="Bold" Foreground="#2E7D32" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Max DD" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding MaxDrawdown}" FontSize="18" FontWeight="Bold" Foreground="#C62828" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Win Rate" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding WinRate}" FontSize="18" FontWeight="Bold" Foreground="#1565C0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Profit Factor" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding ProfitFactor}" FontSize="18" FontWeight="Bold" Foreground="#2E7D32" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Sharpe Ratio" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding SharpeRatio}" FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="5" Margin="3" Padding="8" BorderBrush="#E0E0E3" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Transakcje" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="{Binding TotalTrades}" FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Zakładki Szczegółowej Analizy -->
+                <TabControl Grid.Row="1" Background="White" BorderBrush="#E0E0E3">
+                    
+                    <!-- Zakładka 1: Wykres Portfela -->
+                    <TabItem Header="Wykres Equity">
+                        <Grid>
+                            <lvc:CartesianChart Series="{Binding EquitySeriesCollection}" LegendLocation="None">
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis Title="Data transakcji" Labels="{Binding ChartLabels}">
+                                        <lvc:Axis.Separator>
+                                            <lvc:Separator Step="50" />
+                                        </lvc:Axis.Separator>
+                                    </lvc:Axis>
+                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="Wartość portfela ($)" LabelFormatter="{Binding EquityFormatter}" />
+                                </lvc:CartesianChart.AxisY>
+                            </lvc:CartesianChart>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Zakładka 2: Dziennik Transakcji -->
+                    <TabItem Header="Dziennik Transakcji">
+                        <DataGrid ItemsSource="{Binding TradesHistory}" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="True" 
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  Background="White" RowHeight="26">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="40" />
+                                <DataGridTextColumn Header="Typ" Binding="{Binding Direction}" Width="70" />
+                                <DataGridTextColumn Header="Data Wejścia" Binding="{Binding EntryTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="130" />
+                                <DataGridTextColumn Header="Cena Wejścia" Binding="{Binding EntryPrice, StringFormat=\{0:C2\}}" Width="100" />
+                                <DataGridTextColumn Header="Data Wyjścia" Binding="{Binding ExitTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="130" />
+                                <DataGridTextColumn Header="Cena Wyjścia" Binding="{Binding ExitPrice, StringFormat=\{0:C2\}}" Width="100" />
+                                <DataGridTextColumn Header="Powód Wyjścia" Binding="{Binding ExitReason}" Width="120" />
+                                <DataGridTextColumn Header="Zysk / Strata ($)" Binding="{Binding ProfitLoss, StringFormat=\{0:C2\}}" Width="110" />
+                                <DataGridTextColumn Header="Zysk (%)" Binding="{Binding ProfitLossPercent, StringFormat=\{0:P2\}}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <!-- Zakładka 3: Podsumowanie i Sygnały -->
+                    <TabItem Header="Analiza Pozycji &amp; Sygnały">
+                        <ScrollViewer Padding="15">
+                            <StackPanel>
+                                <TextBlock Text="Statystyki Seriowości" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Średni Zysk z Wygranej:" Foreground="Gray"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AverageWin}" Foreground="#2E7D32" FontWeight="Bold"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Średnia Strata z Przegranej:" Foreground="Gray" Margin="0,5,0,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AverageLoss}" Foreground="#C62828" FontWeight="Bold" Margin="0,5,0,0"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Max Wygranych z Rzędu:" Foreground="Gray" Margin="0,5,0,0"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MaxConsecutiveWins}" FontWeight="Bold" Margin="0,5,0,0"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Max Przegranych z Rzędu:" Foreground="Gray" Margin="0,5,0,0"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MaxConsecutiveLosses}" FontWeight="Bold" Margin="0,5,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+
+        <!-- ================= STATUSBAR ================= -->
+        <StatusBar Grid.Row="1">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -110,14 +258,12 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
 
-            <!-- Section 1 (Left 50%): Progress Bar -->
             <StatusBarItem Grid.Column="0" HorizontalContentAlignment="Stretch">
-                <ProgressBar Value="{Binding CurrentProgress, Mode=OneWay}" 
-                             Visibility="{Binding ProgressVisibility}" 
+                <ProgressBar Value="{Binding CurrentProgress, Mode=OneWay}"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibility}}"
                              Height="16" />
             </StatusBarItem>
 
-            <!-- Section 2 (Right 50%): Text / Status Message -->
             <StatusBarItem Grid.Column="1">
                 <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" />
             </StatusBarItem>
