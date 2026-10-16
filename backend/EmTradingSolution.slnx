@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/tests/">
+    <Project Path="tests/EmTrading.Application.Tests/EmTrading.Application.Tests.csproj" />
     <Project Path="tests/EmTrading.Architecture.Tests/EmTrading.Architecture.Tests.csproj" />
+    <Project Path="tests/EmTrading.Domain.Tests/EmTrading.Domain.Tests.csproj" />
     <Project Path="tests/EmTrading.Infrastructure.Tests/EmTrading.Infrastructure.Tests.csproj" />
   </Folder>
   <Project Path="EmTrading.App/EmTrading.App.csproj" />

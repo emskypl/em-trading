@@ -1,4 +1,6 @@
 using EmTrading.Application.Backtesting;
+using EmTrading.Domain.Backtesting;
+using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Engine.Results;
@@ -43,12 +45,13 @@ public class LeanResultReaderTests
     public async Task Reads_statistics_equity_and_trades()
     {
         using var results = new TempDirectory();
-        var run = new BacktestRunResult("20261015-120000000_AAPL_SmaCrossStrategy", "AAPL", "SmaCrossStrategy");
-        WriteResult(results, run.Symbol, run.RunId + ".json");
+        var runId = BacktestRunId.From("20261015-120000000_AAPL_SmaCrossStrategy");
+        WriteResult(results, "AAPL", runId.Value + ".json");
 
-        var report = await CreateReader(results).ReadAsync(run, TestContext.Current.CancellationToken);
+        var report = await CreateReader(results).ReadAsync(Symbol.Create("AAPL"), runId, TestContext.Current.CancellationToken);
 
-        Assert.Equal(run.RunId, report.RunId);
+        Assert.NotNull(report);
+        Assert.Equal(runId.Value, report.RunId);
         Assert.Equal("0.896", report.Statistics["Sharpe Ratio"]);
         Assert.Equal(new TradeStatistics(521, 1.3492m, 8, 11), report.TradeStatistics);
 
@@ -81,8 +84,19 @@ public class LeanResultReaderTests
 
         Assert.Equal(newer, LeanResultReader.FindLatestResultFile(results.Path, "AAPL", "SmaCrossStrategy"));
 
-        var report = await CreateReader(results).ReadLatestAsync("aapl", "SmaCrossStrategy", TestContext.Current.CancellationToken);
+        var report = await CreateReader(results).ReadLatestAsync(Symbol.Create("aapl"), StrategyName.Create("SmaCrossStrategy"), TestContext.Current.CancellationToken);
         Assert.Equal("20261015-120000000_AAPL_SmaCrossStrategy", report?.RunId);
+    }
+
+    [Fact]
+    public async Task Missing_run_returns_null()
+    {
+        using var results = new TempDirectory();
+
+        var report = await CreateReader(results).ReadAsync(
+            Symbol.Create("AAPL"), BacktestRunId.From("missing_AAPL_SmaCrossStrategy"), TestContext.Current.CancellationToken);
+
+        Assert.Null(report);
     }
 
     [Fact]
@@ -90,7 +104,7 @@ public class LeanResultReaderTests
     {
         using var results = new TempDirectory();
 
-        Assert.Null(await CreateReader(results).ReadLatestAsync("MSFT", "SmaCrossStrategy", TestContext.Current.CancellationToken));
+        Assert.Null(await CreateReader(results).ReadLatestAsync(Symbol.Create("MSFT"), StrategyName.Create("SmaCrossStrategy"), TestContext.Current.CancellationToken));
     }
 
     private static LeanResultReader CreateReader(TempDirectory results) =>
