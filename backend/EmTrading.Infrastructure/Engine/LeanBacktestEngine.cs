@@ -26,25 +26,30 @@ internal sealed class LeanBacktestEngine(
     private const string BuildConfiguration = "Release";
 #endif
 
-    public async Task<BacktestRunResult> RunAsync(
+    public async Task RunAsync(
         BacktestRequest request,
         IProgress<BacktestProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var symbol = request.Symbol.Trim().ToUpperInvariant();
-        EnsureSafeName(symbol, nameof(request.Symbol));
-        EnsureSafeName(request.StrategyName, nameof(request.StrategyName));
-
         var runnerPath = ResolveRunnerPath();
         if (!File.Exists(runnerPath))
             throw new BacktestEngineException($"Engine runner not found at '{runnerPath}'. Build the EmTrading.EngineRunner project first.");
 
-        var runId = $"{DateTime.Now:yyyyMMdd-HHmmssfff}_{symbol}_{request.StrategyName}";
-        var resultsFolder = Path.Combine(storage.Value.ResultsFolder, symbol);
+        // Value objects guarantee the symbol and run id are safe to use in file paths.
+        var runId = request.RunId.Value;
+        var resultsFolder = Path.Combine(storage.Value.ResultsFolder, request.Symbol.Value);
         Directory.CreateDirectory(resultsFolder);
 
-        var job = new BacktestJob(runId, request.StrategyName, symbol, request.Start, request.End, request.InitialCash,
-            storage.Value.DataFolder, resultsFolder, request.Parameters);
+        var job = new BacktestJob(
+            runId,
+            request.Strategy.Value,
+            request.Symbol.Value,
+            request.Period.Start,
+            request.Period.End,
+            request.InitialCapital.Amount,
+            storage.Value.DataFolder,
+            resultsFolder,
+            request.Parameters.Values);
         var jobPath = Path.Combine(resultsFolder, $"{runId}-job.json");
         await job.SaveAsync(jobPath, cancellationToken).ConfigureAwait(false);
 
@@ -72,7 +77,6 @@ internal sealed class LeanBacktestEngine(
 
         logger.LogInformation("Run {RunId} completed", runId);
         progress?.Report(new BacktestProgress(100, "Completed"));
-        return new BacktestRunResult(runId, symbol, request.StrategyName);
     }
 
     private void HandleOutput(string line, string runId, RunState state, IProgress<BacktestProgress>? progress)
@@ -157,15 +161,6 @@ internal sealed class LeanBacktestEngine(
         return Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "..",
             "EmTrading.EngineRunner", "bin", BuildConfiguration, "net10.0", RunnerExecutable));
-    }
-
-    /// <summary>
-    /// Names become part of file paths, so only letters, digits, '.' and '-' are accepted.
-    /// </summary>
-    private static void EnsureSafeName(string value, string parameterName)
-    {
-        if (value.Length == 0 || !value.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-'))
-            throw new ArgumentException($"'{value}' is not a valid name.", parameterName);
     }
 
     private sealed class RunState

@@ -12,6 +12,7 @@ internal sealed class MarketDataDownloader(
     LeanReferenceDataClient referenceData,
     LeanEquityDataWriter writer,
     IOptions<StorageOptions> storage,
+    TimeProvider clock,
     ILogger<MarketDataDownloader> logger) : IMarketDataDownloader
 {
     // Share of the progress bar given to each stage; fetching dominates, writing is quick.
@@ -23,22 +24,18 @@ internal sealed class MarketDataDownloader(
         IProgress<int>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var symbol = request.Symbol.Trim().ToUpperInvariant();
-        if (symbol.Length == 0)
-            throw new ArgumentException("Symbol is required.", nameof(request));
-        if (request.End < request.Start)
-            throw new ArgumentException("End date must not be before start date.", nameof(request));
+        var symbol = request.Symbol.Value;
 
         progress?.Report(0);
         await referenceData.EnsureReferenceDataAsync(cancellationToken).ConfigureAwait(false);
         progress?.Report(ReferenceDataEnd);
 
-        var startUtc = request.Start.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var endOfLastDayUtc = request.End.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var endUtc = endOfLastDayUtc < DateTime.UtcNow ? endOfLastDayUtc : DateTime.UtcNow;
+        var startUtc = request.Period.Start.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var endOfLastDayUtc = request.Period.End.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var nowUtc = clock.GetUtcNow().UtcDateTime;
+        var endUtc = endOfLastDayUtc < nowUtc ? endOfLastDayUtc : nowUtc;
 
-        logger.LogInformation("Downloading {Timeframe} bars for {Symbol} from {Start:yyyy-MM-dd} to {End:yyyy-MM-dd}",
-            request.Timeframe, symbol, request.Start, request.End);
+        logger.LogInformation("Downloading {Timeframe} bars for {Symbol} in {Period}", request.Timeframe, symbol, request.Period);
 
         var bars = await alpaca.GetBarsAsync(
             symbol, request.Timeframe, startUtc, endUtc,
@@ -46,7 +43,10 @@ internal sealed class MarketDataDownloader(
             cancellationToken).ConfigureAwait(false);
 
         if (bars.Count == 0)
-            throw new InvalidOperationException($"No {request.Timeframe} data returned for {symbol} between {request.Start} and {request.End}.");
+        {
+            logger.LogInformation("No {Timeframe} bars for {Symbol} in {Period}", request.Timeframe, symbol, request.Period);
+            return new MarketDataDownloadResult(symbol, 0, 0);
+        }
 
         var files = await writer.WriteAsync(
             storage.Value.DataFolder, symbol, request.Timeframe, bars,

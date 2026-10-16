@@ -8,6 +8,7 @@ using EmTrading.Infrastructure.MarketData.Alpaca;
 using EmTrading.Infrastructure.MarketData.Lean;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace EmTrading.Infrastructure;
@@ -30,6 +31,9 @@ public static class InfrastructureDependencyInjection
 
         services.AddOptions<LeanOptions>()
             .Bind(configuration.GetSection(LeanOptions.SectionName));
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddHybridCache();
 
         AddMarketData(services);
         AddEngine(services);

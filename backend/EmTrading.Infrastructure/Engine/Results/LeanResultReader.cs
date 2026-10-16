@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
 using EmTrading.Application.Backtesting;
+using EmTrading.Domain.Backtesting;
+using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.MarketData;
@@ -16,18 +18,15 @@ internal sealed class LeanResultReader(IOptions<StorageOptions> storage) : IBack
     // Web defaults: camelCase names and numbers stored as strings (Lean writes e.g. "profitFactor": "1.3492").
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public Task<BacktestReport> ReadAsync(BacktestRunResult run, CancellationToken cancellationToken = default)
+    public async Task<BacktestReport?> ReadAsync(Symbol symbol, BacktestRunId runId, CancellationToken cancellationToken = default)
     {
-        var path = Path.Combine(storage.Value.ResultsFolder, run.Symbol, $"{run.RunId}.json");
-        if (!File.Exists(path))
-            throw new FileNotFoundException($"Result file for run {run.RunId} was not found.", path);
-
-        return ReadFileAsync(path, cancellationToken);
+        var path = Path.Combine(storage.Value.ResultsFolder, symbol.Value, $"{runId.Value}.json");
+        return File.Exists(path) ? await ReadFileAsync(path, cancellationToken).ConfigureAwait(false) : null;
     }
 
-    public async Task<BacktestReport?> ReadLatestAsync(string symbol, string strategyName, CancellationToken cancellationToken = default)
+    public async Task<BacktestReport?> ReadLatestAsync(Symbol symbol, StrategyName strategy, CancellationToken cancellationToken = default)
     {
-        var path = FindLatestResultFile(storage.Value.ResultsFolder, symbol.Trim().ToUpperInvariant(), strategyName);
+        var path = FindLatestResultFile(storage.Value.ResultsFolder, symbol.Value, strategy.Value);
         return path is null ? null : await ReadFileAsync(path, cancellationToken).ConfigureAwait(false);
     }
 
