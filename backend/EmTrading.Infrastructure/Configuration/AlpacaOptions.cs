@@ -21,5 +21,9 @@ public sealed class AlpacaOptions
     [Required]
     public string Feed { get; set; } = "iex";
 
+    /// <summary>Plan limit for API calls; 200 on the free plan.</summary>
+    [Range(1, 10_000)]
+    public int RequestsPerMinute { get; set; } = 200;
+
     public bool HasCredentials => !string.IsNullOrWhiteSpace(ApiKey) && !string.IsNullOrWhiteSpace(ApiSecret);
 }

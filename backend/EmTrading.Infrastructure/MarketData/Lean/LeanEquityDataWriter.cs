@@ -55,22 +55,101 @@ internal sealed class LeanEquityDataWriter
         for (var i = 0; i < days.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var day = days[i];
-
-            var csv = new StringBuilder();
-            foreach (var (time, bar) in day.OrderBy(x => x.Time))
-            {
-                var millisecondsSinceMidnight = (long)time.TimeOfDay.TotalMilliseconds;
-                csv.Append(millisecondsSinceMidnight.ToString(CultureInfo.InvariantCulture)).Append(',');
-                AppendOhlcv(csv, bar);
-            }
-
-            var path = GetFilePath(dataFolder, ticker, Timeframe.Minute, day.Key);
-            await WriteZipAsync(path, $"{day.Key:yyyyMMdd}_{ticker}_minute_trade.csv", csv.ToString(), cancellationToken).ConfigureAwait(false);
+            await WriteMinuteDayAsync(dataFolder, ticker, days[i].Key, days[i].ToList(), cancellationToken).ConfigureAwait(false);
             progress?.Report((i + 1) / (double)days.Count);
         }
 
         return days.Count;
+    }
+
+    internal static async Task WriteMinuteDayAsync(
+        string dataFolder, string ticker, DateOnly day, IReadOnlyList<(DateTime Time, MarketBar Bar)> bars, CancellationToken cancellationToken)
+    {
+        var csv = new StringBuilder();
+        foreach (var (time, bar) in bars.OrderBy(x => x.Time))
+        {
+            var millisecondsSinceMidnight = (long)time.TimeOfDay.TotalMilliseconds;
+            csv.Append(millisecondsSinceMidnight.ToString(CultureInfo.InvariantCulture)).Append(',');
+            AppendOhlcv(csv, bar);
+        }
+
+        var path = GetFilePath(dataFolder, ticker, Timeframe.Minute, day);
+        await WriteZipAsync(path, $"{day:yyyyMMdd}_{ticker}_minute_trade.csv", csv.ToString(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Creates a sink that accepts bars page by page (oldest first) and writes them as soon as possible.
+    /// </summary>
+    public IBarSink CreateSink(string dataFolder, string symbol, Timeframe timeframe)
+    {
+        var ticker = symbol.Trim().ToLowerInvariant();
+        return timeframe switch
+        {
+            Timeframe.Minute => new MinuteBarSink(dataFolder, ticker),
+            Timeframe.Hour or Timeframe.Daily => new SingleFileBarSink(dataFolder, ticker, timeframe),
+            _ => throw new ArgumentOutOfRangeException(nameof(timeframe), timeframe, null)
+        };
+    }
+
+    /// <summary>
+    /// Writes each exchange day as soon as a bar from a later day arrives, so files are written while
+    /// later pages are still downloading. Relies on pages arriving oldest first, as Alpaca returns them.
+    /// </summary>
+    private sealed class MinuteBarSink(string dataFolder, string ticker) : IBarSink
+    {
+        private readonly SortedDictionary<DateOnly, List<(DateTime Time, MarketBar Bar)>> _pendingDays = [];
+
+        public int FilesWritten { get; private set; }
+
+        public async Task AddAsync(IReadOnlyList<MarketBar> bars, CancellationToken cancellationToken)
+        {
+            foreach (var bar in bars)
+            {
+                var time = ExchangeTime.FromUtc(bar.TimeUtc);
+                var day = DateOnly.FromDateTime(time);
+                if (!_pendingDays.TryGetValue(day, out var dayBars))
+                    _pendingDays[day] = dayBars = [];
+
+                dayBars.Add((time, bar));
+            }
+
+            // Every day before the newest one is complete.
+            while (_pendingDays.Count > 1)
+                await FlushOldestAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<int> CompleteAsync(CancellationToken cancellationToken)
+        {
+            while (_pendingDays.Count > 0)
+                await FlushOldestAsync(cancellationToken).ConfigureAwait(false);
+
+            return FilesWritten;
+        }
+
+        private async Task FlushOldestAsync(CancellationToken cancellationToken)
+        {
+            var (day, bars) = _pendingDays.First();
+            _pendingDays.Remove(day);
+            await WriteMinuteDayAsync(dataFolder, ticker, day, bars, cancellationToken).ConfigureAwait(false);
+            FilesWritten++;
+        }
+    }
+
+    /// <summary>
+    /// Hour and daily data share one file per symbol, so bars are collected and merged into it at the end.
+    /// </summary>
+    private sealed class SingleFileBarSink(string dataFolder, string ticker, Timeframe timeframe) : IBarSink
+    {
+        private readonly List<MarketBar> _bars = [];
+
+        public Task AddAsync(IReadOnlyList<MarketBar> bars, CancellationToken cancellationToken)
+        {
+            _bars.AddRange(bars);
+            return Task.CompletedTask;
+        }
+
+        public Task<int> CompleteAsync(CancellationToken cancellationToken) =>
+            _bars.Count == 0 ? Task.FromResult(0) : WriteSingleFileAsync(dataFolder, ticker, timeframe, _bars, null, cancellationToken);
     }
 
     /// <summary>
@@ -152,4 +231,15 @@ internal sealed class LeanEquityDataWriter
 
         File.Move(tempPath, path, overwrite: true);
     }
+}
+
+/// <summary>
+/// Receives bars incrementally; <see cref="CompleteAsync"/> writes whatever is still buffered.
+/// </summary>
+internal interface IBarSink
+{
+    Task AddAsync(IReadOnlyList<MarketBar> bars, CancellationToken cancellationToken);
+
+    /// <returns>The number of files written.</returns>
+    Task<int> CompleteAsync(CancellationToken cancellationToken);
 }

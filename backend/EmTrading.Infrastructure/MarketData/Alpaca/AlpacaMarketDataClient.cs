@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure.Configuration;
@@ -22,11 +23,30 @@ internal sealed class AlpacaMarketDataClient(HttpClient httpClient, IOptions<Alp
         IProgress<double>? coverage,
         CancellationToken cancellationToken)
     {
+        var bars = new List<MarketBar>();
+        await foreach (var page in StreamPagesAsync(symbol, timeframe, startUtc, endUtc, coverage, cancellationToken).ConfigureAwait(false))
+            bars.AddRange(page);
+
+        return bars;
+    }
+
+    /// <summary>
+    /// Yields each page (up to 10,000 bars, oldest first) as soon as it arrives, so the caller can process
+    /// one page while the next is downloading.
+    /// </summary>
+    /// <param name="coverage">Receives the fraction (0..1) of the requested range fetched so far.</param>
+    public async IAsyncEnumerable<IReadOnlyList<MarketBar>> StreamPagesAsync(
+        string symbol,
+        Timeframe timeframe,
+        DateTime startUtc,
+        DateTime endUtc,
+        IProgress<double>? coverage,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var settings = options.Value;
         if (!settings.HasCredentials)
             throw new AlpacaConfigurationException();
 
-        var bars = new List<MarketBar>();
         string? pageToken = null;
 
         do
@@ -41,8 +61,9 @@ internal sealed class AlpacaMarketDataClient(HttpClient httpClient, IOptions<Alp
             var page = await response.Content.ReadFromJsonAsync<BarsPage>(cancellationToken).ConfigureAwait(false);
             if (page?.Bars is { Count: > 0 } pageBars)
             {
-                bars.AddRange(pageBars.Select(b => new MarketBar(b.Time.ToUniversalTime(), b.Open, b.High, b.Low, b.Close, b.Volume)));
+                var bars = pageBars.Select(b => new MarketBar(b.Time.ToUniversalTime(), b.Open, b.High, b.Low, b.Close, b.Volume)).ToList();
                 coverage?.Report(Fraction(startUtc, endUtc, bars[^1].TimeUtc));
+                yield return bars;
             }
 
             pageToken = page?.NextPageToken;
@@ -50,7 +71,6 @@ internal sealed class AlpacaMarketDataClient(HttpClient httpClient, IOptions<Alp
         while (!string.IsNullOrEmpty(pageToken));
 
         coverage?.Report(1);
-        return bars;
     }
 
     private static string BuildUrl(string symbol, Timeframe timeframe, DateTime startUtc, DateTime endUtc, string feed, string? pageToken)
