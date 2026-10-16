@@ -1,0 +1,31 @@
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+
+jobs:
+  build-and-test:
+    # WPF projects need Windows.
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore EmTradingSolution.slnx
+
+      - name: Build
+        run: dotnet build EmTradingSolution.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution EmTradingSolution.slnx --configuration Release --no-build
