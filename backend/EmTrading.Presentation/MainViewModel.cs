@@ -1,166 +1,239 @@
-﻿using System.IO;
+﻿using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using EmTrading.Application.Interfaces;
-using EmTrading.Domain.Alpaca;
-using EmTrading.Domain.Lean;
-using EmTrading.Infrastructure.Helpers;
-using EmTrading.Infrastructure.Services;
+using EmTrading.Application.Backtesting;
+using EmTrading.Application.MarketData;
+using EmTrading.Domain.MarketData;
 using LiveCharts;
 using LiveCharts.Wpf;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace EmTrading.Presentation;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly ITradingEngineService _tradingEngineService;
-    
-    [ObservableProperty] 
-    private int _currentProgress;
-    
+    private const string DefaultStrategy = "SmaCrossStrategy";
+
+    private readonly IMarketDataDownloader _marketDataDownloader;
+    private readonly IBacktestEngine _backtestEngine;
+    private readonly IBacktestResultReader _resultReader;
+    private readonly ILogger<MainViewModel> _logger;
+
+    // Progress<T> posts to the UI thread asynchronously, so a report can arrive after its operation ended.
+    // Reports are only applied while their operation is the current one.
+    private int _operationId;
+
+    public MainViewModel(
+        IMarketDataDownloader marketDataDownloader,
+        IBacktestEngine backtestEngine,
+        IBacktestResultReader resultReader,
+        ILogger<MainViewModel> logger)
+    {
+        _marketDataDownloader = marketDataDownloader;
+        _backtestEngine = backtestEngine;
+        _resultReader = resultReader;
+        _logger = logger;
+    }
+
+    public string Title => "EmTrading";
+
+    // Inputs
+    public IReadOnlyList<string> Symbols { get; } = ["AAPL", "AMZN", "MMM", "MSFT"];
+    public IReadOnlyList<Timeframe> Timeframes { get; } = Enum.GetValues<Timeframe>();
+    public IReadOnlyList<string> Strategies { get; } = [DefaultStrategy];
+
+    [ObservableProperty] private string _symbol = "AAPL";
+    [ObservableProperty] private Timeframe _selectedTimeframe = Timeframe.Minute;
+    [ObservableProperty] private DateTime? _startDate = DateTime.Today.AddYears(-1);
+    [ObservableProperty] private DateTime? _endDate = DateTime.Today;
+    [ObservableProperty] private string _selectedStrategy = DefaultStrategy;
+    [ObservableProperty] private int _fastPeriod = 26;
+    [ObservableProperty] private int _slowPeriod = 130;
+    [ObservableProperty] private decimal _initialCapital = 1_000_000m;
+
+    // Status
     [ObservableProperty]
-    private bool _progressVisible;
-    
-    [ObservableProperty] 
-    private string _statusMessage = "Ready";
+    [NotifyCanExecuteChangedFor(nameof(DownloadDataCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RunBacktestCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LoadLatestResultsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
+    private bool _isBusy;
+
+    [ObservableProperty] private int _currentProgress;
+    [ObservableProperty] private string _statusMessage = "Ready";
 
     // Backtest results
     [ObservableProperty] private string _compoundingReturn = "0%";
     [ObservableProperty] private string _maxDrawdown = "0%";
     [ObservableProperty] private string _winRate = "0%";
+    [ObservableProperty] private string _profitFactor = "0";
     [ObservableProperty] private string _sharpeRatio = "0";
     [ObservableProperty] private string _totalTrades = "0";
-    
-    // Livechart
-    [ObservableProperty] private SeriesCollection _equitySeriesCollection;
-    [ObservableProperty] private List<string> _chartLabels;
-    [ObservableProperty] private string _title = string.Empty;
+    [ObservableProperty] private string _averageWin = "0%";
+    [ObservableProperty] private string _averageLoss = "0%";
+    [ObservableProperty] private int _maxConsecutiveWins;
+    [ObservableProperty] private int _maxConsecutiveLosses;
+    [ObservableProperty] private IReadOnlyList<ClosedTrade> _tradesHistory = [];
 
-    public MainViewModel(ITradingEngineService tradingEngineService)
+    // LiveCharts
+    [ObservableProperty] private SeriesCollection _equitySeriesCollection = new();
+    [ObservableProperty] private IList<string> _chartLabels = [];
+    public Func<double, string> EquityFormatter { get; } = value => value.ToString("N0", CultureInfo.CurrentCulture);
+
+    private bool CanStartOperation() => !IsBusy;
+
+    [RelayCommand(CanExecute = nameof(CanStartOperation))]
+    private async Task DownloadDataAsync(CancellationToken cancellationToken)
     {
-        Title = "Trading Application EmTrading";
-        _tradingEngineService = tradingEngineService;
+        if (!TryGetDateRange(out var start, out var end))
+            return;
+
+        var request = new MarketDataRequest(Symbol, SelectedTimeframe, start, end);
+        await RunOperationAsync($"Downloading {SelectedTimeframe} data for {Symbol}...", async operationId =>
+        {
+            var progress = CreateProgress<int>(operationId, percent => CurrentProgress = percent);
+            var result = await _marketDataDownloader.DownloadAsync(request, progress, cancellationToken);
+            return $"Downloaded {result.BarCount:N0} bars for {result.Symbol}.";
+        });
     }
 
-    [RelayCommand]
-    private async Task ExecuteBacktestAsync(string symbol)
+    [RelayCommand(CanExecute = nameof(CanStartOperation))]
+    private async Task RunBacktestAsync(CancellationToken cancellationToken)
     {
-        ProgressVisible = true;
-        CurrentProgress = 0;
-        StatusMessage = $"Running backtest for {symbol}...";
-        
-        var progress = new Progress<int>(percent => CurrentProgress = percent);
+        if (!TryGetDateRange(out var start, out var end))
+            return;
 
-        try
+        if (FastPeriod <= 0 || SlowPeriod <= FastPeriod)
         {
-            await _tradingEngineService.RunBacktestAsync(
-                "SmaCrossStrategy", 
-                DateTime.Now.AddYears(-1), 
-                DateTime.Now, 
-                symbol,
-                progress);
-            
-            CurrentProgress = 100;
-            StatusMessage = "Backtest completed.";
+            StatusMessage = "Slow period must be greater than fast period, and both must be positive.";
+            return;
         }
-        catch (Exception ex)
+
+        var parameters = new Dictionary<string, string>
         {
-            StatusMessage = $"Backtest failed: {ex.Message}";
-        }
-    }
+            [StrategyParameterNames.FastPeriod] = FastPeriod.ToString(CultureInfo.InvariantCulture),
+            [StrategyParameterNames.SlowPeriod] = SlowPeriod.ToString(CultureInfo.InvariantCulture)
+        };
+        var request = new BacktestRequest(SelectedStrategy, Symbol, start, end, InitialCapital, parameters);
 
-    [RelayCommand]
-    private async Task DownloadDataAsync(string symbol)
-    {
-        CurrentProgress = 0;
-        StatusMessage = $"Downloading data for {symbol}...";
-
-        var progress = new Progress<int>(percent => CurrentProgress = percent);
-
-        try
+        await RunOperationAsync($"Running {SelectedStrategy} backtest for {Symbol}...", async operationId =>
         {
-            var downloader = new DataDownloaderService(
-                PathHelper.GetSharedDataFolderPath(),
-                "PKPS4AAP4UX4NVC56SVANZMEOT",
-                "4d6nrJd4qxvGYCwMJn1DX3sUf55i1dWix9vScJB2Z7Eq");
-            
-            await downloader.EnsureSystemFilesExistAsync();
-
-            await downloader.DownloadDataAsync(
-                symbol,
-                DateTime.Now.AddYears(-1),
-                DateTime.Now,
-                progress,
-                AlpacaTimeframe.Minute1);
-
-            CurrentProgress = 100;
-            StatusMessage = "Download completed.";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Download failed: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private async Task LoadBacktestResultsAsync(string symbol)
-    {
-        CurrentProgress = 0;
-        string filePath = Path.Combine(PathHelper.GetResultsFolderPath(), symbol, $"2025-08-25_{symbol}_SmaCrossStrategy.json");
-
-        if (!File.Exists(filePath)) return;
-        
-        
-        
-        string jsonContent = await File.ReadAllTextAsync(filePath);
-        var result = JsonConvert.DeserializeObject<LeanResult>(jsonContent);
-
-        if (result == null) return;
-
-        CompoundingReturn = result.Statistics.GetValueOrDefault("Compounding Annual Return", "0%");
-        MaxDrawdown = result.Statistics.GetValueOrDefault("Drawdown", "0%");
-        WinRate = result.Statistics.GetValueOrDefault("Win Rate", "0%");
-        SharpeRatio = result.Statistics.GetValueOrDefault("Sharpe Ratio", "0");
-        TotalTrades = result.Statistics.GetValueOrDefault("Total Orders", "0");
-
-        if (result.Charts.ContainsKey("Strategy Equity"))
-        {
-            var equityChart = result.Charts["Strategy Equity"];
-            if (equityChart.Series.ContainsKey("Equity"))
+            var progress = CreateProgress<BacktestProgress>(operationId, update =>
             {
-                var rawValues = equityChart.Series["Equity"].Values;
+                CurrentProgress = update.Percent;
+                if (update.Message is { Length: > 0 } message)
+                    StatusMessage = message;
+            });
 
-                var points = new List<ChartPointModel>();
-                foreach (var val in rawValues)
-                {
-                    if (val.Count >= 2)
-                    {
-                        // Konwersja LEAN Unix Timestamp (sekundy) na DateTime
-                        System.DateTime dt = System.DateTime.UnixEpoch.AddSeconds(val[0]).ToLocalTime();
-                        points.Add(new ChartPointModel { DateTime = dt, Value = val[1] });
-                    }
-                }
+            var run = await _backtestEngine.RunAsync(request, progress, cancellationToken);
+            ShowReport(await _resultReader.ReadAsync(run, cancellationToken));
+            return $"Backtest {run.RunId} completed.";
+        });
+    }
 
-                CurrentProgress = 50;
-                var chartValues = new ChartValues<double>(points.Select(p => p.Value));
+    [RelayCommand(CanExecute = nameof(CanStartOperation))]
+    private async Task LoadLatestResultsAsync(CancellationToken cancellationToken)
+    {
+        await RunOperationAsync($"Loading latest results for {Symbol}...", async _ =>
+        {
+            var report = await _resultReader.ReadLatestAsync(Symbol, SelectedStrategy, cancellationToken);
+            if (report is null)
+                return $"No saved results for {Symbol} / {SelectedStrategy}.";
 
-                EquitySeriesCollection = new SeriesCollection
-                {
-                    new LineSeries
-                    {
-                        Title = "Kapitał ($)",
-                        Values = chartValues,
-                        PointGeometry = null,
-                        StrokeThickness = 2
-                    }
-                };
+            ShowReport(report);
+            return $"Loaded {report.RunId}.";
+        });
+    }
 
-                // Etykiety osi X (daty transakcji)
-                ChartLabels = points.Select(p => p.DateTime.ToString("yyyy-MM-dd")).ToList();
-            }
+    [RelayCommand(CanExecute = nameof(IsBusy))]
+    private void Cancel()
+    {
+        DownloadDataCommand.Cancel();
+        RunBacktestCommand.Cancel();
+        LoadLatestResultsCommand.Cancel();
+    }
+
+    /// <param name="operation">Receives the operation id and returns the final status message.</param>
+    private async Task RunOperationAsync(string startMessage, Func<int, Task<string>> operation)
+    {
+        var operationId = ++_operationId;
+        IsBusy = true;
+        CurrentProgress = 0;
+        StatusMessage = startMessage;
+
+        try
+        {
+            StatusMessage = await operation(operationId);
+            CurrentProgress = 100;
         }
-        CurrentProgress = 100;
-        StatusMessage = "Results loaded.";
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Cancelled.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Operation failed: {Operation}", startMessage);
+            StatusMessage = $"Failed: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private Progress<T> CreateProgress<T>(int operationId, Action<T> apply) =>
+        new(value =>
+        {
+            if (IsBusy && operationId == _operationId)
+                apply(value);
+        });
+
+    private bool TryGetDateRange(out DateOnly start, out DateOnly end)
+    {
+        start = end = default;
+        if (StartDate is null || EndDate is null || StartDate > EndDate)
+        {
+            StatusMessage = "Select a valid date range.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Symbol))
+        {
+            StatusMessage = "Enter a symbol.";
+            return false;
+        }
+
+        start = DateOnly.FromDateTime(StartDate.Value);
+        end = DateOnly.FromDateTime(EndDate.Value);
+        return true;
+    }
+
+    private void ShowReport(BacktestReport report)
+    {
+        string Stat(string name, string fallback) => report.Statistics.GetValueOrDefault(name, fallback);
+
+        CompoundingReturn = Stat("Compounding Annual Return", "0%");
+        MaxDrawdown = Stat("Drawdown", "0%");
+        WinRate = Stat("Win Rate", "0%");
+        SharpeRatio = Stat("Sharpe Ratio", "0");
+        AverageWin = Stat("Average Win", "0%");
+        AverageLoss = Stat("Average Loss", "0%");
+        ProfitFactor = report.TradeStatistics.ProfitFactor.ToString("0.00", CultureInfo.CurrentCulture);
+        TotalTrades = report.TradeStatistics.TotalTrades.ToString(CultureInfo.CurrentCulture);
+        MaxConsecutiveWins = report.TradeStatistics.MaxConsecutiveWins;
+        MaxConsecutiveLosses = report.TradeStatistics.MaxConsecutiveLosses;
+        TradesHistory = report.ClosedTrades;
+
+        EquitySeriesCollection = new SeriesCollection
+        {
+            new LineSeries
+            {
+                Title = "Kapitał ($)",
+                Values = new ChartValues<double>(report.Equity.Select(p => (double)p.Value)),
+                PointGeometry = null,
+                StrokeThickness = 2
+            }
+        };
+        ChartLabels = report.Equity.Select(p => p.Time.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToList();
     }
 }
