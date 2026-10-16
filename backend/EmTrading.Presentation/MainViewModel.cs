@@ -1,8 +1,13 @@
 ﻿using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EmTrading.Application.Abstractions.Messaging;
+using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Backtesting;
-using EmTrading.Application.MarketData;
+using EmTrading.Application.Backtesting.GetBacktestReport;
+using EmTrading.Application.Backtesting.GetLatestBacktestReport;
+using EmTrading.Application.Backtesting.RunBacktest;
+using EmTrading.Application.MarketData.DownloadMarketData;
 using EmTrading.Domain.MarketData;
 using LiveCharts;
 using LiveCharts.Wpf;
@@ -14,24 +19,16 @@ public partial class MainViewModel : ObservableObject
 {
     private const string DefaultStrategy = "SmaCrossStrategy";
 
-    private readonly IMarketDataDownloader _marketDataDownloader;
-    private readonly IBacktestEngine _backtestEngine;
-    private readonly IBacktestResultReader _resultReader;
+    private readonly IDispatcher _dispatcher;
     private readonly ILogger<MainViewModel> _logger;
 
     // Progress<T> posts to the UI thread asynchronously, so a report can arrive after its operation ended.
     // Reports are only applied while their operation is the current one.
     private int _operationId;
 
-    public MainViewModel(
-        IMarketDataDownloader marketDataDownloader,
-        IBacktestEngine backtestEngine,
-        IBacktestResultReader resultReader,
-        ILogger<MainViewModel> logger)
+    public MainViewModel(IDispatcher dispatcher, ILogger<MainViewModel> logger)
     {
-        _marketDataDownloader = marketDataDownloader;
-        _backtestEngine = backtestEngine;
-        _resultReader = resultReader;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
@@ -88,12 +85,15 @@ public partial class MainViewModel : ObservableObject
         if (!TryGetDateRange(out var start, out var end))
             return;
 
-        var request = new MarketDataRequest(Symbol, SelectedTimeframe, start, end);
         await RunOperationAsync($"Downloading {SelectedTimeframe} data for {Symbol}...", async operationId =>
         {
-            var progress = CreateProgress<int>(operationId, percent => CurrentProgress = percent);
-            var result = await _marketDataDownloader.DownloadAsync(request, progress, cancellationToken);
-            return $"Downloaded {result.BarCount:N0} bars for {result.Symbol}.";
+            var command = new DownloadMarketDataCommand(Symbol, SelectedTimeframe, start, end)
+            {
+                Progress = CreateProgress<int>(operationId, percent => CurrentProgress = percent)
+            };
+
+            var result = await _dispatcher.SendAsync(command, cancellationToken);
+            return result.Match(r => $"Downloaded {r.BarCount:N0} bars for {r.Symbol}.", Describe);
         });
     }
 
@@ -103,31 +103,34 @@ public partial class MainViewModel : ObservableObject
         if (!TryGetDateRange(out var start, out var end))
             return;
 
-        if (FastPeriod <= 0 || SlowPeriod <= FastPeriod)
-        {
-            StatusMessage = "Slow period must be greater than fast period, and both must be positive.";
-            return;
-        }
-
         var parameters = new Dictionary<string, string>
         {
             [StrategyParameterNames.FastPeriod] = FastPeriod.ToString(CultureInfo.InvariantCulture),
             [StrategyParameterNames.SlowPeriod] = SlowPeriod.ToString(CultureInfo.InvariantCulture)
         };
-        var request = new BacktestRequest(SelectedStrategy, Symbol, start, end, InitialCapital, parameters);
 
         await RunOperationAsync($"Running {SelectedStrategy} backtest for {Symbol}...", async operationId =>
         {
-            var progress = CreateProgress<BacktestProgress>(operationId, update =>
+            var command = new RunBacktestCommand(SelectedStrategy, Symbol, start, end, InitialCapital, parameters)
             {
-                CurrentProgress = update.Percent;
-                if (update.Message is { Length: > 0 } message)
-                    StatusMessage = message;
-            });
+                Progress = CreateProgress<BacktestProgress>(operationId, update =>
+                {
+                    CurrentProgress = update.Percent;
+                    if (update.Message is { Length: > 0 } message)
+                        StatusMessage = message;
+                })
+            };
 
-            var run = await _backtestEngine.RunAsync(request, progress, cancellationToken);
-            ShowReport(await _resultReader.ReadAsync(run, cancellationToken));
-            return $"Backtest {run.RunId} completed.";
+            var run = await _dispatcher.SendAsync(command, cancellationToken);
+            if (run.IsFailure)
+                return Describe(run.Error);
+
+            var report = await _dispatcher.SendAsync(new GetBacktestReportQuery(run.Value.Symbol, run.Value.RunId), cancellationToken);
+            if (report.IsFailure)
+                return Describe(report.Error);
+
+            ShowReport(report.Value);
+            return $"Backtest {run.Value.RunId} completed.";
         });
     }
 
@@ -136,12 +139,12 @@ public partial class MainViewModel : ObservableObject
     {
         await RunOperationAsync($"Loading latest results for {Symbol}...", async _ =>
         {
-            var report = await _resultReader.ReadLatestAsync(Symbol, SelectedStrategy, cancellationToken);
-            if (report is null)
-                return $"No saved results for {Symbol} / {SelectedStrategy}.";
+            var report = await _dispatcher.SendAsync(new GetLatestBacktestReportQuery(Symbol, SelectedStrategy), cancellationToken);
+            if (report.IsFailure)
+                return Describe(report.Error);
 
-            ShowReport(report);
-            return $"Loaded {report.RunId}.";
+            ShowReport(report.Value);
+            return $"Loaded {report.Value.RunId}.";
         });
     }
 
@@ -188,18 +191,15 @@ public partial class MainViewModel : ObservableObject
                 apply(value);
         });
 
+    /// <summary>
+    /// Only checks that dates are picked; the rules themselves are enforced by the command validators.
+    /// </summary>
     private bool TryGetDateRange(out DateOnly start, out DateOnly end)
     {
         start = end = default;
-        if (StartDate is null || EndDate is null || StartDate > EndDate)
+        if (StartDate is null || EndDate is null)
         {
-            StatusMessage = "Select a valid date range.";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(Symbol))
-        {
-            StatusMessage = "Enter a symbol.";
+            StatusMessage = "Select start and end dates.";
             return false;
         }
 
@@ -207,6 +207,9 @@ public partial class MainViewModel : ObservableObject
         end = DateOnly.FromDateTime(EndDate.Value);
         return true;
     }
+
+    private static string Describe(Error error) =>
+        error.Type == ErrorType.Validation ? error.Message : $"Failed: {error.Message}";
 
     private void ShowReport(BacktestReport report)
     {
