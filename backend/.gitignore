@@ -485,3 +485,6 @@ TODO.txt
 
 /Results
 /TradingData
+
+**/appsettings.Local.json
+**/appsettings.Development.json
