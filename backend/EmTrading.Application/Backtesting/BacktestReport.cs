@@ -1,8 +1,13 @@
+using System.ComponentModel;
 using EmTrading.Domain.Trading;
 
 namespace EmTrading.Application.Backtesting;
 
+/// <summary>
+/// Read model of a finished run. Marked immutable so HybridCache hands out the cached instance instead of a deserialized copy.
+/// </summary>
 /// <param name="Statistics">Engine statistics as formatted by the engine, e.g. <c>"Sharpe Ratio" = "0.896"</c>.</param>
+[ImmutableObject(true)]
 public sealed record BacktestReport(
     string RunId,
     IReadOnlyDictionary<string, string> Statistics,
