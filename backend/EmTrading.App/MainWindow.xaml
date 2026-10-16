@@ -241,6 +241,40 @@
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
+
+                    <!-- Zakładka 4: Historia Backtestów -->
+                    <TabItem Header="Historia Backtestów">
+                        <DockPanel Margin="5">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Button Content="Odśwież" Command="{Binding RefreshHistoryCommand}" Padding="10,3" Margin="0,0,5,0"/>
+                                <Button Content="Pokaż wyniki" Command="{Binding OpenHistoryRunCommand}" Padding="10,3"/>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding BacktestHistory}"
+                                      SelectedItem="{Binding SelectedHistoryRun}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      SelectionMode="Single"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      Background="White" RowHeight="26">
+                                <DataGrid.InputBindings>
+                                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenHistoryRunCommand}" />
+                                </DataGrid.InputBindings>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Utworzono" Binding="{Binding CreatedAt.LocalDateTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}" Width="140" />
+                                    <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
+                                    <DataGridTextColumn Header="Strategia" Binding="{Binding StrategyName}" Width="130" />
+                                    <DataGridTextColumn Header="Od" Binding="{Binding Start, StringFormat=\{0:yyyy-MM-dd\}}" Width="85" />
+                                    <DataGridTextColumn Header="Do" Binding="{Binding End, StringFormat=\{0:yyyy-MM-dd\}}" Width="85" />
+                                    <DataGridTextColumn Header="Kapitał" Binding="{Binding InitialCapital, StringFormat=\{0:N0\}}" Width="90" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="85" />
+                                    <DataGridTextColumn Header="Postęp" Binding="{Binding Progress, StringFormat=\{0\}%}" Width="60" />
+                                    <DataGridTextColumn Header="Czas" Binding="{Binding Duration, StringFormat=hh\\:mm\\:ss}" Width="70" />
+                                    <DataGridTextColumn Header="Błąd" Binding="{Binding FailureReason}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </TabItem>
                 </TabControl>
             </Grid>
         </Grid>

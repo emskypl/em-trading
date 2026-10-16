@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Backtesting;
+using EmTrading.Application.Backtesting.GetBacktestHistory;
 using EmTrading.Application.Backtesting.GetBacktestReport;
 using EmTrading.Application.Backtesting.GetLatestBacktestReport;
 using EmTrading.Application.Backtesting.RunBacktest;
@@ -54,6 +55,7 @@ public partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(RunBacktestCommand))]
     [NotifyCanExecuteChangedFor(nameof(LoadLatestResultsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenHistoryRunCommand))]
     private bool _isBusy;
 
     [ObservableProperty] private int _currentProgress;
@@ -71,6 +73,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _maxConsecutiveWins;
     [ObservableProperty] private int _maxConsecutiveLosses;
     [ObservableProperty] private IReadOnlyList<ClosedTrade> _tradesHistory = [];
+
+    // Backtest history
+    [ObservableProperty] private IReadOnlyList<BacktestRunSummary> _backtestHistory = [];
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenHistoryRunCommand))]
+    private BacktestRunSummary? _selectedHistoryRun;
 
     // LiveCharts
     [ObservableProperty] private SeriesCollection _equitySeriesCollection = new();
@@ -132,6 +141,9 @@ public partial class MainViewModel : ObservableObject
             ShowReport(report.Value);
             return $"Backtest {run.Value.RunId} completed.";
         });
+
+        // Every outcome (completed, failed, cancelled) is stored, so the history changes either way.
+        await RefreshHistoryAsync(CancellationToken.None);
     }
 
     [RelayCommand(CanExecute = nameof(CanStartOperation))]
@@ -148,12 +160,45 @@ public partial class MainViewModel : ObservableObject
         });
     }
 
+    [RelayCommand]
+    private async Task RefreshHistoryAsync(CancellationToken cancellationToken)
+    {
+        var history = await _dispatcher.SendAsync(new GetBacktestHistoryQuery(), cancellationToken);
+        if (history.IsFailure)
+        {
+            StatusMessage = Describe(history.Error);
+            return;
+        }
+
+        var selectedRunId = SelectedHistoryRun?.RunId;
+        BacktestHistory = history.Value;
+        SelectedHistoryRun = BacktestHistory.FirstOrDefault(r => r.RunId == selectedRunId);
+    }
+
+    private bool CanOpenHistoryRun() => !IsBusy && SelectedHistoryRun is { HasReport: true };
+
+    [RelayCommand(CanExecute = nameof(CanOpenHistoryRun))]
+    private async Task OpenHistoryRunAsync(CancellationToken cancellationToken)
+    {
+        var run = SelectedHistoryRun!;
+        await RunOperationAsync($"Loading results of {run.RunId}...", async _ =>
+        {
+            var report = await _dispatcher.SendAsync(new GetBacktestReportQuery(run.Symbol, run.RunId), cancellationToken);
+            if (report.IsFailure)
+                return Describe(report.Error);
+
+            ShowReport(report.Value);
+            return $"Loaded {run.RunId}.";
+        });
+    }
+
     [RelayCommand(CanExecute = nameof(IsBusy))]
     private void Cancel()
     {
         DownloadDataCommand.Cancel();
         RunBacktestCommand.Cancel();
         LoadLatestResultsCommand.Cancel();
+        OpenHistoryRunCommand.Cancel();
     }
 
     /// <param name="operation">Receives the operation id and returns the final status message.</param>
