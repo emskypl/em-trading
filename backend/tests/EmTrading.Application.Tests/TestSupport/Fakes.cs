@@ -1,4 +1,5 @@
 using EmTrading.Application.Abstractions.Events;
+using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.MarketData;
 using EmTrading.Domain.Backtesting;
@@ -58,6 +59,49 @@ internal sealed class RecordingEventPublisher : IDomainEventPublisher
     {
         Published.AddRange(domainEvents);
         return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// Repository and history reader over a list, shared across DI scopes like a real database would be.
+/// </summary>
+internal sealed class InMemoryBacktestRunStore : IBacktestRunRepository, IBacktestHistoryReader
+{
+    public List<BacktestRun> Runs { get; } = [];
+
+    public void Add(BacktestRun run) => Runs.Add(run);
+
+    public Task<BacktestRun?> GetAsync(BacktestRunId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Runs.FirstOrDefault(r => r.Id == id));
+
+    public Task<IReadOnlyList<BacktestRun>> ListUnfinishedAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<BacktestRun>>(Runs.Where(r => !r.IsFinished).ToList());
+
+    public Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<BacktestRunSummary>>(Runs
+            .Where(r => symbol is null || r.Symbol == symbol)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(take)
+            .Select(r => new BacktestRunSummary(r.Id.Value, r.Symbol.Value, r.Strategy.Value, r.Period.Start, r.Period.End,
+                r.InitialCapital.Amount, r.Status, r.Progress, r.CreatedAt, r.Duration, r.FailureReason))
+            .ToList());
+}
+
+/// <summary>
+/// Mirrors the real unit of work: "commits" (records each run's status), then publishes the raised events.
+/// </summary>
+internal sealed class InMemoryUnitOfWork(InMemoryBacktestRunStore store, IDomainEventPublisher publisher) : IUnitOfWork
+{
+    public List<BacktestStatus> SavedStatuses { get; } = [];
+
+    public int SaveCount { get; private set; }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        SaveCount++;
+        SavedStatuses.AddRange(store.Runs.Select(r => r.Status));
+        var events = store.Runs.SelectMany(r => r.DequeueDomainEvents()).ToList();
+        await publisher.PublishAsync(events, cancellationToken);
     }
 }
 

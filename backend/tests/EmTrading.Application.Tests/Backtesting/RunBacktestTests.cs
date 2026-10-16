@@ -11,7 +11,31 @@ public class RunBacktestCommandHandlerTests
 {
     private readonly FakeBacktestEngine _engine = new();
     private readonly RecordingEventPublisher _events = new();
+    private readonly InMemoryBacktestRunStore _runs = new();
+    private readonly InMemoryUnitOfWork _unitOfWork;
     private readonly FakeTimeProvider _clock = new(TestData.Now);
+
+    public RunBacktestCommandHandlerTests()
+    {
+        _unitOfWork = new InMemoryUnitOfWork(_runs, _events);
+    }
+
+    [Fact]
+    public async Task Run_is_saved_as_running_before_the_engine_starts_and_saved_again_when_done()
+    {
+        var statusWhileEngineRuns = new List<BacktestStatus>();
+        _engine.Behavior = (_, _, _) =>
+        {
+            statusWhileEngineRuns.AddRange(_unitOfWork.SavedStatuses);
+            return Task.CompletedTask;
+        };
+
+        await CreateHandler().HandleAsync(Command(), TestContext.Current.CancellationToken);
+
+        Assert.Equal([BacktestStatus.Running], statusWhileEngineRuns);
+        Assert.Equal([BacktestStatus.Running, BacktestStatus.Completed], _unitOfWork.SavedStatuses);
+        Assert.Equal(BacktestStatus.Completed, Assert.Single(_runs.Runs).Status);
+    }
 
     [Fact]
     public async Task Successful_run_returns_its_id_and_publishes_completion()
@@ -70,6 +94,7 @@ public class RunBacktestCommandHandlerTests
 
         var cancelled = Assert.IsType<BacktestRunCancelled>(Assert.Single(_events.Published));
         Assert.Equal(30, cancelled.Progress);
+        Assert.Equal([BacktestStatus.Running, BacktestStatus.Cancelled], _unitOfWork.SavedStatuses);
     }
 
     [Fact]
@@ -80,9 +105,10 @@ public class RunBacktestCommandHandlerTests
         await Assert.ThrowsAsync<IOException>(() => CreateHandler().HandleAsync(Command(), TestContext.Current.CancellationToken));
 
         Assert.IsType<BacktestRunFailed>(Assert.Single(_events.Published));
+        Assert.Equal(BacktestStatus.Failed, Assert.Single(_runs.Runs).Status);
     }
 
-    private RunBacktestCommandHandler CreateHandler() => new(_engine, _events, _clock);
+    private RunBacktestCommandHandler CreateHandler() => new(_engine, _runs, _unitOfWork, _clock);
 
     internal static RunBacktestCommand Command(int fast = 26, int slow = 130) => new(
         "SmaCrossStrategy",
