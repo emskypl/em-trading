@@ -32,6 +32,12 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
         Status = BacktestStatus.Queued;
     }
 
+#pragma warning disable CS8618 // Persistence materializes runs through this constructor and then sets every property.
+    private BacktestRun() : base(default!)
+    {
+    }
+#pragma warning restore CS8618
+
     public Symbol Symbol { get; }
     public StrategyName Strategy { get; }
     public DateRange Period { get; }

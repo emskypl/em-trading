@@ -11,7 +11,7 @@ namespace EmTrading.Application;
 public static class ApplicationDependencyInjection
 {
     /// <summary>
-    /// Requires a <see cref="TimeProvider"/> and a <c>HybridCache</c> implementation, which the host or Infrastructure registers.
+    /// Requires <see cref="TimeProvider"/>, <c>HybridCache</c>, <c>IUnitOfWork</c> and the port implementations, which Infrastructure registers.
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
@@ -20,9 +20,10 @@ public static class ApplicationDependencyInjection
         services.AddSingleton<IDispatcher, Dispatcher>();
         services.AddScoped<IDomainEventPublisher, DomainEventPublisher>();
 
-        // Order matters: logging wraps validation, which wraps caching, which wraps the handler.
+        // Order matters, outermost first: logging, validation, then unit of work (commands) and caching (queries).
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 
         services.AddValidatorsFromAssembly(assembly, ServiceLifetime.Transient, includeInternalTypes: true);
