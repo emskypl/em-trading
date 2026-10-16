@@ -1,142 +1,97 @@
-﻿using QuantConnect.Configuration;
-using QuantConnect.Lean.Engine.Server;
+using EmTrading.Infrastructure.Engine.Contracts;
+using QuantConnect.Configuration;
 using QuantConnect.Lean.Engine;
+using QuantConnect.Logging;
+using QuantConnect.Packets;
 using QuantConnect.Util;
-using System.Reflection;
-using EmTrading.Infrastructure.Helpers;
 
-namespace EmTrading.EngineRunner
+namespace EmTrading.EngineRunner;
+
+/// <summary>
+/// Runs one Lean backtest described by a <see cref="BacktestJob"/> file and reports over stdout (<see cref="EngineProtocol"/>).
+/// Exit code 0 = completed, 1 = failed, 2 = invalid arguments.
+/// </summary>
+internal static class Program
 {
-    class Program
+    private const string AlgorithmAssembly = "EmTrading.Infrastructure.dll";
+
+    private static async Task<int> Main(string[] args)
     {
-        static void Main(string[] args)
+        int exitCode;
+        if (args.Length != 1 || !File.Exists(args[0]))
         {
-            if (args.Length < 4)
-            {
-                Console.WriteLine("Błąd: Niewystarczająca liczba argumentów. Wymagane: <StrategyName> <Start> <End> <Symbol>");
-                Environment.Exit(1);
-                return;
-            }
-            
-            string strategyName = args[0];
-            string start = args[1];
-            string end = args[2];
-            string symbol = args[3];
-
-            try
-            {
-                var currentAssemblyLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EmTrading.Infrastructure.dll");
-                
-                var dataFolderPath = InitializeDataAndResultFolders(symbol, out var resultsFolderPath, out var resultsDestinationFolderPath);
-
-                Config.Set("environment", "backtesting");
-                Config.Set("algorithm-type-name", strategyName);
-                Config.Set("algorithm-location", currentAssemblyLocation);
-                Config.Set("data-folder", dataFolderPath);
-                
-                Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.BacktestingResultHandler");
-                Config.Set("results-destination-folder", resultsDestinationFolderPath);
-
-                Config.Set("start-date", start);
-                Config.Set("end-date", end);
-                Config.Set("algorithm-parameters", $"symbol={symbol}");
-
-                bool liveMode = Config.GetBool("live-mode", false);
-
-                var composer = Composer.Instance;
-                var systemHandlers = LeanEngineSystemHandlers.FromConfiguration(composer);
-                
-                var leanManagerField = typeof(LeanEngineSystemHandlers)
-                    .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                    .FirstOrDefault(f => typeof(ILeanManager).IsAssignableFrom(f.FieldType));
-                
-                leanManagerField?.SetValue(systemHandlers, new EmTrading.Infrastructure.Engine.NullLeanManager());
-
-                systemHandlers.Initialize();
-
-                var algorithmHandlers = LeanEngineAlgorithmHandlers.FromConfiguration(composer);
-                Console.WriteLine($"[Engine] Config algorithm-parameters = {Config.Get("algorithm-parameters")}");
-
-                var job = systemHandlers.JobQueue.NextJob(out var algorithmPath);
-                
-                if (job != null)
-                {
-                    // Ustawienie BacktestId pozwala wygenerować plik <strategyName>.json w result-destination-folder
-                    if (job is QuantConnect.Packets.BacktestNodePacket backtestJob)
-                    {
-                        backtestJob.BacktestId = start + "_" + symbol + "_" + strategyName;
-                    }
-
-                    try
-                    {
-                        var prop = job.GetType().GetProperty("Parameters")
-                                   ?? job.GetType().GetProperty("AlgorithmParameters")
-                                   ?? job.GetType().GetProperty("ParametersData");
-
-                        if (prop != null)
-                        {
-                            var value = prop.GetValue(job);
-                            if (value is IDictionary<string, string> dict)
-                            {
-                                dict["symbol"] = symbol;
-                                Console.WriteLine("[Engine] Injected symbol into job.Parameters dictionary");
-                            }
-                            else
-                            {
-                                var newDict = new Dictionary<string, string> { ["symbol"] = symbol };
-                                if (prop.PropertyType.IsAssignableFrom(newDict.GetType()))
-                                {
-                                    prop.SetValue(job, newDict);
-                                    Console.WriteLine("[Engine] Set job.Parameters to newly created dictionary with symbol");
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Engine] Failed to inject symbol into job parameters: {ex}");
-                    }
-                }
-
-                if (string.IsNullOrEmpty(algorithmPath) || !File.Exists(algorithmPath))
-                {
-                    algorithmPath = currentAssemblyLocation;
-                }
-
-                var algorithmManager = new AlgorithmManager(liveMode, job);
-                var engine = new QuantConnect.Lean.Engine.Engine(systemHandlers, algorithmHandlers, liveMode: false);
-                
-                using var workerThread = (WorkerThread)Activator.CreateInstance(typeof(WorkerThread), nonPublic: true)!;
-                
-                engine.Run(
-                    job,
-                    algorithmManager,
-                    algorithmPath,
-                    workerThread
-                );
-
-                Console.WriteLine($"BACKTEST ZAKONCZONY. Plik JSON zapisany w: {Path.Combine(resultsFolderPath, strategyName + ".json")}");
-                Environment.Exit(0);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"FATAL_ERROR: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                Environment.Exit(1);
-            }
+            ProtocolWriter.WriteLine(EngineProtocol.Error("Usage: EmTrading.EngineRunner <job-file.json>"));
+            exitCode = 2;
+        }
+        else
+        {
+            exitCode = await RunAsync(args[0]);
         }
 
-        private static string InitializeDataAndResultFolders(string symbol, out string resultsFolderPath,
-            out string resultsDestinationFolderPath)
+        // Lean leaves foreground threads behind, so the process has to be ended explicitly.
+        Environment.Exit(exitCode);
+        return exitCode;
+    }
+
+    private static async Task<int> RunAsync(string jobPath)
+    {
+        try
         {
-            var dataFolderPath = PathHelper.GetSharedDataFolderPath();
-            Directory.CreateDirectory(dataFolderPath);
-            var baseDirectory = Path.GetDirectoryName(dataFolderPath) ?? AppDomain.CurrentDomain.BaseDirectory;
-            resultsFolderPath = Path.Combine(baseDirectory, "Results");
-            Directory.CreateDirectory(resultsFolderPath);
-            resultsDestinationFolderPath = Path.Combine(resultsFolderPath, symbol);
-            Directory.CreateDirectory(resultsDestinationFolderPath);
-            return dataFolderPath;
+            var job = await BacktestJob.LoadAsync(jobPath);
+            var messaging = new StdoutMessagingHandler();
+
+            RunBacktest(job, messaging);
+
+            if (messaging.RuntimeError is not null)
+                return 1;
+
+            ProtocolWriter.WriteLine(EngineProtocol.Completed(job.RunId));
+            return 0;
         }
+        catch (Exception ex)
+        {
+            ProtocolWriter.WriteLine(EngineProtocol.Error(ex.Message));
+            Console.Error.WriteLine(ex);
+            return 1;
+        }
+    }
+
+    private static void RunBacktest(BacktestJob job, StdoutMessagingHandler messaging)
+    {
+        Log.LogHandler = new ConsoleLogHandler();
+
+        var algorithmLocation = Path.Combine(AppContext.BaseDirectory, AlgorithmAssembly);
+        Directory.CreateDirectory(job.ResultsFolder);
+
+        Config.Set("environment", "backtesting");
+        Config.Set("algorithm-type-name", job.StrategyName);
+        Config.Set("algorithm-location", algorithmLocation);
+        Config.Set("data-folder", job.DataFolder);
+        Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.BacktestingResultHandler");
+        Config.Set("results-destination-folder", job.ResultsFolder);
+
+        // Take the configured job queue and API, but plug in our own messaging (progress over stdout) and lean manager.
+        var defaults = LeanEngineSystemHandlers.FromConfiguration(Composer.Instance);
+        using var systemHandlers = new LeanEngineSystemHandlers(defaults.JobQueue, defaults.Api, messaging, new NullLeanManager());
+        systemHandlers.Initialize();
+
+        var algorithmHandlers = LeanEngineAlgorithmHandlers.FromConfiguration(Composer.Instance);
+
+        var packet = systemHandlers.JobQueue.NextJob(out var algorithmPath);
+        if (packet is not BacktestNodePacket backtestPacket)
+            throw new InvalidOperationException($"Expected a backtest job, got {packet?.GetType().Name ?? "null"}.");
+
+        // Lean names the result file after the backtest id: <ResultsFolder>/<RunId>.json
+        backtestPacket.BacktestId = job.RunId;
+        backtestPacket.Parameters = job.ToAlgorithmParameters();
+
+        if (string.IsNullOrEmpty(algorithmPath) || !File.Exists(algorithmPath))
+            algorithmPath = algorithmLocation;
+
+        var algorithmManager = new AlgorithmManager(liveMode: false, backtestPacket);
+        var engine = new Engine(systemHandlers, algorithmHandlers, liveMode: false);
+
+        using var workerThread = (WorkerThread)Activator.CreateInstance(typeof(WorkerThread), nonPublic: true)!;
+        engine.Run(backtestPacket, algorithmManager, algorithmPath, workerThread);
     }
 }
