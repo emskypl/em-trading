@@ -11,7 +11,7 @@ public class RunBacktestCommandHandlerTests
 {
     private readonly FakeBacktestEngine _engine = new();
     private readonly RecordingEventPublisher _events = new();
-    private readonly InMemoryBacktestRunStore _runs = new();
+    private readonly InMemoryDatabase _runs = new();
     private readonly InMemoryUnitOfWork _unitOfWork;
     private readonly FakeTimeProvider _clock = new(TestData.Now);
 

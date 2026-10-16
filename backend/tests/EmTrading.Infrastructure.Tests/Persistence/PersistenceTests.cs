@@ -138,6 +138,41 @@ public sealed class PersistenceTests : IAsyncLifetime
         Assert.Equal(2, (await reader.ListAsync(null, take: 2, ct)).Count);
     }
 
+    [Fact]
+    public async Task Market_data_set_coverage_round_trips_and_changes_are_detected()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var completeThrough = new DateOnly(2026, 3, 31);
+        var set = MarketDataSet.Create(Symbol.Create("MSFT"), Timeframe.Daily);
+        set.RecordDownload(DateRange.Create(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 31)), completeThrough, 21, T0);
+
+        await using (var db = CreateContext())
+        {
+            new MarketDataSetRepository(db).Add(set);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        // Load, extend the coverage (the aggregate replaces its list), save again.
+        await using (var db = CreateContext())
+        {
+            var loaded = await new MarketDataSetRepository(db).GetAsync(set.Id, ct);
+            Assert.NotNull(loaded);
+            loaded.RecordDownload(DateRange.Create(new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 10)), completeThrough, 7, T0.AddDays(1));
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using (var db = CreateContext())
+        {
+            var coverage = Assert.Single(await new MarketDataCoverageReader(db).ListAsync(ct));
+            Assert.Equal("MSFT", coverage.Symbol);
+            Assert.Equal(Timeframe.Daily, coverage.Timeframe);
+            Assert.Equal("2026-01-01..2026-01-31; 2026-03-01..2026-03-10", coverage.RangesText);
+            Assert.Equal(T0.AddDays(1), coverage.LastDownloadedAt);
+        }
+
+        Assert.Equal(2, _publisher.Published.OfType<MarketDataDownloaded>().Count());
+    }
+
     private TradingDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<TradingDbContext>().UseSqlite(_connection).Options);
 
