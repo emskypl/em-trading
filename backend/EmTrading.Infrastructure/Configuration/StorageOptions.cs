@@ -15,6 +15,10 @@ public sealed class StorageOptions
 
     [Required]
     public string ResultsFolder { get; set; } = string.Empty;
+
+    /// <summary>SQLite database with the backtest history.</summary>
+    [Required]
+    public string DatabaseFile { get; set; } = string.Empty;
 }
 
 internal sealed class StorageOptionsPostConfigure : IPostConfigureOptions<StorageOptions>
@@ -24,6 +28,7 @@ internal sealed class StorageOptionsPostConfigure : IPostConfigureOptions<Storag
         var root = StoragePathResolver.FindDefaultRoot(AppContext.BaseDirectory);
         options.DataFolder = StoragePathResolver.Resolve(root, options.DataFolder, "TradingData");
         options.ResultsFolder = StoragePathResolver.Resolve(root, options.ResultsFolder, "Results");
+        options.DatabaseFile = StoragePathResolver.Resolve(root, options.DatabaseFile, "emtrading.db");
     }
 }
 

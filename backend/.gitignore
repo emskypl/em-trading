@@ -488,3 +488,8 @@ TODO.txt
 
 **/appsettings.Local.json
 **/appsettings.Development.json
+
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal

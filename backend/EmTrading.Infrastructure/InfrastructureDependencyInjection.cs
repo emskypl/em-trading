@@ -1,4 +1,5 @@
-﻿using EmTrading.Application.Backtesting;
+﻿using EmTrading.Application.Abstractions.Persistence;
+using EmTrading.Application.Backtesting;
 using EmTrading.Application.MarketData;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Engine;
@@ -6,6 +7,9 @@ using EmTrading.Infrastructure.Engine.Results;
 using EmTrading.Infrastructure.MarketData;
 using EmTrading.Infrastructure.MarketData.Alpaca;
 using EmTrading.Infrastructure.MarketData.Lean;
+using EmTrading.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,8 +41,26 @@ public static class InfrastructureDependencyInjection
 
         AddMarketData(services);
         AddEngine(services);
+        AddPersistence(services);
 
         return services;
+    }
+
+    private static void AddPersistence(IServiceCollection services)
+    {
+        services.AddDbContext<TradingDbContext>((sp, options) =>
+        {
+            var databaseFile = sp.GetRequiredService<IOptions<StorageOptions>>().Value.DatabaseFile;
+            Directory.CreateDirectory(Path.GetDirectoryName(databaseFile)!);
+            options.UseSqlite(new SqliteConnectionStringBuilder { DataSource = databaseFile }.ToString());
+        });
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IBacktestRunRepository, BacktestRunRepository>();
+        services.AddScoped<IBacktestHistoryReader, BacktestHistoryReader>();
+
+        // Runs after LeanDataFolderInitializer (registration order) and before the main window is shown.
+        services.AddHostedService<DatabaseInitializer>();
     }
 
     private static void AddMarketData(IServiceCollection services)
