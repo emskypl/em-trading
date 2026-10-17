@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
-using EmTrading.Application.Backtesting;
+using EmTrading.Strategies;
 
-namespace EmTrading.Infrastructure.Engine.Contracts;
+namespace EmTrading.Infrastructure.Lean.Engine.Contracts;
 
 /// <summary>
 /// Everything the engine runner needs for one backtest. The app writes it as JSON next to the results
@@ -40,9 +40,9 @@ public sealed record BacktestJob(
     /// </summary>
     public Dictionary<string, string> ToAlgorithmParameters() => new(Parameters)
     {
-        [StrategyParameterNames.Symbol] = Symbol,
-        [StrategyParameterNames.StartDate] = Start.ToString(StrategyParameterNames.DateFormat, CultureInfo.InvariantCulture),
-        [StrategyParameterNames.EndDate] = End.ToString(StrategyParameterNames.DateFormat, CultureInfo.InvariantCulture),
-        [StrategyParameterNames.Cash] = InitialCash.ToString(CultureInfo.InvariantCulture)
+        [EngineParameters.Symbol] = Symbol,
+        [EngineParameters.StartDate] = Start.ToString(EngineParameters.DateFormat, CultureInfo.InvariantCulture),
+        [EngineParameters.EndDate] = End.ToString(EngineParameters.DateFormat, CultureInfo.InvariantCulture),
+        [EngineParameters.Cash] = InitialCash.ToString(CultureInfo.InvariantCulture)
     };
 }

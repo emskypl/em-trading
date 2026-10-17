@@ -2,8 +2,9 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using EmTrading.Domain.MarketData;
+using EmTrading.Infrastructure.MarketData;
 
-namespace EmTrading.Infrastructure.MarketData.Lean;
+namespace EmTrading.Infrastructure.Lean.Data;
 
 /// <summary>
 /// Writes US equity trade bars in the Lean local data format.
@@ -231,15 +232,4 @@ internal sealed class LeanEquityDataWriter
 
         File.Move(tempPath, path, overwrite: true);
     }
-}
-
-/// <summary>
-/// Receives bars incrementally; <see cref="CompleteAsync"/> writes whatever is still buffered.
-/// </summary>
-internal interface IBarSink
-{
-    Task AddAsync(IReadOnlyList<MarketBar> bars, CancellationToken cancellationToken);
-
-    /// <returns>The number of files written.</returns>
-    Task<int> CompleteAsync(CancellationToken cancellationToken);
 }

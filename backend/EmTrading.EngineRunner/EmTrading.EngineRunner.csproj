@@ -6,7 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EmTrading.Infrastructure\EmTrading.Infrastructure.csproj" />
+    <ProjectReference Include="..\EmTrading.Infrastructure.Lean\EmTrading.Infrastructure.Lean.csproj" />
+    <ProjectReference Include="..\EmTrading.Strategies\EmTrading.Strategies.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QuantConnect.Lean" />
+    <PackageReference Include="QuantConnect.Lean.Engine" />
   </ItemGroup>
 
 </Project>

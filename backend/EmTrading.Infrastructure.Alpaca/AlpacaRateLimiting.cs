@@ -1,8 +1,7 @@
 using System.Threading.RateLimiting;
-using EmTrading.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.MarketData.Alpaca;
+namespace EmTrading.Infrastructure.Alpaca;
 
 /// <summary>
 /// One token bucket shared by every Alpaca request in the process, sized to the plan's requests-per-minute limit.

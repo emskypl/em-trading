@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EmTrading.Infrastructure.Configuration;
+namespace EmTrading.Infrastructure.Alpaca;
 
 /// <summary>
 /// Keys are not stored in appsettings.json. Set them with:

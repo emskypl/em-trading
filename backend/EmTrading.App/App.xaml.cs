@@ -2,6 +2,8 @@
 using System.Windows.Threading;
 using EmTrading.Application;
 using EmTrading.Infrastructure;
+using EmTrading.Infrastructure.Alpaca;
+using EmTrading.Infrastructure.Lean;
 using EmTrading.Presentation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -72,9 +74,12 @@ public partial class App : System.Windows.Application
             .ReadFrom.Services(services)
             .Enrich.FromLogContext());
 
+        // Clean Architecture composition: the app layer, shared infrastructure, one adapter per external system, the UI.
         builder.Services
             .AddApplicationServices()
             .AddInfrastructureServices(builder.Configuration)
+            .AddAlpacaMarketData(builder.Configuration)
+            .AddLeanEngine(builder.Configuration)
             .AddPresentationServices();
 
         builder.Services.AddSingleton<MainWindow>();

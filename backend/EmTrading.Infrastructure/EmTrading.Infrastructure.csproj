@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Shared infrastructure: persistence, background jobs, storage settings and the seams
+       (IHistoricalBarSource, IMarketDataStore) that the Alpaca and Lean adapters implement. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <!-- EF Core Design (dotnet ef, private) brings Roslyn 5.0 while Lean pins 4.8. Only this project's design-time graph
-         is affected: the app and engine runner outputs still ship Roslyn 4.8. -->
-    <NoWarn>$(NoWarn);NU1608</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,10 +21,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
-    <PackageReference Include="QuantConnect.Algorithm" />
-    <PackageReference Include="QuantConnect.Common" />
-    <PackageReference Include="QuantConnect.Lean" />
-    <PackageReference Include="QuantConnect.Lean.Engine" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,24 +1,18 @@
 using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using EmTrading.Application.MarketData;
-using EmTrading.Infrastructure.Configuration;
-using EmTrading.Infrastructure.MarketData.Alpaca;
-using EmTrading.Infrastructure.MarketData.Lean;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace EmTrading.Infrastructure.MarketData;
 
 /// <summary>
-/// Producer/consumer pipeline: one task downloads pages from Alpaca into a bounded channel while another writes
+/// Producer/consumer pipeline: one task downloads pages from the bar source into a bounded channel while another writes
 /// them to disk, so network and disk work overlap. The bounded channel applies backpressure: if writing falls
 /// behind, downloading waits instead of buffering everything in memory.
 /// </summary>
 internal sealed class MarketDataDownloader(
-    AlpacaMarketDataClient alpaca,
-    LeanReferenceDataClient referenceData,
-    LeanEquityDataWriter writer,
-    IOptions<StorageOptions> storage,
+    IHistoricalBarSource source,
+    IMarketDataStore store,
     TimeProvider clock,
     ILogger<MarketDataDownloader> logger) : IMarketDataDownloader
 {
@@ -36,7 +30,7 @@ internal sealed class MarketDataDownloader(
         var symbol = request.Symbol.Value;
 
         progress?.Report(0);
-        await referenceData.EnsureReferenceDataAsync(cancellationToken).ConfigureAwait(false);
+        await store.EnsureReferenceDataAsync(cancellationToken).ConfigureAwait(false);
         progress?.Report(ReferenceDataEnd);
 
         var startUtc = request.Period.Start.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
@@ -61,7 +55,7 @@ internal sealed class MarketDataDownloader(
             try
             {
                 var fetchProgress = progress is null ? null : new ScaledProgress(progress, ReferenceDataEnd, DownloadEnd);
-                await foreach (var page in alpaca.StreamPagesAsync(symbol, request.Timeframe, startUtc, endUtc, fetchProgress, pipeline.Token))
+                await foreach (var page in source.StreamPagesAsync(symbol, request.Timeframe, startUtc, endUtc, fetchProgress, pipeline.Token))
                     await pages.Writer.WriteAsync(page, pipeline.Token);
 
                 pages.Writer.Complete();
@@ -78,7 +72,7 @@ internal sealed class MarketDataDownloader(
         {
             try
             {
-                var sink = writer.CreateSink(storage.Value.DataFolder, symbol, request.Timeframe);
+                var sink = store.CreateSink(symbol, request.Timeframe);
                 var barCount = 0;
                 await foreach (var page in pages.Reader.ReadAllAsync(pipeline.Token))
                 {

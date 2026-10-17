@@ -3,7 +3,7 @@ namespace EmTrading.Infrastructure.MarketData;
 /// <summary>
 /// US equity data is stored by Lean in exchange time (New York).
 /// </summary>
-internal static class ExchangeTime
+public static class ExchangeTime
 {
     private static readonly TimeZoneInfo NewYork = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 

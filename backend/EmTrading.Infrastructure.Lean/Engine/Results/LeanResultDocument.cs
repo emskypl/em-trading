@@ -1,4 +1,4 @@
-namespace EmTrading.Infrastructure.Engine.Results;
+namespace EmTrading.Infrastructure.Lean.Engine.Results;
 
 // The subset of Lean's backtest result JSON (<RunId>.json) that the app reads.
 

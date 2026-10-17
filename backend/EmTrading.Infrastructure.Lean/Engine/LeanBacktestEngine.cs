@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Text;
 using EmTrading.Application.Backtesting;
 using EmTrading.Infrastructure.Configuration;
-using EmTrading.Infrastructure.Engine.Contracts;
+using EmTrading.Infrastructure.Lean.Engine.Contracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.Engine;
+namespace EmTrading.Infrastructure.Lean.Engine;
 
 /// <summary>
 /// Runs each backtest in a separate EmTrading.EngineRunner process. Lean keeps its configuration in static state,

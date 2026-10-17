@@ -2,15 +2,15 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using EmTrading.Domain.MarketData;
-using EmTrading.Infrastructure.Configuration;
+using EmTrading.Infrastructure.MarketData;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.MarketData.Alpaca;
+namespace EmTrading.Infrastructure.Alpaca;
 
 /// <summary>
 /// Typed client for the Alpaca historical stock bars API (https://docs.alpaca.markets/reference/stockbarsingle).
 /// </summary>
-internal sealed class AlpacaMarketDataClient(HttpClient httpClient, IOptions<AlpacaOptions> options)
+internal sealed class AlpacaMarketDataClient(HttpClient httpClient, IOptions<AlpacaOptions> options) : IHistoricalBarSource
 {
     private const int PageLimit = 10_000;
 

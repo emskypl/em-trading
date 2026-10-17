@@ -8,7 +8,7 @@ using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.MarketData;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.Engine.Results;
+namespace EmTrading.Infrastructure.Lean.Engine.Results;
 
 internal sealed class LeanResultReader(IOptions<StorageOptions> storage) : IBacktestResultReader
 {

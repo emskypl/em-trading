@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace EmTrading.Infrastructure.Engine.Contracts;
+namespace EmTrading.Infrastructure.Lean.Engine.Contracts;
 
 /// <summary>
 /// Line protocol the engine runner writes to stdout. Lean's own log lines pass through as <see cref="EngineMessageKind.Output"/>.

@@ -1,6 +1,6 @@
 namespace EmTrading.Infrastructure.MarketData;
 
-internal readonly record struct MarketBar(
+public readonly record struct MarketBar(
     DateTime TimeUtc,
     decimal Open,
     decimal High,

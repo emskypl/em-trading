@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.MarketData.Lean;
+namespace EmTrading.Infrastructure.Lean.Data;
 
 /// <summary>
 /// Creates the Lean data folder layout when the app starts.

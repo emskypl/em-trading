@@ -1,4 +1,4 @@
-using EmTrading.Infrastructure.Engine.Contracts;
+using EmTrading.Infrastructure.Lean.Engine.Contracts;
 using QuantConnect.Configuration;
 using QuantConnect.Lean.Engine;
 using QuantConnect.Logging;
@@ -13,7 +13,7 @@ namespace EmTrading.EngineRunner;
 /// </summary>
 internal static class Program
 {
-    private const string AlgorithmAssembly = "EmTrading.Infrastructure.dll";
+    private const string AlgorithmAssembly = "EmTrading.Strategies.dll";
 
     private static async Task<int> Main(string[] args)
     {

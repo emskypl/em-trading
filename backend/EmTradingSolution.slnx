@@ -9,7 +9,10 @@
   <Project Path="EmTrading.Application/EmTrading.Application.csproj" />
   <Project Path="EmTrading.Domain/EmTrading.Domain.csproj" />
   <Project Path="EmTrading.EngineRunner/EmTrading.EngineRunner.csproj" />
+  <Project Path="EmTrading.Infrastructure.Alpaca/EmTrading.Infrastructure.Alpaca.csproj" />
+  <Project Path="EmTrading.Infrastructure.Lean/EmTrading.Infrastructure.Lean.csproj" />
   <Project Path="EmTrading.Infrastructure/EmTrading.Infrastructure.csproj" />
   <Project Path="EmTrading.Presentation/EmTrading.Presentation.csproj" />
+  <Project Path="EmTrading.Strategies/EmTrading.Strategies.csproj" />
   <Project Path="EmTrading.Wpf.Controls/EmTrading.Wpf.Controls.csproj" />
 </Solution>

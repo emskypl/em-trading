@@ -1,7 +1,7 @@
 using EmTrading.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace EmTrading.Infrastructure.MarketData.Lean;
+namespace EmTrading.Infrastructure.Lean.Data;
 
 /// <summary>
 /// Downloads the reference data Lean needs to run a backtest (market hours, symbol properties, interest rates).

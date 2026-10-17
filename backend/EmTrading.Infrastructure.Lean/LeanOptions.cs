@@ -1,4 +1,4 @@
-namespace EmTrading.Infrastructure.Configuration;
+namespace EmTrading.Infrastructure.Lean;
 
 public sealed class LeanOptions
 {
