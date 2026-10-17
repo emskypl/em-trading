@@ -49,59 +49,55 @@
                         <GroupBox Header="Strategia i Wskaźniki" Margin="0,0,0,15" Padding="8">
                             <StackPanel>
                                 <TextBlock Text="Wybór Strategii:" Margin="0,5,0,2" FontSize="11" Foreground="Gray"/>
-                                <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}" />
+                                <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}"
+                                          DisplayMemberPath="DisplayName"
+                                          ToolTip="{Binding SelectedStrategy.Description}">
+                                    <!-- Without this, screen readers and UI automation see the record's ToString(). -->
+                                    <ComboBox.ItemContainerStyle>
+                                        <Style TargetType="ComboBoxItem">
+                                            <Setter Property="AutomationProperties.Name" Value="{Binding DisplayName}" />
+                                        </Style>
+                                    </ComboBox.ItemContainerStyle>
+                                </ComboBox>
 
-                                <Grid Margin="0,8,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                                        <TextBlock Text="Fast Period:" FontSize="11" Foreground="Gray"/>
-                                        <TextBox Text="{Binding FastPeriod}" Padding="4"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                                        <TextBlock Text="Slow Period:" FontSize="11" Foreground="Gray"/>
-                                        <TextBox Text="{Binding SlowPeriod}" Padding="4"/>
-                                    </StackPanel>
-                                </Grid>
+                                <!-- Generated from the strategy's parameter declarations ([StrategyParameter] attributes). -->
+                                <ItemsControl ItemsSource="{Binding StrategyParameters}" Margin="0,4,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,4,0,0" ToolTip="{Binding Hint}">
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" Foreground="Gray"/>
+                                                <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                                <TextBlock Text="{Binding Error}" Foreground="#C62828" FontSize="10" TextWrapping="Wrap">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Error}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Sekcja 3: Zarządzanie Kapitałem i Ryzykiem -->
-                        <GroupBox Header="Kapitał i Ryzyko" Margin="0,0,0,15" Padding="8">
+                        <GroupBox Header="Kapitał" Margin="0,0,0,15" Padding="8">
                             <StackPanel>
                                 <TextBlock Text="Kapitał Początkowy ($):" Margin="0,5,0,2" FontSize="11" Foreground="Gray"/>
                                 <TextBox Text="{Binding InitialCapital}" Padding="4"/>
 
-                                <!-- Not supported by SmaCrossStrategy yet (it exits with an ATR trailing stop). -->
-                                <StackPanel IsEnabled="False" ToolTipService.ShowOnDisabled="True"
-                                            ToolTip="Jeszcze nieobsługiwane przez wybraną strategię">
-                                    <Grid Margin="0,8,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                                            <TextBlock Text="Stop Loss (%):" FontSize="11" Foreground="Gray"/>
-                                            <TextBox Text="2.0" Padding="4"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                                            <TextBlock Text="Take Profit (%):" FontSize="11" Foreground="Gray"/>
-                                            <TextBox Text="4.0" Padding="4"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <TextBlock Text="Prowizja giełdowa (%):" Margin="0,8,0,2" FontSize="11" Foreground="Gray"/>
-                                    <TextBox Text="0.1" Padding="4"/>
-                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Akcje / Przyciski -->
-                        <TextBlock Text="Symbole do pobrania (oddzielone przecinkami):" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
-                        <TextBox Text="{Binding DownloadSymbols, UpdateSourceTrigger=PropertyChanged}" Padding="4" Margin="0,0,0,6"
-                                 ToolTip="Każdy symbol to osobne zadanie w tle; pobierane są tylko brakujące dni. SPY (benchmark) jest dodawany automatycznie."/>
+                        <TextBlock Text="Symbole (lista, oddzielone przecinkami):" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding SymbolList, UpdateSourceTrigger=PropertyChanged}" Padding="4" Margin="0,0,0,6"
+                                 ToolTip="Pobieranie danych i backtesty w tle: każdy symbol to osobne zadanie. Pobierane są tylko brakujące dni; SPY (benchmark) jest dodawany automatycznie."/>
                         <Button Content="1. Pobierz dane"
                                 Command="{Binding DownloadDataCommand}"
                                 Padding="8" Margin="0,0,0,8" Height="34"/>
@@ -110,6 +106,11 @@
                                 Command="{Binding RunBacktestCommand}"
                                 Background="#1565C0" Foreground="White" FontWeight="Bold"
                                 Padding="8" Margin="0,0,0,8" Height="36"/>
+
+                        <Button Content="Backtest w tle dla listy"
+                                Command="{Binding RunBacktestBatchCommand}"
+                                ToolTip="Uruchamia wybraną strategię dla każdego symbolu z listy jako równoległe zadania w tle."
+                                Padding="6" Margin="0,0,0,8" Height="30"/>
 
                         <Button Content="Wczytaj Zapisane Wyniki"
                                 Command="{Binding LoadLatestResultsCommand}"
@@ -170,7 +171,7 @@
                 </UniformGrid>
 
                 <!-- Zakładki Szczegółowej Analizy -->
-                <TabControl Grid.Row="1" Background="White" BorderBrush="#E0E0E3">
+                <TabControl Grid.Row="1" Background="White" BorderBrush="#E0E0E3" SelectedIndex="{Binding SelectedTabIndex}">
                     
                     <!-- Zakładka 1: Wykres Portfela -->
                     <TabItem Header="Wykres Equity">
@@ -250,13 +251,17 @@
                         <DockPanel Margin="5">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
                                 <Button Content="Odśwież" Command="{Binding RefreshHistoryCommand}" Padding="10,3" Margin="0,0,5,0"/>
-                                <Button Content="Pokaż wyniki" Command="{Binding OpenHistoryRunCommand}" Padding="10,3"/>
+                                <Button Content="Pokaż wyniki" Command="{Binding OpenHistoryRunCommand}" Padding="10,3" Margin="0,0,5,0"/>
+                                <Button Content="Porównaj zaznaczone" Command="{Binding CompareRunsCommand}"
+                                        CommandParameter="{Binding SelectedItems, ElementName=HistoryGrid}"
+                                        ToolTip="Zaznacz 2–8 zakończonych backtestów (Ctrl/Shift + klik)." Padding="10,3"/>
                             </StackPanel>
-                            <DataGrid ItemsSource="{Binding BacktestHistory}"
+                            <DataGrid x:Name="HistoryGrid"
+                                      ItemsSource="{Binding BacktestHistory}"
                                       SelectedItem="{Binding SelectedHistoryRun}"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
-                                      SelectionMode="Single"
+                                      SelectionMode="Extended"
                                       GridLinesVisibility="Horizontal"
                                       HeadersVisibility="Column"
                                       Background="White" RowHeight="26">
@@ -279,7 +284,40 @@
                         </DockPanel>
                     </TabItem>
 
-                    <!-- Zakładka 5: Zadania w tle -->
+                    <!-- Zakładka 5: Porównanie backtestów (index = MainViewModel.ComparisonTabIndex) -->
+                    <TabItem Header="Porównanie">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DataGrid Grid.Row="0" ItemsSource="{Binding ComparedRuns}"
+                                      AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="220"
+                                      GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="White" RowHeight="24">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Run" Binding="{Binding RunId}" Width="*" />
+                                    <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="65" />
+                                    <DataGridTextColumn Header="Zysk netto" Binding="{Binding NetProfit}" Width="85" />
+                                    <DataGridTextColumn Header="CAR" Binding="{Binding CompoundingAnnualReturn}" Width="80" />
+                                    <DataGridTextColumn Header="Max DD" Binding="{Binding MaxDrawdown}" Width="75" />
+                                    <DataGridTextColumn Header="Sharpe" Binding="{Binding SharpeRatio}" Width="65" />
+                                    <DataGridTextColumn Header="Win Rate" Binding="{Binding WinRate}" Width="70" />
+                                    <DataGridTextColumn Header="Profit Factor" Binding="{Binding ProfitFactor, StringFormat=0.00}" Width="85" />
+                                    <DataGridTextColumn Header="Transakcje" Binding="{Binding TotalTrades}" Width="75" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <lvc:CartesianChart Grid.Row="1" Series="{Binding ComparisonSeries}" LegendLocation="Top" Margin="0,8,0,0">
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis Title="Data" LabelFormatter="{Binding DayAxisFormatter}" />
+                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="Skumulowana stopa zwrotu" LabelFormatter="{Binding PercentFormatter}" />
+                                </lvc:CartesianChart.AxisY>
+                            </lvc:CartesianChart>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Zakładka 6: Zadania w tle -->
                     <TabItem Header="Zadania">
                         <DockPanel Margin="5">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
@@ -321,7 +359,7 @@
                         </DockPanel>
                     </TabItem>
 
-                    <!-- Zakładka 6: Dane rynkowe zapisane lokalnie -->
+                    <!-- Zakładka 7: Dane rynkowe zapisane lokalnie -->
                     <TabItem Header="Dane rynkowe">
                         <DockPanel Margin="5">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">

@@ -20,7 +20,8 @@ public partial class MainViewModel
     private int _jobsRefreshScheduled;
     private int _finishedJobCount;
 
-    [ObservableProperty] private string _downloadSymbols = "AAPL";
+    /// <summary>Symbols for batch work: downloads and background backtests.</summary>
+    [ObservableProperty] private string _symbolList = "AAPL";
     [ObservableProperty] private IReadOnlyList<JobSnapshot> _jobs = [];
     [ObservableProperty] private IReadOnlyList<MarketDataCoverage> _marketDataCoverage = [];
 
@@ -31,7 +32,7 @@ public partial class MainViewModel
         if (!TryGetDateRange(out var start, out var end))
             return;
 
-        var symbols = DownloadSymbols.Split(SymbolSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var symbols = ParseSymbolList();
         var result = await _dispatcher.SendAsync(
             new QueueMarketDataDownloadsCommand(symbols, SelectedTimeframe, start, end), cancellationToken);
 
@@ -41,6 +42,9 @@ public partial class MainViewModel
                 : $"Queued {queued.JobIds.Count} download job(s); already queued: {string.Join(", ", queued.AlreadyQueued)}.",
             Describe);
     }
+
+    private string[] ParseSymbolList() =>
+        SymbolList.Split(SymbolSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     [RelayCommand]
     private void CancelJob(Guid jobId) => _jobQueue.TryCancel(jobId);
@@ -84,12 +88,13 @@ public partial class MainViewModel
     {
         Jobs = snapshot;
 
-        // A finished download changes what is stored locally.
-        var finished = snapshot.Count(j => j.Status == JobStatus.Succeeded);
+        // A finished job changes stored data or backtest history.
+        var finished = snapshot.Count(j => !j.IsActive);
         if (finished != _finishedJobCount)
         {
             _finishedJobCount = finished;
             RefreshCoverageCommand.Execute(null);
+            RefreshHistoryCommand.Execute(null);
         }
     }
 

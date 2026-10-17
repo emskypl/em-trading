@@ -18,8 +18,6 @@ namespace EmTrading.Presentation;
 
 public partial class MainViewModel : ObservableObject
 {
-    private const string DefaultStrategy = "SmaCrossStrategy";
-
     private readonly IDispatcher _dispatcher;
     private readonly IJobQueue _jobQueue;
     private readonly IJobMonitor _jobMonitor;
@@ -46,15 +44,11 @@ public partial class MainViewModel : ObservableObject
     // Inputs
     public IReadOnlyList<string> Symbols { get; } = ["AAPL", "AMZN", "MMM", "MSFT"];
     public IReadOnlyList<Timeframe> Timeframes { get; } = Enum.GetValues<Timeframe>();
-    public IReadOnlyList<string> Strategies { get; } = [DefaultStrategy];
 
     [ObservableProperty] private string _symbol = "AAPL";
     [ObservableProperty] private Timeframe _selectedTimeframe = Timeframe.Minute;
     [ObservableProperty] private DateTime? _startDate = DateTime.Today.AddYears(-1);
     [ObservableProperty] private DateTime? _endDate = DateTime.Today;
-    [ObservableProperty] private string _selectedStrategy = DefaultStrategy;
-    [ObservableProperty] private int _fastPeriod = 26;
-    [ObservableProperty] private int _slowPeriod = 130;
     [ObservableProperty] private decimal _initialCapital = 1_000_000m;
 
     // Status
@@ -63,6 +57,7 @@ public partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(LoadLatestResultsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenHistoryRunCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CompareRunsCommand))]
     private bool _isBusy;
 
     [ObservableProperty] private int _currentProgress;
@@ -98,18 +93,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanStartOperation))]
     private async Task RunBacktestAsync(CancellationToken cancellationToken)
     {
-        if (!TryGetDateRange(out var start, out var end))
+        if (!TryGetDateRange(out var start, out var end) || !TryGetStrategy(out var strategy, out var parameters))
             return;
 
-        var parameters = new Dictionary<string, string>
+        await RunOperationAsync($"Running {strategy.DisplayName} backtest for {Symbol}...", async operationId =>
         {
-            [StrategyParameterNames.FastPeriod] = FastPeriod.ToString(CultureInfo.InvariantCulture),
-            [StrategyParameterNames.SlowPeriod] = SlowPeriod.ToString(CultureInfo.InvariantCulture)
-        };
-
-        await RunOperationAsync($"Running {SelectedStrategy} backtest for {Symbol}...", async operationId =>
-        {
-            var command = new RunBacktestCommand(SelectedStrategy, Symbol, start, end, InitialCapital, parameters)
+            var command = new RunBacktestCommand(strategy.Name, Symbol, start, end, InitialCapital, parameters)
             {
                 Progress = CreateProgress<BacktestProgress>(operationId, update =>
                 {
@@ -138,9 +127,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanStartOperation))]
     private async Task LoadLatestResultsAsync(CancellationToken cancellationToken)
     {
+        if (SelectedStrategy is not { } strategy)
+            return;
+
         await RunOperationAsync($"Loading latest results for {Symbol}...", async _ =>
         {
-            var report = await _dispatcher.SendAsync(new GetLatestBacktestReportQuery(Symbol, SelectedStrategy), cancellationToken);
+            var report = await _dispatcher.SendAsync(new GetLatestBacktestReportQuery(Symbol, strategy.Name), cancellationToken);
             if (report.IsFailure)
                 return Describe(report.Error);
 
