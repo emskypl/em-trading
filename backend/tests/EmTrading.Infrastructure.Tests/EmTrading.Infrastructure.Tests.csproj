@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\EmTrading.Infrastructure\EmTrading.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\EmTrading.Infrastructure.Alpaca\EmTrading.Infrastructure.Alpaca.csproj" />
+    <ProjectReference Include="..\..\EmTrading.Infrastructure.Lean\EmTrading.Infrastructure.Lean.csproj" />
   </ItemGroup>
 
   <ItemGroup>

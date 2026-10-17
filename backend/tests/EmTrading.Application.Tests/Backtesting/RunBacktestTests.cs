@@ -47,8 +47,10 @@ public class RunBacktestCommandHandlerTests
         Assert.Equal("AAPL", result.Value.Symbol);
 
         var request = Assert.Single(_engine.Requests);
-        Assert.Equal("26", request.Parameters.Values[StrategyParameterNames.FastPeriod]);
+        Assert.Equal("26", request.Parameters.Values[FakeStrategyCatalog.FastPeriod]);
         Assert.Equal(100_000m, request.InitialCapital.Amount);
+        // Parameters not given in the command are stored with their declared default.
+        Assert.Equal("1", request.Parameters.Values["risk-percent"]);
 
         var completed = Assert.IsType<BacktestRunCompleted>(Assert.Single(_events.Published));
         Assert.Equal(result.Value.RunId, completed.RunId.Value);
@@ -108,7 +110,7 @@ public class RunBacktestCommandHandlerTests
         Assert.Equal(BacktestStatus.Failed, Assert.Single(_runs.Runs).Status);
     }
 
-    private RunBacktestCommandHandler CreateHandler() => new(_engine, _runs, _unitOfWork, _clock);
+    private RunBacktestCommandHandler CreateHandler() => new(_engine, _runs, _unitOfWork, new FakeStrategyCatalog(), _clock);
 
     internal static RunBacktestCommand Command(int fast = 26, int slow = 130) => new(
         "SmaCrossStrategy",
@@ -118,14 +120,14 @@ public class RunBacktestCommandHandlerTests
         100_000m,
         new Dictionary<string, string>
         {
-            [StrategyParameterNames.FastPeriod] = fast.ToString(),
-            [StrategyParameterNames.SlowPeriod] = slow.ToString()
+            [FakeStrategyCatalog.FastPeriod] = fast.ToString(),
+            [FakeStrategyCatalog.SlowPeriod] = slow.ToString()
         });
 }
 
 public class RunBacktestCommandValidatorTests
 {
-    private readonly RunBacktestCommandValidator _validator = new(new FakeTimeProvider(TestData.Now));
+    private readonly RunBacktestCommandValidator _validator = new(new FakeTimeProvider(TestData.Now), new FakeStrategyCatalog());
 
     [Fact]
     public void Valid_command_passes()
@@ -134,14 +136,41 @@ public class RunBacktestCommandValidatorTests
     }
 
     [Theory]
-    [InlineData(130, 26)]
-    [InlineData(50, 50)]
-    [InlineData(0, 10)]
-    public void Slow_period_must_exceed_a_positive_fast_period(int fast, int slow)
+    [InlineData(130, 26, "Slow EMA period must be greater than Fast EMA period.")]
+    [InlineData(50, 50, "Slow EMA period must be greater than Fast EMA period.")]
+    [InlineData(0, 10, "Fast EMA period must be at least 2.")]
+    [InlineData(10, 9000, "Slow EMA period must be at most 2000.")]
+    public void Parameters_are_checked_against_the_strategy_declaration(int fast, int slow, string expected)
     {
         var result = _validator.Validate(RunBacktestCommandHandlerTests.Command(fast, slow));
 
-        Assert.Contains(result.Errors, e => e.ErrorMessage.StartsWith("Slow period"));
+        Assert.Contains(expected, result.Errors.Select(e => e.ErrorMessage));
+    }
+
+    [Fact]
+    public void Unknown_strategy_and_unknown_parameters_are_rejected()
+    {
+        var unknownStrategy = RunBacktestCommandHandlerTests.Command() with { StrategyName = "NoSuchStrategy" };
+        var unknownParameter = RunBacktestCommandHandlerTests.Command() with
+        {
+            Parameters = new Dictionary<string, string> { ["fast-period"] = "10", ["typo-period"] = "5" }
+        };
+
+        Assert.Contains("Unknown strategy 'NoSuchStrategy'.", _validator.Validate(unknownStrategy).Errors.Select(e => e.ErrorMessage));
+        Assert.Contains("EMA Cross has no parameter 'typo-period'.", _validator.Validate(unknownParameter).Errors.Select(e => e.ErrorMessage));
+    }
+
+    [Theory]
+    [InlineData("12.5", "Fast EMA period must be a whole number.")]
+    [InlineData("abc", "Fast EMA period: 'abc' is not a number.")]
+    public void Values_must_match_the_parameter_type(string fast, string expected)
+    {
+        var command = RunBacktestCommandHandlerTests.Command() with
+        {
+            Parameters = new Dictionary<string, string> { [FakeStrategyCatalog.FastPeriod] = fast }
+        };
+
+        Assert.Contains(expected, _validator.Validate(command).Errors.Select(e => e.ErrorMessage));
     }
 
     [Fact]

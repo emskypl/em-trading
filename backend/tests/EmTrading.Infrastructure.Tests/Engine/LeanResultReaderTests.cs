@@ -3,7 +3,7 @@ using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using EmTrading.Infrastructure.Configuration;
-using EmTrading.Infrastructure.Engine.Results;
+using EmTrading.Infrastructure.Lean.Engine.Results;
 using EmTrading.Infrastructure.Tests.TestSupport;
 using Microsoft.Extensions.Options;
 

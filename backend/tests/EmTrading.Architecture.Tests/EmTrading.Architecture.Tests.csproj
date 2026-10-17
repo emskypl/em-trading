@@ -11,6 +11,9 @@
     <ProjectReference Include="..\..\EmTrading.Domain\EmTrading.Domain.csproj" />
     <ProjectReference Include="..\..\EmTrading.Application\EmTrading.Application.csproj" />
     <ProjectReference Include="..\..\EmTrading.Infrastructure\EmTrading.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\EmTrading.Infrastructure.Alpaca\EmTrading.Infrastructure.Alpaca.csproj" />
+    <ProjectReference Include="..\..\EmTrading.Infrastructure.Lean\EmTrading.Infrastructure.Lean.csproj" />
+    <ProjectReference Include="..\..\EmTrading.Strategies\EmTrading.Strategies.csproj" />
     <ProjectReference Include="..\..\EmTrading.Presentation\EmTrading.Presentation.csproj" />
   </ItemGroup>
 

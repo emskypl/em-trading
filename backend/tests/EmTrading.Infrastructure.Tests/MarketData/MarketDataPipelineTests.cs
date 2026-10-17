@@ -7,8 +7,8 @@ using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.MarketData;
-using EmTrading.Infrastructure.MarketData.Alpaca;
-using EmTrading.Infrastructure.MarketData.Lean;
+using EmTrading.Infrastructure.Alpaca;
+using EmTrading.Infrastructure.Lean.Data;
 using EmTrading.Infrastructure.Tests.TestSupport;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -145,7 +145,8 @@ public class MarketDataDownloaderTests
             Options.Create(new AlpacaOptions { ApiKey = "k", ApiSecret = "s" }));
         var referenceData = new LeanReferenceDataClient(new HttpClient(new StubAlpaca()) { BaseAddress = new Uri("https://github.test/") }, storage);
 
-        return new MarketDataDownloader(alpaca, referenceData, new LeanEquityDataWriter(), storage, TimeProvider.System, NullLogger<MarketDataDownloader>.Instance);
+        var store = new LeanMarketDataStore(new LeanEquityDataWriter(), referenceData, storage);
+        return new MarketDataDownloader(alpaca, store, TimeProvider.System, NullLogger<MarketDataDownloader>.Instance);
     }
 
     /// <summary>Returns the pages in order; a <c>null</c> page is an HTTP 500.</summary>

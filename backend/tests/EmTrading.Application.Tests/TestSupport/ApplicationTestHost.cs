@@ -2,6 +2,7 @@ using EmTrading.Application.Abstractions.Jobs;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
+using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,7 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IBacktestResultReader>(Reader);
         services.AddSingleton<IMarketDataDownloader>(Downloader);
         services.AddSingleton<IJobQueue>(Jobs);
+        services.AddSingleton<IStrategyCatalog>(Strategies);
 
         services.AddSingleton(Database);
         services.AddSingleton<IBacktestRunRepository>(Database);
@@ -46,6 +48,7 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
     public CountingResultReader Reader { get; } = new();
     public FakeMarketDataDownloader Downloader { get; } = new();
     public InlineJobQueue Jobs { get; } = new();
+    public FakeStrategyCatalog Strategies { get; } = new();
     public InMemoryDatabase Database { get; } = new();
 
     public IDispatcher Dispatcher => _provider.GetRequiredService<IDispatcher>();

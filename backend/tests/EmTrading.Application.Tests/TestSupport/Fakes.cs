@@ -3,6 +3,7 @@ using EmTrading.Application.Abstractions.Jobs;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
+using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
@@ -40,10 +41,13 @@ internal sealed class CountingResultReader : IBacktestResultReader
 
     public BacktestReport? Latest { get; set; } = TestData.Report("latest");
 
+    /// <summary>Report returned for a run id; <c>null</c> means the run has no stored result.</summary>
+    public Func<string, BacktestReport?> ReportFor { get; set; } = TestData.Report;
+
     public Task<BacktestReport?> ReadAsync(Symbol symbol, BacktestRunId runId, CancellationToken cancellationToken = default)
     {
         Interlocked.Increment(ref _readCalls);
-        return Task.FromResult<BacktestReport?>(TestData.Report(runId.Value));
+        return Task.FromResult(ReportFor(runId.Value));
     }
 
     public Task<BacktestReport?> ReadLatestAsync(Symbol symbol, StrategyName strategy, CancellationToken cancellationToken = default)
@@ -175,6 +179,26 @@ internal sealed class InlineJobQueue : IJobQueue
 
     private static JobSnapshot Snapshot(Guid id, string title, string? key) =>
         new(id, title, key, JobStatus.Queued, 0, null, TestData.Now, null, null);
+}
+
+/// <summary>
+/// A catalog with one strategy shaped like the real SmaCrossStrategy: two integer periods, slow must exceed fast.
+/// </summary>
+internal sealed class FakeStrategyCatalog : IStrategyCatalog
+{
+    public const string FastPeriod = "fast-period";
+    public const string SlowPeriod = "slow-period";
+
+    public static readonly StrategyDescriptor SmaCross = new("SmaCrossStrategy", "EMA Cross", null,
+    [
+        new StrategyParameterDescriptor(FastPeriod, "Fast EMA period", StrategyParameterKind.Integer, 26, 2, 500, null, null),
+        new StrategyParameterDescriptor(SlowPeriod, "Slow EMA period", StrategyParameterKind.Integer, 130, 3, 2000, FastPeriod, null),
+        new StrategyParameterDescriptor("risk-percent", "Risk per trade (%)", StrategyParameterKind.Decimal, 1, 0.1m, 10, null, null)
+    ]);
+
+    public IReadOnlyList<StrategyDescriptor> GetAll() => [SmaCross];
+
+    public StrategyDescriptor? Find(string name) => GetAll().FirstOrDefault(s => s.Name == name);
 }
 
 internal sealed class SyncProgress<T>(Action<T> report) : IProgress<T>

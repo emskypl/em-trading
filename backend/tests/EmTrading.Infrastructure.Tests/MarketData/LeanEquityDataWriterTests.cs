@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure.MarketData;
-using EmTrading.Infrastructure.MarketData.Lean;
+using EmTrading.Infrastructure.Lean.Data;
 using EmTrading.Infrastructure.Tests.TestSupport;
 
 namespace EmTrading.Infrastructure.Tests.MarketData;

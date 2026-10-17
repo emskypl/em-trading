@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure.Configuration;
-using EmTrading.Infrastructure.MarketData.Alpaca;
+using EmTrading.Infrastructure.Alpaca;
 using Microsoft.Extensions.Options;
 
 namespace EmTrading.Infrastructure.Tests.MarketData;

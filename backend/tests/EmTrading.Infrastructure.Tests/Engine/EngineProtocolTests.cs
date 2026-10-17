@@ -1,4 +1,4 @@
-using EmTrading.Infrastructure.Engine.Contracts;
+using EmTrading.Infrastructure.Lean.Engine.Contracts;
 
 namespace EmTrading.Infrastructure.Tests.Engine;
 
