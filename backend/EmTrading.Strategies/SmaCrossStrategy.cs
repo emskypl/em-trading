@@ -1,30 +1,42 @@
-using System.Globalization;
-using EmTrading.Application.Backtesting;
+using EmTrading.Strategies.Metadata;
 using QuantConnect;
-using QuantConnect.Algorithm;
 using QuantConnect.Data.Consolidators;
 using QuantConnect.Data.Market;
 using QuantConnect.Indicators;
 using QuantConnect.Orders;
 
-namespace EmTrading.Infrastructure.Strategies;
+namespace EmTrading.Strategies;
 
 /// <summary>
 /// Trend following on 15-minute bars: EMA fast/slow cross, filtered by ADX and by the price relative to the
-/// 100 and 200 day closes. Positions are sized for 1% risk and exited by an ATR trailing stop.
+/// 100 and 200 day closes. Positions are sized by risk and exited by an ATR trailing stop.
 /// </summary>
-/// <remarks>
-/// Parameters (see <see cref="StrategyParameterNames"/>): symbol, start-date, end-date, cash, fast-period, slow-period.
-/// The daily filter needs 200 trading days of data before the start date for warm-up.
-/// </remarks>
-public class SmaCrossStrategy : QCAlgorithm
+/// <remarks>The daily filter needs 200 trading days of data before the start date for warm-up.</remarks>
+[Strategy("EMA Cross + ADX trend", Description = "15-minute EMA cross filtered by ADX and the 100/200-day closes; ATR trailing stop.")]
+[StrategyParameter(FastPeriod, "Fast EMA period", StrategyParameterType.Integer, 26, Minimum = 2, Maximum = 500,
+    Description = "In 15-minute bars.")]
+[StrategyParameter(SlowPeriod, "Slow EMA period", StrategyParameterType.Integer, 130, Minimum = 3, Maximum = 2000,
+    MustExceed = FastPeriod, Description = "In 15-minute bars.")]
+[StrategyParameter(AdxThreshold, "ADX threshold", StrategyParameterType.Decimal, 24, Minimum = 0, Maximum = 100,
+    Description = "Trades only when the trend is at least this strong.")]
+[StrategyParameter(AtrStopMultiplier, "ATR stop multiplier", StrategyParameterType.Decimal, 1.5, Minimum = 0.1, Maximum = 10,
+    Description = "Stop distance as a multiple of the 14-bar ATR.")]
+[StrategyParameter(RiskPercent, "Risk per trade (%)", StrategyParameterType.Decimal, 1, Minimum = 0.1, Maximum = 10,
+    Description = "Equity lost if the initial stop is hit.")]
+public class SmaCrossStrategy : StrategyBase
 {
+    public const string FastPeriod = "fast-period";
+    public const string SlowPeriod = "slow-period";
+    public const string AdxThreshold = "adx-threshold";
+    public const string AtrStopMultiplier = "atr-stop-multiplier";
+    public const string RiskPercent = "risk-percent";
+
     private const int DailyLookback = 200;
-    private const decimal AdxThreshold = 24m;
-    private const decimal RiskPerTrade = 0.01m;
-    private const decimal AtrStopMultiplier = 1.5m;
 
     private Symbol _symbol = null!;
+    private decimal _adxThreshold;
+    private decimal _atrStopMultiplier;
+    private decimal _riskPerTrade;
 
     // 15-minute indicators
     private ExponentialMovingAverage _emaFast = null!;
@@ -41,12 +53,10 @@ public class SmaCrossStrategy : QCAlgorithm
 
     public override void Initialize()
     {
-        SetStartDate(GetDateParameter(StrategyParameterNames.StartDate, new DateTime(2025, 1, 1)));
-        SetEndDate(GetDateParameter(StrategyParameterNames.EndDate, DateTime.Today));
-        SetCash(GetParameter(StrategyParameterNames.Cash, 1_000_000m));
-
-        var ticker = GetParameter(StrategyParameterNames.Symbol, "AAPL").Trim().ToUpperInvariant();
-        _symbol = AddEquity(ticker, Resolution.Minute).Symbol;
+        _symbol = SetUpFromEngineParameters(Resolution.Minute);
+        _adxThreshold = DecimalParameter(AdxThreshold);
+        _atrStopMultiplier = DecimalParameter(AtrStopMultiplier);
+        _riskPerTrade = DecimalParameter(RiskPercent) / 100m;
 
         _dailyCloses = new RollingWindow<decimal>(DailyLookback + 1);
         var dailyConsolidator = new TradeBarConsolidator(TimeSpan.FromDays(1));
@@ -54,8 +64,8 @@ public class SmaCrossStrategy : QCAlgorithm
         SubscriptionManager.AddConsolidator(_symbol, dailyConsolidator);
 
         var consolidator15M = new TradeBarConsolidator(TimeSpan.FromMinutes(15));
-        _emaFast = new ExponentialMovingAverage(GetParameter(StrategyParameterNames.FastPeriod, 26));
-        _emaSlow = new ExponentialMovingAverage(GetParameter(StrategyParameterNames.SlowPeriod, 130));
+        _emaFast = new ExponentialMovingAverage(IntegerParameter(FastPeriod));
+        _emaSlow = new ExponentialMovingAverage(IntegerParameter(SlowPeriod));
         _adx = new AverageDirectionalIndex(14);
         _atr = new AverageTrueRange(14);
 
@@ -81,7 +91,7 @@ public class SmaCrossStrategy : QCAlgorithm
 
         var dailyLongFilter = price > close100 && price > close200;
         var dailyShortFilter = price < close100 && price < close200;
-        var adxFilter = _adx.Current.Value > AdxThreshold;
+        var adxFilter = _adx.Current.Value > _adxThreshold;
 
         if (!Portfolio.Invested)
         {
@@ -98,11 +108,11 @@ public class SmaCrossStrategy : QCAlgorithm
 
     private void EnterPosition(OrderDirection direction, decimal currentPrice)
     {
-        var stopDistance = _atr.Current.Value * AtrStopMultiplier;
+        var stopDistance = _atr.Current.Value * _atrStopMultiplier;
         if (stopDistance <= 0)
             return;
 
-        var riskAmount = Portfolio.TotalPortfolioValue * RiskPerTrade;
+        var riskAmount = Portfolio.TotalPortfolioValue * _riskPerTrade;
         var shares = (int)Math.Floor(riskAmount / stopDistance);
         if (shares == 0)
             return;
@@ -123,7 +133,7 @@ public class SmaCrossStrategy : QCAlgorithm
 
     private void UpdateTrailingStop(decimal currentPrice)
     {
-        var stopDistance = _atr.Current.Value * AtrStopMultiplier;
+        var stopDistance = _atr.Current.Value * _atrStopMultiplier;
 
         if (_isLong)
         {
@@ -142,13 +152,5 @@ public class SmaCrossStrategy : QCAlgorithm
     public override void OnEndOfAlgorithm()
     {
         Liquidate();
-    }
-
-    private DateTime GetDateParameter(string name, DateTime defaultValue)
-    {
-        var value = GetParameter(name);
-        return DateTime.TryParseExact(value, StrategyParameterNames.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
-            ? date
-            : defaultValue;
     }
 }

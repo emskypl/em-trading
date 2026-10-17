@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Algorithms executed inside the Lean engine. Depends on QuantConnect only, never on the app's layers. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QuantConnect.Algorithm" />
+    <PackageReference Include="QuantConnect.Common" />
+  </ItemGroup>
+
+</Project>
