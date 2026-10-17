@@ -2,7 +2,7 @@ using EmTrading.Application.Abstractions.Messaging;
 
 namespace EmTrading.Application.Backtesting.RunBacktest;
 
-/// <param name="Parameters">Strategy-specific values, see <see cref="StrategyParameterNames"/>.</param>
+/// <param name="Parameters">Strategy inputs by name (see <see cref="Strategies.StrategyDescriptor"/>); missing ones use their defaults.</param>
 public sealed record RunBacktestCommand(
     string StrategyName,
     string Symbol,

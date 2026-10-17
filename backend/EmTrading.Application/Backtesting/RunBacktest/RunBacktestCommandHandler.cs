@@ -1,6 +1,7 @@
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Abstractions.Results;
+using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
@@ -15,6 +16,7 @@ internal sealed class RunBacktestCommandHandler(
     IBacktestEngine engine,
     IBacktestRunRepository repository,
     IUnitOfWork unitOfWork,
+    IStrategyCatalog strategies,
     TimeProvider clock) : ICommandHandler<RunBacktestCommand, BacktestRunResult>
 {
     public async Task<Result<BacktestRunResult>> HandleAsync(RunBacktestCommand command, CancellationToken cancellationToken)
@@ -22,13 +24,17 @@ internal sealed class RunBacktestCommandHandler(
         var symbol = Symbol.Create(command.Symbol);
         var strategy = StrategyName.Create(command.StrategyName);
 
+        // The validator has checked the strategy exists; storing every value (defaults included)
+        // keeps the run reproducible even if a default changes later.
+        var parameters = strategies.Find(strategy.Value)!.WithDefaults(command.Parameters);
+
         var run = BacktestRun.Create(
             BacktestRunId.New(symbol, strategy, clock.GetLocalNow()),
             symbol,
             strategy,
             DateRange.Create(command.Start, command.End),
             Money.Usd(command.InitialCapital),
-            StrategyParameters.Create(command.Parameters),
+            StrategyParameters.Create(parameters),
             clock.GetUtcNow());
 
         run.Start(clock.GetUtcNow());
