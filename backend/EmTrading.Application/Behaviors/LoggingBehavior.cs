@@ -6,7 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace EmTrading.Application.Behaviors;
 
 /// <summary>
-/// Outermost behavior: logs every request with its outcome and duration.
+/// Outermost behavior: logs every request with its outcome and duration. Successful queries log at Debug level:
+/// pages poll them (e.g. the account every few seconds), which would drown the commands in the log.
 /// </summary>
 internal sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
@@ -23,7 +24,7 @@ internal sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavi
             var elapsedMs = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
 
             if (result.IsSuccess)
-                logger.LogInformation("{Request} succeeded in {ElapsedMs:0} ms", requestName, elapsedMs);
+                logger.Log(request is IQuery<TResponse> ? LogLevel.Debug : LogLevel.Information, "{Request} succeeded in {ElapsedMs:0} ms", requestName, elapsedMs);
             else
                 logger.LogWarning("{Request} failed in {ElapsedMs:0} ms: {ErrorCode} {ErrorMessage}",
                     requestName, elapsedMs, result.Error.Code, result.Error.Message);

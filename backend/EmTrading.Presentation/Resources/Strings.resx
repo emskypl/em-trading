@@ -211,7 +211,7 @@
   <data name="Analysis_ProbabilityOfLoss" xml:space="preserve"><value>Probability of loss</value></data>
   <data name="Analysis_MedianDrawdown" xml:space="preserve"><value>Median drawdown</value></data>
   <data name="Analysis_Drawdown95" xml:space="preserve"><value>Drawdown (95th percentile)</value></data>
-  <data name="Analysis_HistoricalDrawdown" xml:space="preserve"><value>Historical drawdown</value></data>
+  <data name="Analysis_HistoricalDrawdown" xml:space="preserve"><value>Historical drawdown (trades)</value></data>
   <data name="Analysis_Percentiles" xml:space="preserve"><value>Percentiles</value></data>
   <data name="Analysis_Statistic" xml:space="preserve"><value>Statistic</value></data>
   <data name="Analysis_TabPaths" xml:space="preserve"><value>Equity paths</value></data>
@@ -240,7 +240,7 @@
   <data name="Trading_Bid" xml:space="preserve"><value>Bid</value></data>
   <data name="Trading_Ask" xml:space="preserve"><value>Ask</value></data>
   <data name="Trading_Last" xml:space="preserve"><value>Last</value></data>
-  <data name="Trading_LiveChart" xml:space="preserve"><value>Today's minute candles:</value></data>
+  <data name="Trading_LiveChart" xml:space="preserve"><value>Minute candles, latest session:</value></data>
   <data name="Trading_TabPositions" xml:space="preserve"><value>Positions</value></data>
   <data name="Trading_TabOrders" xml:space="preserve"><value>Orders</value></data>
   <data name="Trading_CloseAll" xml:space="preserve"><value>Close all positions</value></data>

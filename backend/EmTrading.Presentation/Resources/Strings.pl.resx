@@ -211,7 +211,7 @@
   <data name="Analysis_ProbabilityOfLoss" xml:space="preserve"><value>Prawdopodobieństwo straty</value></data>
   <data name="Analysis_MedianDrawdown" xml:space="preserve"><value>Mediana obsunięcia</value></data>
   <data name="Analysis_Drawdown95" xml:space="preserve"><value>Obsunięcie (95. percentyl)</value></data>
-  <data name="Analysis_HistoricalDrawdown" xml:space="preserve"><value>Historyczne obsunięcie</value></data>
+  <data name="Analysis_HistoricalDrawdown" xml:space="preserve"><value>Obsunięcie historyczne (transakcje)</value></data>
   <data name="Analysis_Percentiles" xml:space="preserve"><value>Percentyle</value></data>
   <data name="Analysis_Statistic" xml:space="preserve"><value>Miara</value></data>
   <data name="Analysis_TabPaths" xml:space="preserve"><value>Ścieżki kapitału</value></data>
@@ -240,7 +240,7 @@
   <data name="Trading_Bid" xml:space="preserve"><value>Kupno</value></data>
   <data name="Trading_Ask" xml:space="preserve"><value>Sprzedaż</value></data>
   <data name="Trading_Last" xml:space="preserve"><value>Ostatnia</value></data>
-  <data name="Trading_LiveChart" xml:space="preserve"><value>Dzisiejsze świece minutowe:</value></data>
+  <data name="Trading_LiveChart" xml:space="preserve"><value>Świece minutowe, ostatnia sesja:</value></data>
   <data name="Trading_TabPositions" xml:space="preserve"><value>Pozycje</value></data>
   <data name="Trading_TabOrders" xml:space="preserve"><value>Zlecenia</value></data>
   <data name="Trading_CloseAll" xml:space="preserve"><value>Zamknij wszystkie pozycje</value></data>
