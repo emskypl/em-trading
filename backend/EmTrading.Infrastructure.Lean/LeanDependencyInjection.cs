@@ -1,5 +1,6 @@
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
+using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Infrastructure.Http;
 using EmTrading.Infrastructure.Lean.Data;
 using EmTrading.Infrastructure.Lean.Engine;
@@ -32,6 +33,7 @@ public static class LeanDependencyInjection
 
         services.AddSingleton<LeanEquityDataWriter>();
         services.AddTransient<IMarketDataStore, LeanMarketDataStore>();
+        services.AddSingleton<IPriceBarReader, LeanPriceBarReader>();
 
         services.AddSingleton<IBacktestEngine, LeanBacktestEngine>();
         services.AddSingleton<IBacktestResultReader, LeanResultReader>();
