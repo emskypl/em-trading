@@ -71,6 +71,9 @@ public sealed class MultiSeriesChart : ChartBase
             PercentTicks(plot.Axes.Left);
 
         plot.Axes.AutoScale();
+        if (index == 0)
+            ShowRecentDates(plot);
+
         _plot.Refresh();
     }
 }

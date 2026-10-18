@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using ScottPlot;
@@ -34,13 +35,42 @@ public abstract class ChartBase : ContentControl
     /// <summary>Clears and draws every plot; called on the UI thread.</summary>
     protected abstract void Render();
 
+    /// <summary>
+    /// A chart must never break the page it is on: a drawing error (e.g. unexpected data) is traced and the chart is
+    /// left empty instead of throwing into the view model that set the data, or into WPF's render loop.
+    /// </summary>
     private void Redraw()
     {
         if (!IsLoaded)
             return;
 
-        Render();
+        try
+        {
+            Render();
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError($"{GetType().Name} could not draw its data: {ex}");
+            foreach (var plot in Plots(Content))
+            {
+                plot.Plot.Clear();
+                plot.Refresh();
+            }
+        }
     }
+
+    private static IEnumerable<WpfPlot> Plots(object? element) => element switch
+    {
+        WpfPlot plot => [plot],
+        Panel panel => panel.Children.Cast<object>().SelectMany(Plots),
+        ContentControl control => Plots(control.Content),
+        Decorator decorator => Plots(decorator.Child),
+        _ => []
+    };
+
+    /// <summary>Without data, a date axis would start at 1899-12-30 (OLE date zero): show the last month instead.</summary>
+    protected static void ShowRecentDates(Plot plot) =>
+        plot.Axes.SetLimitsX(DateTime.Today.AddDays(-30).ToOADate(), DateTime.Today.AddDays(1).ToOADate());
 
     protected static double[] ToOADates(IEnumerable<DateTime> times) => times.Select(t => t.ToOADate()).ToArray();
 

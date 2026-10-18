@@ -26,5 +26,38 @@ public class ChartTests
         Assert.True(top > bottom, $"Expected the high value at the top: top {top}, bottom {bottom}.");
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Heatmap_without_scores_or_with_a_single_one_draws_and_renders(bool oneScore)
+    {
+        // While an optimization starts, every cell is empty; this used to throw "min must be a real number".
+        var values = new double?[2, 3];
+        if (oneScore)
+            values[1, 2] = 0.42;
+        var plot = new ScottPlot.Plot();
+
+        HeatmapChart.Draw(plot, new HeatmapData("x", "y", ["a", "b", "c"], ["d", "e"], values, oneScore ? (2, 1) : null));
+        var image = plot.GetImage(300, 200);
+
+        Assert.Equal(300, image.Width);
+    }
+
+    [Fact]
+    public void Redrawing_a_heatmap_keeps_a_single_colour_bar_and_none_without_scores()
+    {
+        var plot = new ScottPlot.Plot();
+        var scored = new HeatmapData("x", "y", ["a"], ["b"], new double?[,] { { 1 } });
+
+        HeatmapChart.Draw(plot, scored);
+        plot.Clear();
+        HeatmapChart.Draw(plot, scored);
+        Assert.Single(plot.Axes.GetPanels().OfType<ScottPlot.Panels.ColorBar>());
+
+        plot.Clear();
+        HeatmapChart.Draw(plot, scored with { Values = new double?[1, 1] });
+        Assert.Empty(plot.Axes.GetPanels().OfType<ScottPlot.Panels.ColorBar>());
+    }
+
     private static int Brightness(SKColor color) => color.Red + color.Green + color.Blue;
 }

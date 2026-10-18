@@ -77,6 +77,8 @@ public sealed class XYSeriesChart : ChartBase
         if (highlighted > 0)
             plot.ShowLegend(Alignment.UpperLeft);
 
+        // The x axis counts steps (e.g. trades): whole numbers only.
+        plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericAutomatic { IntegerTicksOnly = true };
         plot.XLabel(XLabel);
         plot.YLabel(YLabel);
         plot.Axes.AutoScale();

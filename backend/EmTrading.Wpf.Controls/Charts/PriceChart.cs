@@ -71,6 +71,9 @@ public sealed class PriceChart : ChartBase
         plot.Axes.DateTimeTicksBottom();
         plot.YLabel(PriceLabel);
         plot.Axes.AutoScale();
+        if (bars.Count == 0 && Trades is not { Count: > 0 })
+            ShowRecentDates(plot);
+
         _plot.Refresh();
     }
 }

@@ -86,6 +86,12 @@ public sealed class EquityChart : ChartBase
 
         _equity.Plot.Axes.AutoScale();
         _drawdown.Plot.Axes.AutoScale();
+        if (points.Count <= 1)
+        {
+            ShowRecentDates(_equity.Plot);
+            ShowRecentDates(_drawdown.Plot);
+        }
+
         _equity.Refresh();
         _drawdown.Refresh();
     }
