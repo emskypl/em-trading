@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from one table of English/Polish pairs, so both cultures always define the same keys. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Title" xml:space="preserve"><value>EmTrading – backtesting and market data</value></data>
+  <data name="Nav_Backtest" xml:space="preserve"><value>Backtest</value></data>
+  <data name="Nav_History" xml:space="preserve"><value>History</value></data>
+  <data name="Nav_MarketData" xml:space="preserve"><value>Market data</value></data>
+  <data name="Nav_Jobs" xml:space="preserve"><value>Jobs</value></data>
+  <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Shell_ActiveJobs" xml:space="preserve"><value>Active jobs:</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Field_Symbol" xml:space="preserve"><value>Symbol</value></data>
+  <data name="Field_SymbolList" xml:space="preserve"><value>Symbols (comma separated)</value></data>
+  <data name="Field_StartDate" xml:space="preserve"><value>From</value></data>
+  <data name="Field_EndDate" xml:space="preserve"><value>To</value></data>
+  <data name="Field_InitialCapital" xml:space="preserve"><value>Initial capital ($)</value></data>
+  <data name="Field_Strategy" xml:space="preserve"><value>Strategy</value></data>
+  <data name="Field_Timeframe" xml:space="preserve"><value>Timeframe</value></data>
+  <data name="Backtest_Title" xml:space="preserve"><value>Backtest</value></data>
+  <data name="Backtest_Run" xml:space="preserve"><value>Run backtest</value></data>
+  <data name="Backtest_LoadLatest" xml:space="preserve"><value>Load latest</value></data>
+  <data name="Backtest_BatchTitle" xml:space="preserve"><value>Background runs</value></data>
+  <data name="Backtest_BatchHint" xml:space="preserve"><value>Runs the selected strategy for every symbol as parallel background jobs.</value></data>
+  <data name="Backtest_RunBatch" xml:space="preserve"><value>Run for the list in background</value></data>
+  <data name="Backtest_NoReport" xml:space="preserve"><value>No report loaded – run a backtest or open one from History.</value></data>
+  <data name="Backtest_TabEquity" xml:space="preserve"><value>Equity &amp; drawdown</value></data>
+  <data name="Backtest_TabPrice" xml:space="preserve"><value>Price &amp; trades</value></data>
+  <data name="Backtest_TabTrades" xml:space="preserve"><value>Trade log</value></data>
+  <data name="Backtest_TabAnalysis" xml:space="preserve"><value>Analysis</value></data>
+  <data name="Kpi_AnnualReturn" xml:space="preserve"><value>Annual return</value></data>
+  <data name="Kpi_MaxDrawdown" xml:space="preserve"><value>Max drawdown</value></data>
+  <data name="Kpi_WinRate" xml:space="preserve"><value>Win rate</value></data>
+  <data name="Kpi_ProfitFactor" xml:space="preserve"><value>Profit factor</value></data>
+  <data name="Kpi_Sharpe" xml:space="preserve"><value>Sharpe ratio</value></data>
+  <data name="Kpi_Trades" xml:space="preserve"><value>Trades</value></data>
+  <data name="Kpi_NetProfit" xml:space="preserve"><value>Net profit</value></data>
+  <data name="Chart_Equity" xml:space="preserve"><value>Equity ($)</value></data>
+  <data name="Chart_Drawdown" xml:space="preserve"><value>Drawdown</value></data>
+  <data name="Chart_Price" xml:space="preserve"><value>Price ($)</value></data>
+  <data name="Chart_CumulativeReturn" xml:space="preserve"><value>Cumulative return</value></data>
+  <data name="Trades_Direction" xml:space="preserve"><value>Side</value></data>
+  <data name="Trades_EntryTime" xml:space="preserve"><value>Entry time</value></data>
+  <data name="Trades_EntryPrice" xml:space="preserve"><value>Entry price</value></data>
+  <data name="Trades_ExitTime" xml:space="preserve"><value>Exit time</value></data>
+  <data name="Trades_ExitPrice" xml:space="preserve"><value>Exit price</value></data>
+  <data name="Trades_ExitReason" xml:space="preserve"><value>Exit reason</value></data>
+  <data name="Trades_ProfitLoss" xml:space="preserve"><value>Profit / loss ($)</value></data>
+  <data name="Trades_ProfitLossPercent" xml:space="preserve"><value>Profit / loss (%)</value></data>
+  <data name="Analysis_AverageWin" xml:space="preserve"><value>Average win</value></data>
+  <data name="Analysis_AverageLoss" xml:space="preserve"><value>Average loss</value></data>
+  <data name="Analysis_MaxWins" xml:space="preserve"><value>Most wins in a row</value></data>
+  <data name="Analysis_MaxLosses" xml:space="preserve"><value>Most losses in a row</value></data>
+  <data name="History_Title" xml:space="preserve"><value>Backtest history</value></data>
+  <data name="History_Open" xml:space="preserve"><value>Show results</value></data>
+  <data name="History_Compare" xml:space="preserve"><value>Compare selected</value></data>
+  <data name="History_CompareHint" xml:space="preserve"><value>Select 2–8 completed runs (Ctrl/Shift + click).</value></data>
+  <data name="History_Created" xml:space="preserve"><value>Created</value></data>
+  <data name="History_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="History_Progress" xml:space="preserve"><value>Progress</value></data>
+  <data name="History_Duration" xml:space="preserve"><value>Duration</value></data>
+  <data name="History_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Comparison_Title" xml:space="preserve"><value>Comparison</value></data>
+  <data name="MarketData_Title" xml:space="preserve"><value>Market data</value></data>
+  <data name="MarketData_SymbolsHint" xml:space="preserve"><value>Each symbol becomes a background job; only missing days are downloaded. SPY (benchmark) is added automatically.</value></data>
+  <data name="MarketData_Download" xml:space="preserve"><value>Download</value></data>
+  <data name="MarketData_DownloadHint" xml:space="preserve"><value>Progress is shown on the Jobs page.</value></data>
+  <data name="MarketData_Stored" xml:space="preserve"><value>Stored locally</value></data>
+  <data name="MarketData_Days" xml:space="preserve"><value>Days</value></data>
+  <data name="MarketData_LastDownload" xml:space="preserve"><value>Last download</value></data>
+  <data name="MarketData_Ranges" xml:space="preserve"><value>Ranges</value></data>
+  <data name="MarketData_SelectForPreview" xml:space="preserve"><value>Select a row to preview its data.</value></data>
+  <data name="MarketData_PreviewTitle" xml:space="preserve"><value>{0} – {1} candles ({2})</value></data>
+  <data name="Jobs_Title" xml:space="preserve"><value>Background jobs</value></data>
+  <data name="Jobs_ClearFinished" xml:space="preserve"><value>Clear finished</value></data>
+  <data name="Jobs_Job" xml:space="preserve"><value>Job</value></data>
+  <data name="Jobs_Message" xml:space="preserve"><value>Message</value></data>
+  <data name="Logs_Title" xml:space="preserve"><value>Application log</value></data>
+  <data name="Logs_MinimumLevel" xml:space="preserve"><value>Minimum level:</value></data>
+  <data name="Logs_Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Logs_Time" xml:space="preserve"><value>Time</value></data>
+  <data name="Logs_Level" xml:space="preserve"><value>Level</value></data>
+  <data name="Logs_Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageHint" xml:space="preserve"><value>Applied immediately and remembered for the next start.</value></data>
+  <data name="Settings_Defaults" xml:space="preserve"><value>Defaults</value></data>
+  <data name="Settings_DefaultsHint" xml:space="preserve"><value>Used for new sessions.</value></data>
+  <data name="Settings_Environment" xml:space="preserve"><value>Environment</value></data>
+  <data name="Settings_DataFolder" xml:space="preserve"><value>Data folder</value></data>
+  <data name="Settings_ResultsFolder" xml:space="preserve"><value>Results folder</value></data>
+  <data name="Settings_Database" xml:space="preserve"><value>Database</value></data>
+  <data name="Settings_LogFolder" xml:space="preserve"><value>Log folder</value></data>
+  <data name="Settings_AlpacaKeys" xml:space="preserve"><value>Alpaca API keys</value></data>
+  <data name="Settings_AlpacaConfigured" xml:space="preserve"><value>Configured (user secrets)</value></data>
+  <data name="Settings_AlpacaMissing" xml:space="preserve"><value>Missing – see README</value></data>
+  <data name="Settings_ParallelJobs" xml:space="preserve"><value>Parallel jobs</value></data>
+  <data name="Strategy_Range" xml:space="preserve"><value>Range: {0}.</value></data>
+  <data name="Resolution_Daily" xml:space="preserve"><value>daily</value></data>
+  <data name="Resolution_Hourly" xml:space="preserve"><value>hourly</value></data>
+  <data name="Status_Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="Status_Failed" xml:space="preserve"><value>Failed: {0}</value></data>
+  <data name="Status_Cancelled" xml:space="preserve"><value>Cancelled.</value></data>
+  <data name="Status_RunningBacktest" xml:space="preserve"><value>Running {0} for {1}...</value></data>
+  <data name="Status_BacktestCompleted" xml:space="preserve"><value>Backtest {0} completed.</value></data>
+  <data name="Status_QueuedBacktests" xml:space="preserve"><value>Queued {0} backtest job(s).</value></data>
+  <data name="Status_QueuedBacktestsSkipped" xml:space="preserve"><value>Queued {0} backtest job(s); already running: {1}.</value></data>
+  <data name="Status_QueuedDownloads" xml:space="preserve"><value>Queued {0} download job(s).</value></data>
+  <data name="Status_QueuedDownloadsSkipped" xml:space="preserve"><value>Queued {0} download job(s); already queued: {1}.</value></data>
+  <data name="Status_LoadingResults" xml:space="preserve"><value>Loading results of {0}...</value></data>
+  <data name="Status_Loaded" xml:space="preserve"><value>Loaded {0}.</value></data>
+  <data name="Status_FixInputs" xml:space="preserve"><value>Correct the highlighted fields.</value></data>
+  <data name="Status_SelectDates" xml:space="preserve"><value>Select start and end dates.</value></data>
+  <data name="Status_SelectStrategy" xml:space="preserve"><value>Select a strategy.</value></data>
+  <data name="Status_Comparing" xml:space="preserve"><value>Comparing {0} run(s)...</value></data>
+  <data name="Status_Compared" xml:space="preserve"><value>Compared {0} runs.</value></data>
+  <data name="Status_SettingsSaved" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="TradeDirection_Long" xml:space="preserve"><value>Long</value></data>
+  <data name="TradeDirection_Short" xml:space="preserve"><value>Short</value></data>
+  <data name="BacktestStatus_Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="BacktestStatus_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="BacktestStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="BacktestStatus_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="BacktestStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="JobStatus_Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="JobStatus_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="JobStatus_Succeeded" xml:space="preserve"><value>Succeeded</value></data>
+  <data name="JobStatus_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="JobStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="LogLevel_Debug" xml:space="preserve"><value>Debug</value></data>
+  <data name="LogLevel_Information" xml:space="preserve"><value>Information</value></data>
+  <data name="LogLevel_Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="LogLevel_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Timeframe_Minute" xml:space="preserve"><value>Minute</value></data>
+  <data name="Timeframe_Hour" xml:space="preserve"><value>Hour</value></data>
+  <data name="Timeframe_Daily" xml:space="preserve"><value>Daily</value></data>
+</root>

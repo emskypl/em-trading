@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from one table of English/Polish pairs, so both cultures always define the same keys. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Title" xml:space="preserve"><value>EmTrading – backtesty i dane rynkowe</value></data>
+  <data name="Nav_Backtest" xml:space="preserve"><value>Backtest</value></data>
+  <data name="Nav_History" xml:space="preserve"><value>Historia</value></data>
+  <data name="Nav_MarketData" xml:space="preserve"><value>Dane rynkowe</value></data>
+  <data name="Nav_Jobs" xml:space="preserve"><value>Zadania</value></data>
+  <data name="Nav_Logs" xml:space="preserve"><value>Logi</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Ustawienia</value></data>
+  <data name="Shell_ActiveJobs" xml:space="preserve"><value>Aktywne zadania:</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Anuluj</value></data>
+  <data name="Common_Refresh" xml:space="preserve"><value>Odśwież</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Zapisz</value></data>
+  <data name="Field_Symbol" xml:space="preserve"><value>Symbol</value></data>
+  <data name="Field_SymbolList" xml:space="preserve"><value>Symbole (oddzielone przecinkami)</value></data>
+  <data name="Field_StartDate" xml:space="preserve"><value>Od</value></data>
+  <data name="Field_EndDate" xml:space="preserve"><value>Do</value></data>
+  <data name="Field_InitialCapital" xml:space="preserve"><value>Kapitał początkowy ($)</value></data>
+  <data name="Field_Strategy" xml:space="preserve"><value>Strategia</value></data>
+  <data name="Field_Timeframe" xml:space="preserve"><value>Interwał</value></data>
+  <data name="Backtest_Title" xml:space="preserve"><value>Backtest</value></data>
+  <data name="Backtest_Run" xml:space="preserve"><value>Uruchom backtest</value></data>
+  <data name="Backtest_LoadLatest" xml:space="preserve"><value>Wczytaj ostatni</value></data>
+  <data name="Backtest_BatchTitle" xml:space="preserve"><value>Uruchomienia w tle</value></data>
+  <data name="Backtest_BatchHint" xml:space="preserve"><value>Uruchamia wybraną strategię dla każdego symbolu jako równoległe zadania w tle.</value></data>
+  <data name="Backtest_RunBatch" xml:space="preserve"><value>Uruchom dla listy w tle</value></data>
+  <data name="Backtest_NoReport" xml:space="preserve"><value>Brak raportu – uruchom backtest lub otwórz go z historii.</value></data>
+  <data name="Backtest_TabEquity" xml:space="preserve"><value>Kapitał i obsunięcie</value></data>
+  <data name="Backtest_TabPrice" xml:space="preserve"><value>Cena i transakcje</value></data>
+  <data name="Backtest_TabTrades" xml:space="preserve"><value>Dziennik transakcji</value></data>
+  <data name="Backtest_TabAnalysis" xml:space="preserve"><value>Analiza</value></data>
+  <data name="Kpi_AnnualReturn" xml:space="preserve"><value>Roczna stopa zwrotu</value></data>
+  <data name="Kpi_MaxDrawdown" xml:space="preserve"><value>Maks. obsunięcie</value></data>
+  <data name="Kpi_WinRate" xml:space="preserve"><value>Skuteczność</value></data>
+  <data name="Kpi_ProfitFactor" xml:space="preserve"><value>Profit factor</value></data>
+  <data name="Kpi_Sharpe" xml:space="preserve"><value>Wskaźnik Sharpe’a</value></data>
+  <data name="Kpi_Trades" xml:space="preserve"><value>Transakcje</value></data>
+  <data name="Kpi_NetProfit" xml:space="preserve"><value>Zysk netto</value></data>
+  <data name="Chart_Equity" xml:space="preserve"><value>Kapitał ($)</value></data>
+  <data name="Chart_Drawdown" xml:space="preserve"><value>Obsunięcie</value></data>
+  <data name="Chart_Price" xml:space="preserve"><value>Cena ($)</value></data>
+  <data name="Chart_CumulativeReturn" xml:space="preserve"><value>Skumulowana stopa zwrotu</value></data>
+  <data name="Trades_Direction" xml:space="preserve"><value>Kierunek</value></data>
+  <data name="Trades_EntryTime" xml:space="preserve"><value>Wejście</value></data>
+  <data name="Trades_EntryPrice" xml:space="preserve"><value>Cena wejścia</value></data>
+  <data name="Trades_ExitTime" xml:space="preserve"><value>Wyjście</value></data>
+  <data name="Trades_ExitPrice" xml:space="preserve"><value>Cena wyjścia</value></data>
+  <data name="Trades_ExitReason" xml:space="preserve"><value>Powód wyjścia</value></data>
+  <data name="Trades_ProfitLoss" xml:space="preserve"><value>Zysk / strata ($)</value></data>
+  <data name="Trades_ProfitLossPercent" xml:space="preserve"><value>Zysk / strata (%)</value></data>
+  <data name="Analysis_AverageWin" xml:space="preserve"><value>Średni zysk</value></data>
+  <data name="Analysis_AverageLoss" xml:space="preserve"><value>Średnia strata</value></data>
+  <data name="Analysis_MaxWins" xml:space="preserve"><value>Najwięcej zysków z rzędu</value></data>
+  <data name="Analysis_MaxLosses" xml:space="preserve"><value>Najwięcej strat z rzędu</value></data>
+  <data name="History_Title" xml:space="preserve"><value>Historia backtestów</value></data>
+  <data name="History_Open" xml:space="preserve"><value>Pokaż wyniki</value></data>
+  <data name="History_Compare" xml:space="preserve"><value>Porównaj zaznaczone</value></data>
+  <data name="History_CompareHint" xml:space="preserve"><value>Zaznacz 2–8 zakończonych backtestów (Ctrl/Shift + klik).</value></data>
+  <data name="History_Created" xml:space="preserve"><value>Utworzono</value></data>
+  <data name="History_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="History_Progress" xml:space="preserve"><value>Postęp</value></data>
+  <data name="History_Duration" xml:space="preserve"><value>Czas</value></data>
+  <data name="History_Error" xml:space="preserve"><value>Błąd</value></data>
+  <data name="Comparison_Title" xml:space="preserve"><value>Porównanie</value></data>
+  <data name="MarketData_Title" xml:space="preserve"><value>Dane rynkowe</value></data>
+  <data name="MarketData_SymbolsHint" xml:space="preserve"><value>Każdy symbol to osobne zadanie w tle; pobierane są tylko brakujące dni. SPY (benchmark) jest dodawany automatycznie.</value></data>
+  <data name="MarketData_Download" xml:space="preserve"><value>Pobierz</value></data>
+  <data name="MarketData_DownloadHint" xml:space="preserve"><value>Postęp widać na stronie Zadania.</value></data>
+  <data name="MarketData_Stored" xml:space="preserve"><value>Zapisane lokalnie</value></data>
+  <data name="MarketData_Days" xml:space="preserve"><value>Dni</value></data>
+  <data name="MarketData_LastDownload" xml:space="preserve"><value>Ostatnie pobranie</value></data>
+  <data name="MarketData_Ranges" xml:space="preserve"><value>Zakresy</value></data>
+  <data name="MarketData_SelectForPreview" xml:space="preserve"><value>Zaznacz wiersz, aby zobaczyć podgląd danych.</value></data>
+  <data name="MarketData_PreviewTitle" xml:space="preserve"><value>{0} – świece {1} ({2})</value></data>
+  <data name="Jobs_Title" xml:space="preserve"><value>Zadania w tle</value></data>
+  <data name="Jobs_ClearFinished" xml:space="preserve"><value>Wyczyść zakończone</value></data>
+  <data name="Jobs_Job" xml:space="preserve"><value>Zadanie</value></data>
+  <data name="Jobs_Message" xml:space="preserve"><value>Komunikat</value></data>
+  <data name="Logs_Title" xml:space="preserve"><value>Dziennik aplikacji</value></data>
+  <data name="Logs_MinimumLevel" xml:space="preserve"><value>Minimalny poziom:</value></data>
+  <data name="Logs_Clear" xml:space="preserve"><value>Wyczyść</value></data>
+  <data name="Logs_Time" xml:space="preserve"><value>Czas</value></data>
+  <data name="Logs_Level" xml:space="preserve"><value>Poziom</value></data>
+  <data name="Logs_Source" xml:space="preserve"><value>Źródło</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Ustawienia</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Język</value></data>
+  <data name="Settings_LanguageHint" xml:space="preserve"><value>Zmiana działa od razu i jest zapamiętywana.</value></data>
+  <data name="Settings_Defaults" xml:space="preserve"><value>Wartości domyślne</value></data>
+  <data name="Settings_DefaultsHint" xml:space="preserve"><value>Używane przy kolejnym uruchomieniu.</value></data>
+  <data name="Settings_Environment" xml:space="preserve"><value>Środowisko</value></data>
+  <data name="Settings_DataFolder" xml:space="preserve"><value>Folder danych</value></data>
+  <data name="Settings_ResultsFolder" xml:space="preserve"><value>Folder wyników</value></data>
+  <data name="Settings_Database" xml:space="preserve"><value>Baza danych</value></data>
+  <data name="Settings_LogFolder" xml:space="preserve"><value>Folder logów</value></data>
+  <data name="Settings_AlpacaKeys" xml:space="preserve"><value>Klucze API Alpaca</value></data>
+  <data name="Settings_AlpacaConfigured" xml:space="preserve"><value>Skonfigurowane (user secrets)</value></data>
+  <data name="Settings_AlpacaMissing" xml:space="preserve"><value>Brak – patrz README</value></data>
+  <data name="Settings_ParallelJobs" xml:space="preserve"><value>Równoległe zadania</value></data>
+  <data name="Strategy_Range" xml:space="preserve"><value>Zakres: {0}.</value></data>
+  <data name="Resolution_Daily" xml:space="preserve"><value>dzienne</value></data>
+  <data name="Resolution_Hourly" xml:space="preserve"><value>godzinowe</value></data>
+  <data name="Status_Ready" xml:space="preserve"><value>Gotowe</value></data>
+  <data name="Status_Failed" xml:space="preserve"><value>Błąd: {0}</value></data>
+  <data name="Status_Cancelled" xml:space="preserve"><value>Anulowano.</value></data>
+  <data name="Status_RunningBacktest" xml:space="preserve"><value>Uruchamianie {0} dla {1}...</value></data>
+  <data name="Status_BacktestCompleted" xml:space="preserve"><value>Backtest {0} zakończony.</value></data>
+  <data name="Status_QueuedBacktests" xml:space="preserve"><value>Dodano {0} backtest(y) do kolejki.</value></data>
+  <data name="Status_QueuedBacktestsSkipped" xml:space="preserve"><value>Dodano {0} backtest(y) do kolejki; już trwają: {1}.</value></data>
+  <data name="Status_QueuedDownloads" xml:space="preserve"><value>Dodano {0} pobrań do kolejki.</value></data>
+  <data name="Status_QueuedDownloadsSkipped" xml:space="preserve"><value>Dodano {0} pobrań do kolejki; już w kolejce: {1}.</value></data>
+  <data name="Status_LoadingResults" xml:space="preserve"><value>Wczytywanie wyników {0}...</value></data>
+  <data name="Status_Loaded" xml:space="preserve"><value>Wczytano {0}.</value></data>
+  <data name="Status_FixInputs" xml:space="preserve"><value>Popraw zaznaczone pola.</value></data>
+  <data name="Status_SelectDates" xml:space="preserve"><value>Wybierz daty początku i końca.</value></data>
+  <data name="Status_SelectStrategy" xml:space="preserve"><value>Wybierz strategię.</value></data>
+  <data name="Status_Comparing" xml:space="preserve"><value>Porównywanie {0} uruchomień...</value></data>
+  <data name="Status_Compared" xml:space="preserve"><value>Porównano {0} uruchomienia.</value></data>
+  <data name="Status_SettingsSaved" xml:space="preserve"><value>Zapisano ustawienia.</value></data>
+  <data name="TradeDirection_Long" xml:space="preserve"><value>Długa</value></data>
+  <data name="TradeDirection_Short" xml:space="preserve"><value>Krótka</value></data>
+  <data name="BacktestStatus_Queued" xml:space="preserve"><value>W kolejce</value></data>
+  <data name="BacktestStatus_Running" xml:space="preserve"><value>W toku</value></data>
+  <data name="BacktestStatus_Completed" xml:space="preserve"><value>Zakończony</value></data>
+  <data name="BacktestStatus_Failed" xml:space="preserve"><value>Błąd</value></data>
+  <data name="BacktestStatus_Cancelled" xml:space="preserve"><value>Anulowany</value></data>
+  <data name="JobStatus_Queued" xml:space="preserve"><value>W kolejce</value></data>
+  <data name="JobStatus_Running" xml:space="preserve"><value>W toku</value></data>
+  <data name="JobStatus_Succeeded" xml:space="preserve"><value>Zakończone</value></data>
+  <data name="JobStatus_Failed" xml:space="preserve"><value>Błąd</value></data>
+  <data name="JobStatus_Cancelled" xml:space="preserve"><value>Anulowane</value></data>
+  <data name="LogLevel_Debug" xml:space="preserve"><value>Diagnostyka</value></data>
+  <data name="LogLevel_Information" xml:space="preserve"><value>Informacja</value></data>
+  <data name="LogLevel_Warning" xml:space="preserve"><value>Ostrzeżenie</value></data>
+  <data name="LogLevel_Error" xml:space="preserve"><value>Błąd</value></data>
+  <data name="Timeframe_Minute" xml:space="preserve"><value>Minutowy</value></data>
+  <data name="Timeframe_Hour" xml:space="preserve"><value>Godzinowy</value></data>
+  <data name="Timeframe_Daily" xml:space="preserve"><value>Dzienny</value></data>
+</root>
