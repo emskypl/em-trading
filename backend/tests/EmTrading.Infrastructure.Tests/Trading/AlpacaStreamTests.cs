@@ -162,6 +162,28 @@ public class AlpacaStreamServiceTests
         await stream.StopAsync(Ct);
     }
 
+    [Fact]
+    public async Task On_a_weekend_the_latest_session_and_its_last_price_are_shown()
+    {
+        // Sunday: no live events; the history has Thursday's and Friday's bars.
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 10, 18, 15, 0, 0, TimeSpan.Zero));
+        var history = new OneBarHistory(
+            new MarketBar(new DateTime(2026, 10, 15, 19, 59, 0), 1, 1, 1, 1, 1),
+            new MarketBar(new DateTime(2026, 10, 16, 13, 30, 0), 2, 2, 2, 2, 2),
+            new MarketBar(new DateTime(2026, 10, 16, 19, 59, 0), 3, 3, 3, 252.5m, 3));
+        var quotes = new QuoteCache();
+        using var stream = new AlpacaMarketDataStream(Options.Create(Keys), new SocketScript(MarketDataResponder).Create,
+            new ConnectionMonitor(clock), quotes, history, clock, NullLogger<AlpacaMarketDataStream>.Instance);
+
+        await stream.SetWatchlistAsync([Symbol.Create("AAPL")], Ct);
+
+        Assert.Equal([new DateTime(2026, 10, 16, 13, 30, 0), new DateTime(2026, 10, 16, 19, 59, 0)],
+            stream.GetBars(Symbol.Create("AAPL")).Select(b => b.TimeUtc));
+        Assert.True(quotes.TryGet(Symbol.Create("AAPL"), out var quote));
+        Assert.Equal(252.5m, quote.Price);
+        Assert.True(history.RequestedFrom <= new DateTime(2026, 10, 14), "should look back past the weekend");
+    }
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     private static Action<FakeSocket, string> TradeStreamResponder(bool authorized) => (socket, message) =>
@@ -258,14 +280,17 @@ public class AlpacaStreamServiceTests
         }
     }
 
-    private sealed class OneBarHistory(MarketBar bar) : IHistoricalBarSource
+    private sealed class OneBarHistory(params MarketBar[] bars) : IHistoricalBarSource
     {
+        public DateTime RequestedFrom { get; private set; }
+
         public async IAsyncEnumerable<IReadOnlyList<MarketBar>> StreamPagesAsync(
             string symbol, Timeframe timeframe, DateTime startUtc, DateTime endUtc, IProgress<double>? coverage,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            RequestedFrom = startUtc;
             await Task.Yield();
-            yield return [bar];
+            yield return bars;
         }
     }
 }

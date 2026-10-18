@@ -35,6 +35,9 @@ internal sealed class AlpacaMarketDataStream(
     public const int MaxSymbols = 30;
 
     private const int ChannelCapacity = 10_000;
+
+    /// <summary>Far enough back to reach the previous session over a long weekend.</summary>
+    private static readonly TimeSpan SessionLookback = TimeSpan.FromDays(5);
     private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(15);
 
     private readonly Channel<MarketEvent> _events = Channel.CreateBounded<MarketEvent>(
@@ -176,21 +179,34 @@ internal sealed class AlpacaMarketDataStream(
         }
     }
 
+    /// <summary>
+    /// The latest session's minute bars and last price, so the watchlist and chart have data before the first live
+    /// event, and also over weekends and holidays, when there are no live events at all.
+    /// </summary>
     private async Task BackfillAsync(string symbol, CancellationToken cancellationToken)
     {
         try
         {
             var now = clock.GetUtcNow();
+            var bars = new List<MarketBar>();
+            await foreach (var page in history.StreamPagesAsync(symbol, Timeframe.Minute, ExchangeTime.StartOfDayUtc(now - SessionLookback), now.UtcDateTime, null, cancellationToken))
+                bars.AddRange(page);
+
+            if (bars.Count == 0)
+                return;
+
+            var lastSession = ExchangeTime.FromUtc(bars[^1].TimeUtc).Date;
             var series = _bars.GetOrAdd(symbol, _ => new BarSeries());
-            await foreach (var page in history.StreamPagesAsync(symbol, Timeframe.Minute, ExchangeTime.StartOfDayUtc(now), now.UtcDateTime, null, cancellationToken))
-            {
-                foreach (var bar in page)
-                    series.Upsert(new LiveBar(bar.TimeUtc, bar.Open, bar.High, bar.Low, bar.Close, bar.Volume));
-            }
+            foreach (var bar in bars.Where(b => ExchangeTime.FromUtc(b.TimeUtc).Date == lastSession))
+                series.Upsert(new LiveBar(bar.TimeUtc, bar.Open, bar.High, bar.Low, bar.Close, bar.Volume));
+
+            // A live trade or quote, always newer, replaces this.
+            var last = bars[^1];
+            quotes.Update(symbol, null, null, last.Close, new DateTimeOffset(DateTime.SpecifyKind(last.TimeUtc, DateTimeKind.Utc)));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Could not load today's bars for {Symbol}; the chart starts with live bars", symbol);
+            logger.LogWarning(ex, "Could not load the latest session's bars for {Symbol}; the chart starts with live bars", symbol);
         }
     }
 
