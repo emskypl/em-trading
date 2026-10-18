@@ -9,8 +9,9 @@ namespace EmTrading.Application.Backtesting;
 public interface IBacktestHistoryReader
 {
     /// <param name="symbol">Only runs for this symbol, or every run when <c>null</c>.</param>
+    /// <param name="includeTrials">Include runs that are trials of an optimization.</param>
     /// <returns>Newest first.</returns>
-    Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, bool includeTrials = false, CancellationToken cancellationToken = default);
 }
 
 public sealed record BacktestRunSummary(
@@ -24,7 +25,8 @@ public sealed record BacktestRunSummary(
     int Progress,
     DateTimeOffset CreatedAt,
     TimeSpan? Duration,
-    string? FailureReason)
+    string? FailureReason,
+    string? OptimizationId = null)
 {
     public bool HasReport => Status == BacktestStatus.Completed;
 }

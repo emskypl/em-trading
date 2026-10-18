@@ -5,6 +5,7 @@ using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
+using EmTrading.Application.Optimization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -40,6 +41,8 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IBacktestHistoryReader>(Database);
         services.AddSingleton<IMarketDataSetRepository>(Database);
         services.AddSingleton<IMarketDataCoverageReader>(Database);
+        services.AddSingleton<IOptimizationRunRepository>(Database);
+        services.AddSingleton<IOptimizationReader>(Database);
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });

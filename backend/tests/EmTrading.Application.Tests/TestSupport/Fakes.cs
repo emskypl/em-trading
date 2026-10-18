@@ -6,9 +6,11 @@ using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
+using EmTrading.Application.Optimization;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Application.Tests.TestSupport;
 
@@ -27,7 +29,8 @@ internal sealed class FakeBacktestEngine : IBacktestEngine
 
     public Task RunAsync(BacktestRequest request, IProgress<BacktestProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        Requests.Add(request);
+        lock (Requests)
+            Requests.Add(request);
         return Behavior(request, progress, cancellationToken);
     }
 }
@@ -71,32 +74,83 @@ internal sealed class RecordingEventPublisher : IDomainEventPublisher
 
 /// <summary>
 /// All repositories and readers over in-memory lists, shared across DI scopes like a real database would be.
+/// Optimization trials use it from several threads, so every list access takes <see cref="Sync"/>.
 /// </summary>
 internal sealed class InMemoryDatabase :
-    IBacktestRunRepository, IBacktestHistoryReader, IMarketDataSetRepository, IMarketDataCoverageReader
+    IBacktestRunRepository, IBacktestHistoryReader, IMarketDataSetRepository, IMarketDataCoverageReader,
+    IOptimizationRunRepository, IOptimizationReader
 {
+    public object Sync { get; } = new();
+
     public List<BacktestRun> Runs { get; } = [];
 
     public List<MarketDataSet> MarketDataSets { get; } = [];
 
-    public IEnumerable<IHasDomainEvents> Aggregates => Runs.Cast<IHasDomainEvents>().Concat(MarketDataSets);
+    public List<OptimizationRun> Optimizations { get; } = [];
 
-    public void Add(BacktestRun run) => Runs.Add(run);
+    /// <summary>Saves across every unit of work, i.e. every scope.</summary>
+    public int SaveCount { get; set; }
 
-    public Task<BacktestRun?> GetAsync(BacktestRunId id, CancellationToken cancellationToken = default) =>
-        Task.FromResult(Runs.FirstOrDefault(r => r.Id == id));
+    public IEnumerable<IHasDomainEvents> Aggregates => Runs.Cast<IHasDomainEvents>().Concat(MarketDataSets).Concat(Optimizations);
 
-    public Task<IReadOnlyList<BacktestRun>> ListUnfinishedAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<BacktestRun>>(Runs.Where(r => !r.IsFinished).ToList());
+    public void Add(BacktestRun run)
+    {
+        lock (Sync)
+            Runs.Add(run);
+    }
 
-    public Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyList<BacktestRunSummary>>(Runs
-            .Where(r => symbol is null || r.Symbol == symbol)
-            .OrderByDescending(r => r.CreatedAt)
-            .Take(take)
-            .Select(r => new BacktestRunSummary(r.Id.Value, r.Symbol.Value, r.Strategy.Value, r.Period.Start, r.Period.End,
-                r.InitialCapital.Amount, r.Status, r.Progress, r.CreatedAt, r.Duration, r.FailureReason))
-            .ToList());
+    public Task<BacktestRun?> GetAsync(BacktestRunId id, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult(Runs.FirstOrDefault(r => r.Id == id));
+    }
+
+    public Task<IReadOnlyList<BacktestRun>> ListUnfinishedAsync(CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult<IReadOnlyList<BacktestRun>>(Runs.Where(r => !r.IsFinished).ToList());
+    }
+
+    public Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, bool includeTrials = false, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+        {
+            return Task.FromResult<IReadOnlyList<BacktestRunSummary>>(Runs
+                .Where(r => symbol is null || r.Symbol == symbol)
+                .Where(r => includeTrials || r.OptimizationId is null)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(take)
+                .Select(r => new BacktestRunSummary(r.Id.Value, r.Symbol.Value, r.Strategy.Value, r.Period.Start, r.Period.End,
+                    r.InitialCapital.Amount, r.Status, r.Progress, r.CreatedAt, r.Duration, r.FailureReason, r.OptimizationId?.Value))
+                .ToList());
+        }
+    }
+
+    public void Add(OptimizationRun run)
+    {
+        lock (Sync)
+            Optimizations.Add(run);
+    }
+
+    public Task<OptimizationRun?> GetAsync(OptimizationRunId id, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult(Optimizations.FirstOrDefault(r => r.Id == id));
+    }
+
+    Task<IReadOnlyList<OptimizationRun>> IOptimizationRunRepository.ListUnfinishedAsync(CancellationToken cancellationToken)
+    {
+        lock (Sync)
+            return Task.FromResult<IReadOnlyList<OptimizationRun>>(Optimizations.Where(r => !r.IsFinished).ToList());
+    }
+
+    public Task<IReadOnlyList<OptimizationRun>> ListAsync(int take, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult<IReadOnlyList<OptimizationRun>>(Optimizations.OrderByDescending(r => r.CreatedAt).Take(take).ToList());
+    }
+
+    public Task<OptimizationRun?> FindAsync(OptimizationRunId id, CancellationToken cancellationToken = default) => GetAsync(id, cancellationToken);
 
     public void Add(MarketDataSet set) => MarketDataSets.Add(set);
 
@@ -120,9 +174,15 @@ internal sealed class InMemoryUnitOfWork(InMemoryDatabase database, IDomainEvent
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        SaveCount++;
-        SavedStatuses.AddRange(database.Runs.Select(r => r.Status));
-        var events = database.Aggregates.SelectMany(a => a.DequeueDomainEvents()).ToList();
+        List<IDomainEvent> events;
+        lock (database.Sync)
+        {
+            SaveCount++;
+            database.SaveCount++;
+            SavedStatuses.AddRange(database.Runs.Select(r => r.Status));
+            events = database.Aggregates.SelectMany(a => a.DequeueDomainEvents()).ToList();
+        }
+
         await publisher.PublishAsync(events, cancellationToken);
     }
 }

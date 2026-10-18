@@ -5,6 +5,7 @@ using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Application.Backtesting.RunBacktest;
 
@@ -28,14 +29,20 @@ internal sealed class RunBacktestCommandHandler(
         // keeps the run reproducible even if a default changes later.
         var parameters = strategies.Find(strategy.Value)!.WithDefaults(command.Parameters);
 
+        var optimization = command.Trial is { } trial ? OptimizationRunId.From(trial.OptimizationId) : null;
+        var runId = optimization is null
+            ? BacktestRunId.New(symbol, strategy, clock.GetLocalNow())
+            : BacktestRunId.ForTrial(optimization, command.Trial!.Index);
+
         var run = BacktestRun.Create(
-            BacktestRunId.New(symbol, strategy, clock.GetLocalNow()),
+            runId,
             symbol,
             strategy,
             DateRange.Create(command.Start, command.End),
             Money.Usd(command.InitialCapital),
             StrategyParameters.Create(parameters),
-            clock.GetUtcNow());
+            clock.GetUtcNow(),
+            optimization);
 
         run.Start(clock.GetUtcNow());
         repository.Add(run);

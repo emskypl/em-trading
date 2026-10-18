@@ -1,5 +1,6 @@
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.Common;
+using EmTrading.Domain.Optimization;
 using FluentValidation;
 
 namespace EmTrading.Application.Backtesting.RunBacktest;
@@ -16,6 +17,11 @@ internal sealed class RunBacktestCommandValidator : AbstractValidator<RunBacktes
             .GreaterThanOrEqualTo(c => c.Start).WithMessage("End date must not be before start date.")
             .MustNotBeInTheFuture(clock);
         RuleFor(c => c.InitialCapital).GreaterThan(0).WithMessage("Initial capital must be positive.");
+
+        RuleFor(c => c.Trial!.OptimizationId)
+            .Must(OptimizationRunId.IsValid).WithMessage("'{PropertyValue}' is not a valid optimization id.")
+            .When(c => c.Trial is not null);
+        RuleFor(c => c.Trial!.Index).GreaterThanOrEqualTo(0).When(c => c.Trial is not null);
 
         // Ranges, types and relations come from the strategy's own parameter declarations.
         RuleFor(c => c.Parameters).Custom((parameters, context) =>
