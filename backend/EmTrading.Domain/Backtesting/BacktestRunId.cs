@@ -1,6 +1,7 @@
 using System.Globalization;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Domain.Backtesting;
 
@@ -18,6 +19,14 @@ public sealed record BacktestRunId
 
     public static BacktestRunId New(Symbol symbol, StrategyName strategy, DateTimeOffset createdAt) =>
         new($"{createdAt.ToString("yyyyMMdd-HHmmssfff", CultureInfo.InvariantCulture)}_{symbol.Value}_{strategy.Value}");
+
+    /// <summary>
+    /// Id of one trial of an optimization, e.g. <c>opt-20261019-101500123_AAPL_SmaCrossStrategy-t007</c>. Unique because
+    /// the optimization id is, even when trials start in the same millisecond; the suffix also keeps trial results out
+    /// of "latest result" lookups, which match <c>_{SYMBOL}_{Strategy}.json</c>.
+    /// </summary>
+    public static BacktestRunId ForTrial(OptimizationRunId optimization, int trialIndex) =>
+        new($"{optimization.Value}-t{trialIndex.ToString("D3", CultureInfo.InvariantCulture)}");
 
     /// <summary>
     /// Restores an existing id. Only characters that are safe in file names are accepted.

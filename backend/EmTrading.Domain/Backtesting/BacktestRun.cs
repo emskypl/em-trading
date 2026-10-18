@@ -1,5 +1,6 @@
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Domain.Backtesting;
 
@@ -21,8 +22,10 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
         DateRange period,
         Money initialCapital,
         StrategyParameters parameters,
-        DateTimeOffset createdAt) : base(id)
+        DateTimeOffset createdAt,
+        OptimizationRunId? optimizationId) : base(id)
     {
+        OptimizationId = optimizationId;
         Symbol = symbol;
         Strategy = strategy;
         Period = period;
@@ -43,6 +46,9 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
     public DateRange Period { get; }
     public Money InitialCapital { get; }
     public StrategyParameters Parameters { get; }
+
+    /// <summary>The optimization this run is a trial of, or <c>null</c> for a run started on its own.</summary>
+    public OptimizationRunId? OptimizationId { get; }
 
     public BacktestStatus Status { get; private set; }
 
@@ -65,12 +71,13 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
         DateRange period,
         Money initialCapital,
         StrategyParameters parameters,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt,
+        OptimizationRunId? optimizationId = null)
     {
         if (initialCapital.Amount <= 0)
             throw new DomainException("Initial capital must be positive.");
 
-        return new BacktestRun(id, symbol, strategy, period, initialCapital, parameters, createdAt);
+        return new BacktestRun(id, symbol, strategy, period, initialCapital, parameters, createdAt, optimizationId);
     }
 
     public void Start(DateTimeOffset at)
