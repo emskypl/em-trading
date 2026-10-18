@@ -7,10 +7,12 @@ using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Application.Optimization;
+using EmTrading.Application.Trading;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Optimization;
+using EmTrading.Domain.Trading;
 
 namespace EmTrading.Application.Tests.TestSupport;
 
@@ -78,7 +80,7 @@ internal sealed class RecordingEventPublisher : IDomainEventPublisher
 /// </summary>
 internal sealed class InMemoryDatabase :
     IBacktestRunRepository, IBacktestHistoryReader, IMarketDataSetRepository, IMarketDataCoverageReader,
-    IOptimizationRunRepository, IOptimizationReader
+    IOptimizationRunRepository, IOptimizationReader, IOrderRepository, IOrderReader
 {
     public object Sync { get; } = new();
 
@@ -88,10 +90,12 @@ internal sealed class InMemoryDatabase :
 
     public List<OptimizationRun> Optimizations { get; } = [];
 
+    public List<Order> Orders { get; } = [];
+
     /// <summary>Saves across every unit of work, i.e. every scope.</summary>
     public int SaveCount { get; set; }
 
-    public IEnumerable<IHasDomainEvents> Aggregates => Runs.Cast<IHasDomainEvents>().Concat(MarketDataSets).Concat(Optimizations);
+    public IEnumerable<IHasDomainEvents> Aggregates => Runs.Cast<IHasDomainEvents>().Concat(MarketDataSets).Concat(Optimizations).Concat(Orders);
 
     public void Add(BacktestRun run)
     {
@@ -151,6 +155,38 @@ internal sealed class InMemoryDatabase :
     }
 
     public Task<OptimizationRun?> FindAsync(OptimizationRunId id, CancellationToken cancellationToken = default) => GetAsync(id, cancellationToken);
+
+    public void Add(Order order)
+    {
+        lock (Sync)
+            Orders.Add(order);
+    }
+
+    public Task<Order?> GetAsync(ClientOrderId id, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult(Orders.FirstOrDefault(o => o.Id == id));
+    }
+
+    Task<IReadOnlyList<Order>> IOrderRepository.ListUnfinishedAsync(CancellationToken cancellationToken)
+    {
+        lock (Sync)
+            return Task.FromResult<IReadOnlyList<Order>>(Orders.Where(o => !o.IsFinal).OrderBy(o => o.CreatedAt).ToList());
+    }
+
+    public Task<IReadOnlyList<OrderSummary>> ListAsync(bool openOnly, int take, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+        {
+            return Task.FromResult<IReadOnlyList<OrderSummary>>(Orders
+                .Where(o => !openOnly || !o.IsFinal)
+                .OrderByDescending(o => o.CreatedAt)
+                .Take(take)
+                .Select(o => new OrderSummary(o.Id.Value, o.BrokerOrderId, o.Symbol.Value, o.Side, o.Type, o.Quantity, o.LimitPrice,
+                    o.StopPrice, o.TimeInForce, o.Status, o.FilledQuantity, o.AverageFillPrice, o.RejectReason, o.CreatedAt, o.UpdatedAt))
+                .ToList());
+        }
+    }
 
     public void Add(MarketDataSet set) => MarketDataSets.Add(set);
 
@@ -277,6 +313,93 @@ internal sealed class FakePriceBarReader : IPriceBarReader
             .ToList();
         return Task.FromResult(bars);
     }
+}
+
+/// <summary>
+/// An in-memory broker: accepts orders (optionally filling market orders at once), keeps positions, and records
+/// every call. Throw from <see cref="SubmitBehavior"/> to simulate rejections and timeouts.
+/// </summary>
+internal sealed class FakeBrokerGateway : IBrokerGateway
+{
+    private int _nextId;
+
+    public BrokerAccount Account { get; set; } = new("PA123", "USD", 100_000, 100_000, 50_000, 200_000, false, true);
+
+    public List<BrokerPosition> Positions { get; } = [];
+
+    /// <summary>Broker-side orders by client order id.</summary>
+    public Dictionary<string, BrokerOrder> Orders { get; } = [];
+
+    public List<string> Cancelled { get; } = [];
+
+    public bool FillMarketOrdersImmediately { get; set; }
+
+    public decimal FillPrice { get; set; } = 100;
+
+    public Func<Order, BrokerOrder?>? SubmitBehavior { get; set; }
+
+    public Task<BrokerAccount> GetAccountAsync(CancellationToken cancellationToken = default) => Task.FromResult(Account);
+
+    public Task<IReadOnlyList<BrokerPosition>> GetPositionsAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<BrokerPosition>>(Positions.ToList());
+
+    public Task<BrokerOrder?> GetOrderAsync(ClientOrderId clientOrderId, CancellationToken cancellationToken = default)
+    {
+        lock (Orders)
+            return Task.FromResult(Orders.GetValueOrDefault(clientOrderId.Value));
+    }
+
+    public Task<BrokerOrder> SubmitOrderAsync(Order order, CancellationToken cancellationToken = default)
+    {
+        var reported = SubmitBehavior?.Invoke(order);
+        reported ??= FillMarketOrdersImmediately && order.Type == OrderType.Market
+            ? Report(order, OrderStatus.Filled, order.Quantity, FillPrice)
+            : Report(order, OrderStatus.Submitted, 0, null);
+
+        lock (Orders)
+            Orders[order.Id.Value] = reported;
+        return Task.FromResult(reported);
+    }
+
+    public Task CancelOrderAsync(string brokerOrderId, CancellationToken cancellationToken = default)
+    {
+        lock (Orders)
+        {
+            Cancelled.Add(brokerOrderId);
+            var (key, existing) = Orders.First(o => o.Value.BrokerOrderId == brokerOrderId);
+            if (existing.Status is OrderStatus.Filled or OrderStatus.Cancelled)
+                throw new BrokerException("order is not cancelable", isRejection: true);
+            Orders[key] = existing with { Status = OrderStatus.Cancelled };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public BrokerOrder Report(Order order, OrderStatus status, decimal filled, decimal? price) =>
+        new($"broker-{Interlocked.Increment(ref _nextId)}", order.Id.Value, order.Symbol.Value, status, order.Quantity, filled, price, TestData.Now);
+}
+
+internal sealed class FakeQuoteCache : IQuoteCache
+{
+    public Dictionary<string, Quote> Quotes { get; } = [];
+
+    public bool TryGet(Symbol symbol, out Quote quote) => Quotes.TryGetValue(symbol.Value, out quote!);
+
+    public IReadOnlyList<Quote> Snapshot() => Quotes.Values.ToList();
+}
+
+internal sealed class FakeLatestPriceSource : ILatestPriceSource
+{
+    public decimal? Price { get; set; } = 100;
+
+    public Task<decimal?> GetLatestPriceAsync(Symbol symbol, CancellationToken cancellationToken = default) => Task.FromResult(Price);
+}
+
+internal sealed class FakeRiskLimitsStore : IRiskLimitsStore
+{
+    public RiskLimits Current { get; private set; } = RiskLimits.Default;
+
+    public void Update(RiskLimits limits) => Current = limits;
 }
 
 internal sealed class SyncProgress<T>(Action<T> report) : IProgress<T>

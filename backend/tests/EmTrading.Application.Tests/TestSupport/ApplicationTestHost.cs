@@ -6,6 +6,7 @@ using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Application.Optimization;
+using EmTrading.Application.Trading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -43,6 +44,12 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IMarketDataCoverageReader>(Database);
         services.AddSingleton<IOptimizationRunRepository>(Database);
         services.AddSingleton<IOptimizationReader>(Database);
+        services.AddSingleton<IOrderRepository>(Database);
+        services.AddSingleton<IOrderReader>(Database);
+        services.AddSingleton<IBrokerGateway>(Broker);
+        services.AddSingleton<IQuoteCache>(Quotes);
+        services.AddSingleton<ILatestPriceSource>(LatestPrices);
+        services.AddSingleton<IRiskLimitsStore>(RiskLimits);
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
@@ -56,6 +63,10 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
     public FakeStrategyCatalog Strategies { get; } = new();
     public FakePriceBarReader Prices { get; } = new();
     public InMemoryDatabase Database { get; } = new();
+    public FakeBrokerGateway Broker { get; } = new();
+    public FakeQuoteCache Quotes { get; } = new();
+    public FakeLatestPriceSource LatestPrices { get; } = new();
+    public FakeRiskLimitsStore RiskLimits { get; } = new();
 
     public IDispatcher Dispatcher => _provider.GetRequiredService<IDispatcher>();
 

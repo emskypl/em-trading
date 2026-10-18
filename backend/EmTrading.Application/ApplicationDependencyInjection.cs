@@ -3,6 +3,7 @@ using EmTrading.Application.Abstractions.Events;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Behaviors;
 using EmTrading.Application.Messaging;
+using EmTrading.Application.Trading;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +20,7 @@ public static class ApplicationDependencyInjection
 
         services.AddSingleton<IDispatcher, Dispatcher>();
         services.AddScoped<IDomainEventPublisher, DomainEventPublisher>();
+        services.AddSingleton<TradingActivity>();
 
         // Order matters, outermost first: logging, validation, then unit of work (commands) and caching (queries).
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
