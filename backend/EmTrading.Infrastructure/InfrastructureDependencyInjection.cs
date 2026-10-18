@@ -2,6 +2,7 @@
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.MarketData;
+using EmTrading.Application.Optimization;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Infrastructure.MarketData;
@@ -55,6 +56,8 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IBacktestHistoryReader, BacktestHistoryReader>();
         services.AddScoped<IMarketDataSetRepository, MarketDataSetRepository>();
         services.AddScoped<IMarketDataCoverageReader, MarketDataCoverageReader>();
+        services.AddScoped<IOptimizationRunRepository, OptimizationRunRepository>();
+        services.AddScoped<IOptimizationReader, OptimizationReader>();
 
         services.AddHostedService<DatabaseInitializer>();
     }

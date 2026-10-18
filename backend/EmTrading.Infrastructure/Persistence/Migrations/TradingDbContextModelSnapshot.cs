@@ -34,6 +34,11 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("FinishedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("OptimizationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("OptimizationRunId");
+
                     b.Property<string>("Parameters")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -93,6 +98,8 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedAt");
 
+                    b.HasIndex("OptimizationId");
+
                     b.HasIndex("Status");
 
                     b.HasIndex("Symbol", "CreatedAt");
@@ -128,6 +135,139 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.HasIndex("Symbol");
 
                     b.ToTable("MarketDataSets", (string)null);
+                });
+
+            modelBuilder.Entity("EmTrading.Domain.Optimization.OptimizationRun", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("BestTrialIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Grid")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxParallelTrials")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Objective")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Strategy")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("StrategyName");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "InitialCapital", "EmTrading.Domain.Optimization.OptimizationRun.InitialCapital#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("InitialCapital");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Currency");
+                        });
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Period", "EmTrading.Domain.Optimization.OptimizationRun.Period#DateRange", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<DateOnly>("End")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("PeriodEnd");
+
+                            b1.Property<DateOnly>("Start")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("PeriodStart");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("OptimizationRuns", (string)null);
+                });
+
+            modelBuilder.Entity("EmTrading.Domain.Optimization.OptimizationRun", b =>
+                {
+                    b.OwnsMany("EmTrading.Domain.Optimization.OptimizationTrial", "Trials", b1 =>
+                        {
+                            b1.Property<string>("OptimizationRunId")
+                                .HasMaxLength(128)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<int>("Id")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("Index");
+
+                            b1.Property<string>("FailureReason")
+                                .HasMaxLength(2000)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Metrics")
+                                .HasMaxLength(1000)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Parameters")
+                                .IsRequired()
+                                .HasMaxLength(4000)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("RunId")
+                                .HasMaxLength(128)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasMaxLength(16)
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("OptimizationRunId", "Id");
+
+                            b1.ToTable("OptimizationTrials", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("OptimizationRunId");
+                        });
+
+                    b.Navigation("Trials");
                 });
 #pragma warning restore 612, 618
         }

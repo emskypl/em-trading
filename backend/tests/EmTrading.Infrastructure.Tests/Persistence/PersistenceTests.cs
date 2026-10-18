@@ -2,6 +2,7 @@ using EmTrading.Application.Abstractions.Events;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 using EmTrading.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -129,13 +130,13 @@ public sealed class PersistenceTests : IAsyncLifetime
         await using var db = CreateContext();
         var reader = new BacktestHistoryReader(db);
 
-        var aapl = await reader.ListAsync(Symbol.Create("AAPL"), take: 10, ct);
+        var aapl = await reader.ListAsync(Symbol.Create("AAPL"), take: 10, cancellationToken: ct);
         Assert.Equal([newer.Id.Value, older.Id.Value], aapl.Select(r => r.RunId));
         Assert.Equal(TimeSpan.FromSeconds(12), aapl[1].Duration);
         Assert.Equal(100_000m, aapl[1].InitialCapital);
         Assert.True(aapl[1].HasReport);
 
-        Assert.Equal(2, (await reader.ListAsync(null, take: 2, ct)).Count);
+        Assert.Equal(2, (await reader.ListAsync(null, take: 2, cancellationToken: ct)).Count);
     }
 
     [Fact]
@@ -173,6 +174,111 @@ public sealed class PersistenceTests : IAsyncLifetime
         Assert.Equal(2, _publisher.Published.OfType<MarketDataDownloaded>().Count());
     }
 
+    [Fact]
+    public async Task Optimization_round_trips_with_grid_trials_and_metrics()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var optimization = CreateOptimization(T0);
+        optimization.Start(T0);
+        optimization.StartTrial(0, BacktestRunId.ForTrial(optimization.Id, 0));
+        optimization.CompleteTrial(0, new TrialMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), T0.AddMinutes(1));
+
+        await using (var db = CreateContext())
+        {
+            new OptimizationRunRepository(db).Add(optimization);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        // Load for changes, finish the remaining trial: only the changed rows need saving.
+        await using (var db = CreateContext())
+        {
+            var loaded = await new OptimizationRunRepository(db).GetAsync(optimization.Id, ct);
+            Assert.NotNull(loaded);
+            loaded.StartTrial(1, BacktestRunId.ForTrial(loaded.Id, 1));
+            loaded.FailTrial(1, "no data", T0.AddMinutes(2));
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using (var db = CreateContext())
+        {
+            var loaded = await new OptimizationReader(db).FindAsync(optimization.Id, ct);
+
+            Assert.NotNull(loaded);
+            Assert.Equal(optimization.Grid, loaded.Grid);
+            Assert.Equal(OptimizationObjective.ReturnOverDrawdown, loaded.Objective);
+            Assert.Equal(OptimizationStatus.Completed, loaded.Status);
+            Assert.Equal(0, loaded.BestTrialIndex);
+            Assert.Equal([TrialStatus.Completed, TrialStatus.Failed], loaded.Trials.Select(t => t.Status));
+            Assert.Equal(new TrialMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), loaded.Trials[0].Metrics);
+            Assert.Equal(optimization.Trials[1].Parameters, loaded.Trials[1].Parameters);
+            Assert.Equal($"{optimization.Id.Value}-t001", loaded.Trials[1].RunId!.Value);
+            Assert.Equal("no data", loaded.Trials[1].FailureReason);
+            Assert.Null(loaded.Trials[1].Metrics);
+        }
+
+        Assert.IsType<OptimizationRunCompleted>(Assert.Single(_publisher.Published));
+    }
+
+    [Fact]
+    public async Task Unfinished_optimizations_are_listed_and_the_newest_comes_first()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var older = CreateOptimization(T0);
+        var newer = CreateOptimization(T0.AddMinutes(5));
+        newer.Cancel(T0.AddMinutes(6));
+
+        await using (var db = CreateContext())
+        {
+            var repository = new OptimizationRunRepository(db);
+            repository.Add(older);
+            repository.Add(newer);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using (var db = CreateContext())
+        {
+            Assert.Equal([older.Id], (await new OptimizationRunRepository(db).ListUnfinishedAsync(ct)).Select(r => r.Id));
+            Assert.Equal([newer.Id, older.Id], (await new OptimizationReader(db).ListAsync(10, ct)).Select(r => r.Id));
+        }
+    }
+
+    [Fact]
+    public async Task Trial_runs_are_linked_to_their_optimization_and_left_out_of_the_history()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var optimizationId = OptimizationRunId.New(Symbol.Create("AAPL"), StrategyName.Create("SmaCrossStrategy"), T0);
+        await SaveAsync(CreateRun("AAPL", T0));
+        await SaveAsync(CreateRun("AAPL", T0.AddMinutes(1), optimizationId));
+
+        await using var db = CreateContext();
+        var reader = new BacktestHistoryReader(db);
+
+        Assert.Null(Assert.Single(await reader.ListAsync(null, 10, cancellationToken: ct)).OptimizationId);
+        var all = await reader.ListAsync(null, 10, includeTrials: true, ct);
+        Assert.Equal(optimizationId.Value, all[0].OptimizationId);
+    }
+
+    private static OptimizationRun CreateOptimization(DateTimeOffset createdAt)
+    {
+        var symbol = Symbol.Create("AAPL");
+        var strategy = StrategyName.Create("SmaCrossStrategy");
+        var grid = ParameterGrid.Create([ParameterRange.Create("fast-period", 10, 20, 10), ParameterRange.Create("risk-percent", 0.5m, 0.5m, 0.25m)]);
+        return OptimizationRun.Create(
+            OptimizationRunId.New(symbol, strategy, createdAt),
+            symbol,
+            strategy,
+            DateRange.Create(new DateOnly(2026, 1, 2), new DateOnly(2026, 9, 30)),
+            Money.Usd(50_000m),
+            grid,
+            OptimizationObjective.ReturnOverDrawdown,
+            maxParallelTrials: 3,
+            [
+                StrategyParameters.Create([new("fast-period", "10"), new("risk-percent", "0.5"), new("slow-period", "130")]),
+                StrategyParameters.Create([new("fast-period", "20"), new("risk-percent", "0.5"), new("slow-period", "130")])
+            ],
+            createdAt);
+    }
+
     private TradingDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<TradingDbContext>().UseSqlite(_connection).Options);
 
@@ -183,7 +289,7 @@ public sealed class PersistenceTests : IAsyncLifetime
         await new UnitOfWork(db, _publisher).SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
-    private static BacktestRun CreateRun(string ticker, DateTimeOffset createdAt)
+    private static BacktestRun CreateRun(string ticker, DateTimeOffset createdAt, OptimizationRunId? optimizationId = null)
     {
         var symbol = Symbol.Create(ticker);
         var strategy = StrategyName.Create("SmaCrossStrategy");
@@ -194,7 +300,8 @@ public sealed class PersistenceTests : IAsyncLifetime
             DateRange.Create(new DateOnly(2026, 1, 2), new DateOnly(2026, 9, 30)),
             Money.Usd(100_000m),
             StrategyParameters.Create([new("fast-period", "26"), new("slow-period", "130")]),
-            createdAt);
+            createdAt,
+            optimizationId);
     }
 
     private sealed class RecordingPublisher : IDomainEventPublisher

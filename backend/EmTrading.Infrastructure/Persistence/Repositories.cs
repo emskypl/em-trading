@@ -46,11 +46,13 @@ internal sealed class BacktestRunRepository(TradingDbContext db) : IBacktestRunR
 /// </summary>
 internal sealed class BacktestHistoryReader(TradingDbContext db) : IBacktestHistoryReader
 {
-    public async Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, bool includeTrials = false, CancellationToken cancellationToken = default)
     {
         var query = db.BacktestRuns.AsNoTracking();
         if (symbol is not null)
             query = query.Where(r => r.Symbol == symbol);
+        if (!includeTrials)
+            query = query.Where(r => r.OptimizationId == null);
 
         var rows = await query
             .OrderByDescending(r => r.CreatedAt)
@@ -68,7 +70,8 @@ internal sealed class BacktestHistoryReader(TradingDbContext db) : IBacktestHist
                 r.CreatedAt,
                 r.StartedAt,
                 r.FinishedAt,
-                r.FailureReason
+                r.FailureReason,
+                r.OptimizationId
             })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -85,7 +88,8 @@ internal sealed class BacktestHistoryReader(TradingDbContext db) : IBacktestHist
                 r.Progress,
                 r.CreatedAt,
                 r.StartedAt is { } started && r.FinishedAt is { } finished ? finished - started : null,
-                r.FailureReason))
+                r.FailureReason,
+                r.OptimizationId?.Value))
             .ToList();
     }
 }

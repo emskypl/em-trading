@@ -1,5 +1,6 @@
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Backtesting.FailInterruptedBacktests;
+using EmTrading.Application.Optimization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +10,7 @@ namespace EmTrading.Infrastructure.Persistence;
 
 /// <summary>
 /// At startup: applies pending migrations, switches SQLite to WAL (readers don't block the writer),
-/// and marks runs left unfinished by a previous session as failed.
+/// and marks runs and optimizations left unfinished by a previous session as failed.
 /// </summary>
 internal sealed class DatabaseInitializer(
     IServiceScopeFactory scopeFactory,
@@ -29,6 +30,10 @@ internal sealed class DatabaseInitializer(
         var recovered = await dispatcher.SendAsync(new FailInterruptedBacktestsCommand(), cancellationToken);
         if (recovered is { IsSuccess: true, Value: > 0 })
             logger.LogWarning("Marked {Count} interrupted backtest run(s) as failed", recovered.Value);
+
+        var optimizations = await dispatcher.SendAsync(new FailInterruptedOptimizationsCommand(), cancellationToken);
+        if (optimizations is { IsSuccess: true, Value: > 0 })
+            logger.LogWarning("Marked {Count} interrupted optimization(s) as failed", optimizations.Value);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

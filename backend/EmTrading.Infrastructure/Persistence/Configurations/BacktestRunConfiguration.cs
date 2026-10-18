@@ -1,5 +1,6 @@
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.MarketData;
+using EmTrading.Domain.Optimization;
 using EmTrading.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -47,6 +48,12 @@ internal sealed class BacktestRunConfiguration : IEntityTypeConfiguration<Backte
             .HasConversion(new StrategyParametersConverter(), StrategyParametersConverter.Comparer)
             .HasMaxLength(4000);
 
+        // A reference by id: the optimization is another aggregate.
+        builder.Property(r => r.OptimizationId)
+            .HasColumnName("OptimizationRunId")
+            .HasConversion(id => id!.Value, value => OptimizationRunId.From(value))
+            .HasMaxLength(128);
+
         builder.Property(r => r.Status).HasConversion<string>().HasMaxLength(16);
         builder.Property(r => r.Progress);
         builder.Property(r => r.CreatedAt);
@@ -61,5 +68,6 @@ internal sealed class BacktestRunConfiguration : IEntityTypeConfiguration<Backte
         builder.HasIndex(r => r.CreatedAt);
         builder.HasIndex(r => new { r.Symbol, r.CreatedAt });
         builder.HasIndex(r => r.Status);
+        builder.HasIndex(r => r.OptimizationId);
     }
 }
