@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EmTrading.Domain.Trading;
 using Microsoft.Extensions.Options;
 
 namespace EmTrading.Infrastructure.Alpaca;
@@ -11,8 +12,8 @@ public sealed class AlpacaOptions
 {
     public const string SectionName = "Alpaca";
 
-    /// <summary>The only trading host allowed until live trading gets its own safeguards.</summary>
     public const string PaperTradingHost = "paper-api.alpaca.markets";
+    public const string LiveTradingHost = "api.alpaca.markets";
 
     public string? ApiKey { get; set; }
 
@@ -22,6 +23,20 @@ public sealed class AlpacaOptions
     public string? TradingApiKey { get; set; }
 
     public string? TradingApiSecret { get; set; }
+
+    /// <summary>
+    /// <see cref="Domain.Trading.TradingMode.Paper"/> unless live trading is explicitly chosen; live also needs
+    /// <see cref="LiveTradingEnabled"/> and its own keys.
+    /// </summary>
+    public TradingMode TradingMode { get; set; } = TradingMode.Paper;
+
+    /// <summary>The second, deliberate opt-in for real-money trading.</summary>
+    public bool LiveTradingEnabled { get; set; }
+
+    /// <summary>Keys of the live account. Never taken from the paper or market data keys.</summary>
+    public string? LiveApiKey { get; set; }
+
+    public string? LiveApiSecret { get; set; }
 
     [Required, Url]
     public string DataBaseUrl { get; set; } = "https://data.alpaca.markets";
@@ -34,12 +49,13 @@ public sealed class AlpacaOptions
     [Range(1, 10_000)]
     public int RequestsPerMinute { get; set; } = 200;
 
-    [Required, Url]
-    public string TradingBaseUrl { get; set; } = $"https://{PaperTradingHost}";
+    /// <summary>Derived from the mode, not configurable: a paper setup can never point at the live API.</summary>
+    public string TradingHost => TradingMode == TradingMode.Live ? LiveTradingHost : PaperTradingHost;
+
+    public string TradingBaseUrl => $"https://{TradingHost}";
 
     /// <summary>Order and fill events of the trading account.</summary>
-    [Required]
-    public string TradingStreamUrl { get; set; } = $"wss://{PaperTradingHost}/stream";
+    public string TradingStreamUrl => $"wss://{TradingHost}/stream";
 
     /// <summary>Live trades, quotes and minute bars; the feed is appended, e.g. <c>/iex</c>.</summary>
     [Required]
@@ -53,26 +69,36 @@ public sealed class AlpacaOptions
 
     public bool HasTradingCredentials => !string.IsNullOrWhiteSpace(TradingKey) && !string.IsNullOrWhiteSpace(TradingSecret);
 
-    public string? TradingKey => string.IsNullOrWhiteSpace(TradingApiKey) ? ApiKey : TradingApiKey;
+    public string? TradingKey => TradingMode == TradingMode.Live ? LiveApiKey : string.IsNullOrWhiteSpace(TradingApiKey) ? ApiKey : TradingApiKey;
 
-    public string? TradingSecret => string.IsNullOrWhiteSpace(TradingApiSecret) ? ApiSecret : TradingApiSecret;
+    public string? TradingSecret => TradingMode == TradingMode.Live ? LiveApiSecret : string.IsNullOrWhiteSpace(TradingApiSecret) ? ApiSecret : TradingApiSecret;
 }
 
 /// <summary>
-/// Refuses to start with a trading endpoint other than paper trading: real-money trading is out of scope until it has
-/// its own explicit switch, confirmations and limits.
+/// Live trading starts only with every opt-in in place: the mode, the explicit enable flag, and dedicated live keys
+/// that are not a copy of the paper or market data keys. Anything less fails at startup.
 /// </summary>
-internal sealed class PaperTradingOnlyValidation : IValidateOptions<AlpacaOptions>
+internal sealed class TradingModeValidation : IValidateOptions<AlpacaOptions>
 {
     public ValidateOptionsResult Validate(string? name, AlpacaOptions options)
     {
+        if (options.TradingMode != TradingMode.Live)
+            return ValidateOptionsResult.Success;
+
         var failures = new List<string>();
-        foreach (var (setting, url) in new[] { ("TradingBaseUrl", options.TradingBaseUrl), ("TradingStreamUrl", options.TradingStreamUrl) })
-        {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || !string.Equals(uri.Host, AlpacaOptions.PaperTradingHost, StringComparison.OrdinalIgnoreCase))
-                failures.Add($"Alpaca:{setting} must point to {AlpacaOptions.PaperTradingHost}; only paper trading is supported.");
-        }
+        if (!options.LiveTradingEnabled)
+            failures.Add("Alpaca:TradingMode is Live but Alpaca:LiveTradingEnabled is not true.");
+        if (string.IsNullOrWhiteSpace(options.LiveApiKey) || string.IsNullOrWhiteSpace(options.LiveApiSecret))
+            failures.Add("Live trading needs its own keys: Alpaca:LiveApiKey and Alpaca:LiveApiSecret.");
+        else if (options.LiveApiKey == options.ApiKey || options.LiveApiKey == options.TradingApiKey)
+            failures.Add("Alpaca:LiveApiKey must not be the same key as the paper or market data key.");
 
         return failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
     }
+}
+
+/// <summary>The trading mode the app was started in.</summary>
+internal sealed class AlpacaTradingEnvironment(IOptions<AlpacaOptions> options) : Application.Trading.Safety.ITradingEnvironment
+{
+    public TradingMode Mode => options.Value.TradingMode;
 }

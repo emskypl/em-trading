@@ -126,15 +126,32 @@ public class AlpacaBrokerClientTests
     public void Alpaca_statuses_map_onto_order_statuses(string alpaca, OrderStatus expected) =>
         Assert.Equal(expected, AlpacaBrokerClient.MapStatus(alpaca));
 
-    [Theory]
-    [InlineData("https://paper-api.alpaca.markets", "wss://paper-api.alpaca.markets/stream", true)]
-    [InlineData("https://api.alpaca.markets", "wss://paper-api.alpaca.markets/stream", false)]
-    [InlineData("https://paper-api.alpaca.markets", "wss://api.alpaca.markets/stream", false)]
-    public void Only_the_paper_trading_endpoints_are_accepted(string tradingUrl, string streamUrl, bool valid)
+    [Fact]
+    public void Paper_is_the_default_and_its_endpoints_cannot_be_redirected()
     {
-        var result = new PaperTradingOnlyValidation().Validate(null, new AlpacaOptions { TradingBaseUrl = tradingUrl, TradingStreamUrl = streamUrl });
+        var options = new AlpacaOptions { ApiKey = "data", ApiSecret = "s" };
 
-        Assert.Equal(valid, result.Succeeded);
+        Assert.Equal(TradingMode.Paper, options.TradingMode);
+        Assert.Equal("https://paper-api.alpaca.markets", options.TradingBaseUrl);
+        Assert.Equal("wss://paper-api.alpaca.markets/stream", options.TradingStreamUrl);
+        Assert.Equal("data", options.TradingKey);
+        Assert.True(new TradingModeValidation().Validate(null, options).Succeeded);
+    }
+
+    [Fact]
+    public void Live_needs_the_explicit_flag_and_its_own_keys()
+    {
+        var withoutFlag = new AlpacaOptions { TradingMode = TradingMode.Live, LiveApiKey = "live", LiveApiSecret = "s" };
+        var withoutKeys = new AlpacaOptions { TradingMode = TradingMode.Live, LiveTradingEnabled = true, ApiKey = "data", ApiSecret = "s" };
+        var copiedKey = new AlpacaOptions { TradingMode = TradingMode.Live, LiveTradingEnabled = true, ApiKey = "same", LiveApiKey = "same", LiveApiSecret = "s" };
+        var complete = new AlpacaOptions { TradingMode = TradingMode.Live, LiveTradingEnabled = true, ApiKey = "data", LiveApiKey = "live", LiveApiSecret = "s" };
+
+        Assert.False(new TradingModeValidation().Validate(null, withoutFlag).Succeeded);
+        Assert.False(new TradingModeValidation().Validate(null, withoutKeys).Succeeded);
+        Assert.Null(withoutKeys.TradingKey);
+        Assert.False(new TradingModeValidation().Validate(null, copiedKey).Succeeded);
+        Assert.True(new TradingModeValidation().Validate(null, complete).Succeeded);
+        Assert.Equal(("https://api.alpaca.markets", "live"), (complete.TradingBaseUrl, complete.TradingKey));
     }
 
     private static AlpacaBrokerClient CreateClient(HttpMessageHandler handler, AlpacaOptions? options = null) =>

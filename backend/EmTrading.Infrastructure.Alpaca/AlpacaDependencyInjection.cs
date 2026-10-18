@@ -1,4 +1,5 @@
 using EmTrading.Application.Trading;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Infrastructure.Alpaca.MarketData;
 using EmTrading.Infrastructure.Alpaca.Streaming;
 using EmTrading.Infrastructure.Alpaca.Trading;
@@ -23,7 +24,7 @@ public static class AlpacaDependencyInjection
             .Bind(configuration.GetSection(AlpacaOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        services.AddSingleton<IValidateOptions<AlpacaOptions>, PaperTradingOnlyValidation>();
+        services.AddSingleton<IValidateOptions<AlpacaOptions>, TradingModeValidation>();
 
         services.AddSingleton<AlpacaRateLimiter>();
         services.AddTransient<AlpacaRateLimitingHandler>();
@@ -39,8 +40,8 @@ public static class AlpacaDependencyInjection
     }
 
     /// <summary>
-    /// Paper trading through Alpaca: the broker gateway, the trade update and market data streams, and periodic
-    /// reconciliation. Requires <see cref="AddAlpacaMarketData"/>.
+    /// Trading through Alpaca (paper unless live is fully opted into): the broker gateway, the trade update and market
+    /// data streams, periodic reconciliation and the daily loss guard. Requires <see cref="AddAlpacaMarketData"/>.
     /// </summary>
     public static IServiceCollection AddAlpacaTrading(this IServiceCollection services)
     {
@@ -71,6 +72,8 @@ public static class AlpacaDependencyInjection
         services.AddHostedService(sp => sp.GetRequiredService<AlpacaMarketDataStream>());
         services.AddHostedService<AlpacaTradeUpdatesStream>();
         services.AddHostedService<OrderReconciliationService>();
+        services.AddHostedService<DailyLossGuardService>();
+        services.AddSingleton<ITradingEnvironment, AlpacaTradingEnvironment>();
 
         return services;
     }

@@ -1,6 +1,7 @@
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Trading;
 using EmTrading.Application.Trading.Orders;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Infrastructure.Alpaca.Streaming;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -123,6 +124,40 @@ internal sealed class OrderReconciliationService(
                 {
                     logger.LogWarning("Reconciliation skipped: {Reason}", ex.Message);
                 }
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            // Shutting down.
+        }
+    }
+}
+
+/// <summary>
+/// Checks today's loss against the limit every minute and switches trading off once it is reached, so the halt
+/// happens even if nobody tries to place an order.
+/// </summary>
+internal sealed class DailyLossGuardService(
+    IDispatcher dispatcher,
+    IOptions<AlpacaOptions> options,
+    TimeProvider clock,
+    ILogger<DailyLossGuardService> logger) : Microsoft.Extensions.Hosting.BackgroundService
+{
+    internal static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        if (!options.Value.HasTradingCredentials)
+            return;
+
+        using var timer = new PeriodicTimer(Interval, clock);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                var result = await dispatcher.SendAsync(new EnforceDailyLossLimitCommand(), stoppingToken);
+                if (result is { IsSuccess: true, Value: true })
+                    logger.LogWarning("Daily loss limit reached: trading switched off");
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
