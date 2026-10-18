@@ -225,6 +225,81 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.ToTable("OptimizationRuns", (string)null);
                 });
 
+            modelBuilder.Entity("EmTrading.Domain.Trading.Order", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(48)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ClientOrderId");
+
+                    b.Property<decimal?>("AverageFillPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BrokerOrderId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("FilledQuantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("LimitPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Side")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("StopPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TimeInForce")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrokerOrderId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Orders", (string)null);
+                });
+
             modelBuilder.Entity("EmTrading.Domain.Optimization.OptimizationRun", b =>
                 {
                     b.OwnsMany("EmTrading.Domain.Optimization.OptimizationTrial", "Trials", b1 =>

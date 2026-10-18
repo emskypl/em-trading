@@ -3,10 +3,12 @@ using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.Optimization;
+using EmTrading.Application.Trading;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Infrastructure.MarketData;
 using EmTrading.Infrastructure.Persistence;
+using EmTrading.Infrastructure.Trading;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +40,7 @@ public static class InfrastructureDependencyInjection
 
         AddPersistence(services);
         AddJobs(services, configuration);
+        AddTrading(services, configuration);
 
         return services;
     }
@@ -58,8 +61,23 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IMarketDataCoverageReader, MarketDataCoverageReader>();
         services.AddScoped<IOptimizationRunRepository, OptimizationRunRepository>();
         services.AddScoped<IOptimizationReader, OptimizationReader>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOrderReader, OrderReader>();
 
         services.AddHostedService<DatabaseInitializer>();
+    }
+
+    /// <summary>Broker-independent trading services; the broker itself is registered by its adapter.</summary>
+    private static void AddTrading(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<RiskOptions>()
+            .Bind(configuration.GetSection(RiskOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddSingleton<IRiskLimitsStore, RiskLimitsStore>();
+        services.AddSingleton<QuoteCache>();
+        services.AddSingleton<IQuoteCache>(sp => sp.GetRequiredService<QuoteCache>());
     }
 
     private static void AddJobs(IServiceCollection services, IConfiguration configuration)

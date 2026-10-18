@@ -9,4 +9,8 @@ public static class ExchangeTime
 
     public static DateTime FromUtc(DateTime utc) =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), NewYork);
+
+    /// <summary>Midnight of the current New York day, as UTC: the start of today's session data.</summary>
+    public static DateTime StartOfDayUtc(DateTimeOffset now) =>
+        TimeZoneInfo.ConvertTimeToUtc(FromUtc(now.UtcDateTime).Date, NewYork);
 }

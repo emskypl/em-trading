@@ -3,6 +3,7 @@ using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Optimization;
+using EmTrading.Domain.Trading;
 using EmTrading.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -256,6 +257,44 @@ public sealed class PersistenceTests : IAsyncLifetime
         Assert.Null(Assert.Single(await reader.ListAsync(null, 10, cancellationToken: ct)).OptimizationId);
         var all = await reader.ListAsync(null, 10, includeTrials: true, ct);
         Assert.Equal(optimizationId.Value, all[0].OptimizationId);
+    }
+
+    [Fact]
+    public async Task Orders_round_trip_and_unfinished_ones_are_listed_oldest_first()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var aapl = Symbol.Create("AAPL");
+        var filled = Order.Create(ClientOrderId.New(T0), aapl, OrderSide.Buy, OrderType.Market, 2.5m, null, null, TimeInForce.Day, T0);
+        filled.MarkSubmitted("b-1", T0);
+        filled.ApplyFill(2.5m, 187.123456m, T0.AddSeconds(1));
+        var working = Order.Create(ClientOrderId.New(T0.AddMinutes(1)), aapl, OrderSide.Sell, OrderType.StopLimit, 3, 180, 181, TimeInForce.Gtc, T0.AddMinutes(1));
+        working.MarkSubmitted("b-2", T0.AddMinutes(1));
+        var fresh = Order.Create(ClientOrderId.New(T0.AddMinutes(2)), aapl, OrderSide.Buy, OrderType.Limit, 1, 150, null, TimeInForce.Day, T0.AddMinutes(2));
+
+        await using (var db = CreateContext())
+        {
+            var repository = new OrderRepository(db);
+            repository.Add(fresh);
+            repository.Add(filled);
+            repository.Add(working);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using (var db = CreateContext())
+        {
+            var repository = new OrderRepository(db);
+            Assert.Equal([working.Id, fresh.Id], (await repository.ListUnfinishedAsync(ct)).Select(o => o.Id));
+
+            var loaded = await repository.GetAsync(filled.Id, ct);
+            Assert.NotNull(loaded);
+            Assert.Equal((OrderStatus.Filled, 2.5m, 187.123456m, "b-1"), (loaded.Status, loaded.FilledQuantity, loaded.AverageFillPrice, loaded.BrokerOrderId));
+
+            var open = await new OrderReader(db).ListAsync(openOnly: true, take: 10, ct);
+            Assert.Equal([fresh.Id.Value, working.Id.Value], open.Select(o => o.ClientOrderId));
+            Assert.Equal((OrderType.StopLimit, 180m, 181m, TimeInForce.Gtc), (open[1].Type, open[1].LimitPrice, open[1].StopPrice, open[1].TimeInForce));
+        }
+
+        Assert.Contains(_publisher.Published, e => e is OrderFilled);
     }
 
     private static OptimizationRun CreateOptimization(DateTimeOffset createdAt)
