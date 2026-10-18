@@ -4,7 +4,15 @@ using EmTrading.Application;
 using EmTrading.Infrastructure;
 using EmTrading.Infrastructure.Alpaca;
 using EmTrading.Infrastructure.Lean;
+using System.IO;
+using EmTrading.App.Hosting;
+using EmTrading.Infrastructure.Configuration;
+using EmTrading.Infrastructure.Jobs;
 using EmTrading.Presentation;
+using EmTrading.Presentation.Localization;
+using EmTrading.Presentation.Logging;
+using EmTrading.Presentation.Settings;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -69,10 +77,19 @@ public partial class App : System.Windows.Application
 
         var builder = Host.CreateApplicationBuilder(settings);
 
+        // User preferences are needed before the first window: the language applies to everything created afterwards.
+        var settingsStore = new JsonUserSettingsStore(JsonUserSettingsStore.DefaultPath);
+        var userSettings = settingsStore.Load();
+        Loc.Instance.SetCulture(Loc.SupportedCultures.FirstOrDefault(c => c.Name == userSettings.Culture) ?? Loc.Polish);
+        builder.Services.AddSingleton<IUserSettingsStore>(settingsStore);
+        builder.Services.AddSingleton(userSettings);
+        builder.Services.AddSingleton(CreateEnvironmentInfo);
+
         builder.Services.AddSerilog((services, logger) => logger
             .ReadFrom.Configuration(builder.Configuration)
             .ReadFrom.Services(services)
-            .Enrich.FromLogContext());
+            .Enrich.FromLogContext()
+            .WriteTo.Sink(new LogFeedSink(services.GetRequiredService<LogFeed>())));
 
         // Clean Architecture composition: the app layer, shared infrastructure, one adapter per external system, the UI.
         builder.Services
@@ -85,6 +102,19 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<MainWindow>();
 
         return builder.Build();
+    }
+
+    private static AppEnvironmentInfo CreateEnvironmentInfo(IServiceProvider services)
+    {
+        var storage = services.GetRequiredService<IOptions<StorageOptions>>().Value;
+        var logFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "EmTrading", "logs");
+        return new AppEnvironmentInfo(
+            storage.DataFolder,
+            storage.ResultsFolder,
+            storage.DatabaseFile,
+            logFolder,
+            services.GetRequiredService<IOptions<AlpacaOptions>>().Value.HasCredentials,
+            services.GetRequiredService<IOptions<JobOptions>>().Value.MaxParallelJobs);
     }
 
     private ILogger<App>? Logger => _host?.Services.GetService<ILogger<App>>();

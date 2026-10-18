@@ -1,19 +1,18 @@
-﻿using System.Windows;
-using EmTrading.Presentation;
+using System.Windows;
+using EmTrading.Presentation.Shell;
 
 namespace EmTrading.App;
 
 public partial class MainWindow : Window
 {
-    public MainWindow(MainViewModel viewModel)
+    public MainWindow(ShellViewModel shell)
     {
         InitializeComponent();
-        DataContext = viewModel;
+        DataContext = shell;
         Loaded += async (_, _) =>
         {
-            await viewModel.LoadStrategiesCommand.ExecuteAsync(null);
-            await viewModel.RefreshHistoryCommand.ExecuteAsync(null);
-            await viewModel.RefreshCoverageCommand.ExecuteAsync(null);
+            if (shell.CurrentPage is { } page)
+                await page.OnNavigatedToAsync();
         };
     }
 }
