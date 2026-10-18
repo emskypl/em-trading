@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Application.Abstractions.Events;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
@@ -295,6 +297,26 @@ public sealed class PersistenceTests : IAsyncLifetime
         }
 
         Assert.Contains(_publisher.Published, e => e is OrderFilled);
+    }
+
+    [Fact]
+    public async Task Audit_entries_are_appended_in_their_own_scope_and_listed_newest_first()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection()
+            .AddDbContext<TradingDbContext>(options => options.UseSqlite(_connection))
+            .BuildServiceProvider();
+        var log = new AuditLog(services.GetRequiredService<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>(),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<AuditLog>.Instance);
+
+        await log.RecordAsync(new AuditEntry(T0, TradingMode.Paper, AuditCategory.Order, "Created", "emt-1", "AAPL", "Buy 1 AAPL Market"), ct);
+        await log.RecordAsync(new AuditEntry(T0.AddSeconds(1), TradingMode.Live, AuditCategory.Risk, "Halted", null, null, new string('x', 5000)), ct);
+
+        var entries = await log.ListAsync(10, ct);
+
+        Assert.Equal(["Halted", "Created"], entries.Select(e => e.Action));
+        Assert.Equal((TradingMode.Live, AuditCategory.Risk, 4000), (entries[0].Mode, entries[0].Category, entries[0].Details.Length));
+        Assert.Equal(("emt-1", "AAPL", T0), (entries[1].ClientOrderId, entries[1].Symbol, entries[1].Time));
     }
 
     private static OptimizationRun CreateOptimization(DateTimeOffset createdAt)

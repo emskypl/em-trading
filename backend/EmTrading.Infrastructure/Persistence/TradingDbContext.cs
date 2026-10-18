@@ -17,6 +17,8 @@ internal sealed class TradingDbContext(DbContextOptions<TradingDbContext> option
 
     public DbSet<Order> Orders => Set<Order>();
 
+    public DbSet<AuditRecord> AuditLog => Set<AuditRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TradingDbContext).Assembly);
 

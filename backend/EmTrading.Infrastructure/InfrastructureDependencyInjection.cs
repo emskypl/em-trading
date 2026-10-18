@@ -4,6 +4,7 @@ using EmTrading.Application.Backtesting;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.Optimization;
 using EmTrading.Application.Trading;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Infrastructure.MarketData;
@@ -76,6 +77,7 @@ public static class InfrastructureDependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton<IRiskLimitsStore, RiskLimitsStore>();
+        services.AddSingleton<IAuditLog, AuditLog>();
         services.AddSingleton<QuoteCache>();
         services.AddSingleton<IQuoteCache>(sp => sp.GetRequiredService<QuoteCache>());
     }

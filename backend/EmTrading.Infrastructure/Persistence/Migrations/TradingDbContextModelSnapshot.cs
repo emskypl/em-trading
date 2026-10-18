@@ -300,6 +300,52 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.ToTable("Orders", (string)null);
                 });
 
+            modelBuilder.Entity("EmTrading.Infrastructure.Persistence.AuditRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClientOrderId")
+                        .HasMaxLength(48)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Symbol")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientOrderId");
+
+                    b.HasIndex("Time");
+
+                    b.ToTable("AuditLog", (string)null);
+                });
+
             modelBuilder.Entity("EmTrading.Domain.Optimization.OptimizationRun", b =>
                 {
                     b.OwnsMany("EmTrading.Domain.Optimization.OptimizationTrial", "Trials", b1 =>
