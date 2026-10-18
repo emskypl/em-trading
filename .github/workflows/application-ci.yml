@@ -1,11 +1,11 @@
-name: backend-ci
+name: application-ci
 
 on:
   push:
     branches: [main]
-    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+    paths: ['application/**', '.github/workflows/application-ci.yml']
   pull_request:
-    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+    paths: ['application/**', '.github/workflows/application-ci.yml']
 
 jobs:
   build-and-test:
@@ -13,7 +13,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: application
     steps:
       - uses: actions/checkout@v4
 
@@ -35,8 +35,8 @@ jobs:
         if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
-          reports: backend/TestResults/*.cobertura.xml
-          targetdir: backend/coverage
+          reports: application/TestResults/*.cobertura.xml
+          targetdir: application/coverage
           reporttypes: MarkdownSummaryGithub;Cobertura;HtmlInline
           assemblyfilters: +EmTrading.*;-*.Tests
           classfilters: -*.Migrations.*;-*.Designer
@@ -51,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: backend/coverage
+          path: application/coverage

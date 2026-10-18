@@ -1,6 +1,6 @@
 # EmTrading
 
-[![backend-ci](https://github.com/emskypl/em-trading/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/emskypl/em-trading/actions/workflows/backend-ci.yml)
+[![application-ci](https://github.com/emskypl/em-trading/actions/workflows/application-ci.yml/badge.svg)](https://github.com/emskypl/em-trading/actions/workflows/application-ci.yml)
 
 A Windows desktop app for researching and trading US equities:
 - download market data from Alpaca;
@@ -24,7 +24,7 @@ A Windows desktop app for researching and trading US equities:
 
 ## Architecture
 
-Clean Architecture: dependencies point inwards, and the rules are enforced by [architecture tests](backend/tests/EmTrading.Architecture.Tests/LayerDependencyTests.cs).
+Clean Architecture: dependencies point inwards, and the rules are enforced by [architecture tests](application/tests/EmTrading.Architecture.Tests/LayerDependencyTests.cs).
 
 ```mermaid
 flowchart TB
@@ -58,24 +58,24 @@ flowchart LR
 
 | Skill | Where |
 |---|---|
-| **CQRS** (own dispatcher, no MediatR) | [Dispatcher](backend/EmTrading.Application/Messaging/Dispatcher.cs): cached generic wrappers, one DI scope per request. Pipeline behaviors: [logging, validation, unit of work, caching](backend/EmTrading.Application/Behaviors). Features are vertical slices, e.g. [StartOptimization](backend/EmTrading.Application/Optimization/StartOptimization/StartOptimizationCommand.cs). |
-| **DDD** | Aggregates with state machines and domain events: [BacktestRun](backend/EmTrading.Domain/Backtesting/BacktestRun.cs), [OptimizationRun](backend/EmTrading.Domain/Optimization/OptimizationRun.cs), [Order](backend/EmTrading.Domain/Trading/Order.cs) (idempotent fills), [MarketDataSet](backend/EmTrading.Domain/MarketData/MarketDataSet.cs) (coverage gaps). Domain service: [RiskPolicy](backend/EmTrading.Domain/Trading/RiskPolicy.cs). Events are published only after commit by the [unit of work](backend/EmTrading.Infrastructure/Persistence/Repositories.cs). |
-| **Background workers** | [JobProcessor](backend/EmTrading.Infrastructure/Jobs/JobProcessor.cs) over a [Channel-based queue](backend/EmTrading.Infrastructure/Jobs/JobQueue.cs) (dedupe, cancel, progress). WebSocket [stream services](backend/EmTrading.Infrastructure.Alpaca/Streaming/AlpacaStreamService.cs) with reconnect backoff. Reconciliation and daily-loss guard on `PeriodicTimer`. |
-| **Multithreading** | Parallel downloads and backtests. Parallel optimization trials sharing one aggregate behind an async lock: [ExecuteOptimization](backend/EmTrading.Application/Optimization/ExecuteOptimization/ExecuteOptimizationCommand.cs). [Monte Carlo](backend/EmTrading.Application/Analytics/MonteCarloSimulator.cs) with `Parallel.For` thread-local accumulators and per-block seeding, so it is deterministic. Parallel minute-to-daily [aggregation](backend/EmTrading.Infrastructure.Lean/Data/LeanPriceBarReader.cs). |
-| **Producer/consumer** | Download pipeline in [MarketDataDownloader](backend/EmTrading.Infrastructure/MarketData/MarketDataDownloader.cs). Live market data: socket reader → bounded drop-oldest channel → consumer, in [AlpacaMarketDataStream](backend/EmTrading.Infrastructure.Alpaca/MarketData/AlpacaMarketDataStream.cs). |
-| **Async/await** | Engine process streaming and cancellation in [LeanBacktestEngine](backend/EmTrading.Infrastructure.Lean/Engine/LeanBacktestEngine.cs). `IAsyncEnumerable` paging. CPU work moved off the UI thread with `Task.Run`. A submit that must not be cancelled half-way: [PlaceOrder](backend/EmTrading.Application/Trading/Orders/PlaceOrderCommand.cs). |
-| **WPF / MVVM** | View-model-first shell, singleton pages, messenger. [ThrottledAction](backend/EmTrading.Presentation/Common/ThrottledAction.cs) coalesces worker-thread updates. INotifyDataErrorInfo forms. Reusable [ScottPlot controls](backend/EmTrading.Wpf.Controls/Charts) (equity/drawdown, candles with trades, heatmap, histogram). Runtime PL/EN through [Loc](backend/EmTrading.Presentation/Localization/Loc.cs). |
-| **Caching** | [CachingBehavior](backend/EmTrading.Application/Behaviors/CachingBehavior.cs) on HybridCache (tags, stampede protection, failures not cached). Invalidation through domain events, e.g. [prices](backend/EmTrading.Application/MarketData/GetPriceBars/GetPriceBarsQuery.cs) and the account. The incremental data cache lives in `MarketDataSet`. |
-| **Resilience** | Polly retries, circuit breaker and timeouts. Shared [token-bucket rate limiter](backend/EmTrading.Infrastructure.Alpaca/AlpacaRateLimiting.cs). [No retries for orders](backend/EmTrading.Infrastructure.Alpaca/AlpacaDependencyInjection.cs) (`DisableForUnsafeHttpMethods`) plus idempotent client order ids. |
-| **Trading safety** | [Paper/live guard and arming, daily-loss halt, audit trail](backend/EmTrading.Application/Trading/Safety/TradingSafety.cs). [Startup validation of the live opt-in](backend/EmTrading.Infrastructure.Alpaca/AlpacaOptions.cs). |
-| **Testing** | 314 tests:<br>• unit tests: domain, handlers;<br>• integration: SQLite with real migrations, HTTP stubs, a scripted WebSocket fake;<br>• architecture and convention tests;<br>• pixel tests for charts.<br>Plus [BenchmarkDotNet](backend/benchmarks/EmTrading.Benchmarks/MonteCarloBenchmarks.cs). |
+| **CQRS** (own dispatcher, no MediatR) | [Dispatcher](application/EmTrading.Application/Messaging/Dispatcher.cs): cached generic wrappers, one DI scope per request. Pipeline behaviors: [logging, validation, unit of work, caching](application/EmTrading.Application/Behaviors). Features are vertical slices, e.g. [StartOptimization](application/EmTrading.Application/Optimization/StartOptimization/StartOptimizationCommand.cs). |
+| **DDD** | Aggregates with state machines and domain events: [BacktestRun](application/EmTrading.Domain/Backtesting/BacktestRun.cs), [OptimizationRun](application/EmTrading.Domain/Optimization/OptimizationRun.cs), [Order](application/EmTrading.Domain/Trading/Order.cs) (idempotent fills), [MarketDataSet](application/EmTrading.Domain/MarketData/MarketDataSet.cs) (coverage gaps). Domain service: [RiskPolicy](application/EmTrading.Domain/Trading/RiskPolicy.cs). Events are published only after commit by the [unit of work](application/EmTrading.Infrastructure/Persistence/Repositories.cs). |
+| **Background workers** | [JobProcessor](application/EmTrading.Infrastructure/Jobs/JobProcessor.cs) over a [Channel-based queue](application/EmTrading.Infrastructure/Jobs/JobQueue.cs) (dedupe, cancel, progress). WebSocket [stream services](application/EmTrading.Infrastructure.Alpaca/Streaming/AlpacaStreamService.cs) with reconnect backoff. Reconciliation and daily-loss guard on `PeriodicTimer`. |
+| **Multithreading** | Parallel downloads and backtests. Parallel optimization trials sharing one aggregate behind an async lock: [ExecuteOptimization](application/EmTrading.Application/Optimization/ExecuteOptimization/ExecuteOptimizationCommand.cs). [Monte Carlo](application/EmTrading.Application/Analytics/MonteCarloSimulator.cs) with `Parallel.For` thread-local accumulators and per-block seeding, so it is deterministic. Parallel minute-to-daily [aggregation](application/EmTrading.Infrastructure.Lean/Data/LeanPriceBarReader.cs). |
+| **Producer/consumer** | Download pipeline in [MarketDataDownloader](application/EmTrading.Infrastructure/MarketData/MarketDataDownloader.cs). Live market data: socket reader → bounded drop-oldest channel → consumer, in [AlpacaMarketDataStream](application/EmTrading.Infrastructure.Alpaca/MarketData/AlpacaMarketDataStream.cs). |
+| **Async/await** | Engine process streaming and cancellation in [LeanBacktestEngine](application/EmTrading.Infrastructure.Lean/Engine/LeanBacktestEngine.cs). `IAsyncEnumerable` paging. CPU work moved off the UI thread with `Task.Run`. A submit that must not be cancelled half-way: [PlaceOrder](application/EmTrading.Application/Trading/Orders/PlaceOrderCommand.cs). |
+| **WPF / MVVM** | View-model-first shell, singleton pages, messenger. [ThrottledAction](application/EmTrading.Presentation/Common/ThrottledAction.cs) coalesces worker-thread updates. INotifyDataErrorInfo forms. Reusable [ScottPlot controls](application/EmTrading.Wpf.Controls/Charts) (equity/drawdown, candles with trades, heatmap, histogram). Runtime PL/EN through [Loc](application/EmTrading.Presentation/Localization/Loc.cs). |
+| **Caching** | [CachingBehavior](application/EmTrading.Application/Behaviors/CachingBehavior.cs) on HybridCache (tags, stampede protection, failures not cached). Invalidation through domain events, e.g. [prices](application/EmTrading.Application/MarketData/GetPriceBars/GetPriceBarsQuery.cs) and the account. The incremental data cache lives in `MarketDataSet`. |
+| **Resilience** | Polly retries, circuit breaker and timeouts. Shared [token-bucket rate limiter](application/EmTrading.Infrastructure.Alpaca/AlpacaRateLimiting.cs). [No retries for orders](application/EmTrading.Infrastructure.Alpaca/AlpacaDependencyInjection.cs) (`DisableForUnsafeHttpMethods`) plus idempotent client order ids. |
+| **Trading safety** | [Paper/live guard and arming, daily-loss halt, audit trail](application/EmTrading.Application/Trading/Safety/TradingSafety.cs). [Startup validation of the live opt-in](application/EmTrading.Infrastructure.Alpaca/AlpacaOptions.cs). |
+| **Testing** | 314 tests:<br>• unit tests: domain, handlers;<br>• integration: SQLite with real migrations, HTTP stubs, a scripted WebSocket fake;<br>• architecture and convention tests;<br>• pixel tests for charts.<br>Plus [BenchmarkDotNet](application/benchmarks/EmTrading.Benchmarks/MonteCarloBenchmarks.cs). |
 
 ## Getting started
 
 Requirements: Windows and the .NET 10 SDK. Market data and trading need a free [Alpaca](https://alpaca.markets) account.
 
 ```powershell
-cd backend
+cd application
 dotnet user-secrets set "Alpaca:ApiKey" "<key>" --project EmTrading.App
 dotnet user-secrets set "Alpaca:ApiSecret" "<secret>" --project EmTrading.App
 # Paper trading account keys, if different from the keys above:
@@ -167,11 +167,11 @@ Example of a refused order: buying 100 AAPL at about $340 is worth $34,000, abov
 
 ### Configuration reference
 
-Settings live in `backend/EmTrading.App/appsettings.json`; keys go to user secrets (see above).
+Settings live in `application/EmTrading.App/appsettings.json`; keys go to user secrets (see above).
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `Storage:DataFolder`, `ResultsFolder`, `DatabaseFile` | under `backend/` | Where market data, backtest results and the SQLite database are stored. |
+| `Storage:DataFolder`, `ResultsFolder`, `DatabaseFile` | under `application/` | Where market data, backtest results and the SQLite database are stored. |
 | `Jobs:MaxParallelJobs` | 3 | Background jobs (downloads, backtests) running at once. |
 | `Alpaca:Feed` | `iex` | Market data feed; `sip` needs a paid plan. |
 | `Alpaca:RequestsPerMinute` | 200 | API rate limit of your plan. |
@@ -199,7 +199,7 @@ Startup fails if any setting is missing. In live mode every order still goes thr
 ## Tests, coverage and benchmarks
 
 ```powershell
-cd backend
+cd application
 dotnet test --solution EmTradingSolution.slnx
 dotnet test --solution EmTradingSolution.slnx --coverage --coverage-output-format cobertura --results-directory TestResults
 dotnet run -c Release --project benchmarks/EmTrading.Benchmarks -- --filter "*MonteCarlo*"
