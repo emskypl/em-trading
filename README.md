@@ -8,8 +8,6 @@ A Windows desktop app for researching and trading US equities:
 - analyze risk with Monte Carlo simulation;
 - trade through Alpaca's API (paper by default; live only with explicit opt-in).
 
-Built as a portfolio project. Every feature is there to show one technique clearly: multithreading, background work, async/await, WPF/MVVM, Clean Architecture, CQRS, caching and DDD.
-
 **Stack:** .NET 10, WPF, CommunityToolkit.Mvvm, EF Core (SQLite), FluentValidation, HybridCache, Polly (Microsoft.Extensions.Http.Resilience), System.Threading.Channels, QuantConnect Lean, ScottPlot, Serilog, xUnit v3, NetArchTest, BenchmarkDotNet.
 
 ## Features
