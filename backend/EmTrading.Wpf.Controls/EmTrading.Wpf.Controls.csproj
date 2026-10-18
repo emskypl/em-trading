@@ -10,4 +10,8 @@
     <PackageReference Include="ScottPlot.WPF" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="EmTrading.Presentation.Tests" />
+  </ItemGroup>
+
 </Project>
