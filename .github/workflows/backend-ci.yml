@@ -27,5 +27,28 @@ jobs:
       - name: Build
         run: dotnet build EmTradingSolution.slnx --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test --solution EmTradingSolution.slnx --configuration Release --no-build
+      - name: Test with coverage
+        run: dotnet test --solution EmTradingSolution.slnx --configuration Release --no-build --coverage --coverage-output-format cobertura --results-directory TestResults
+
+      # One report over all test projects; test code, EF migrations and generated code are left out.
+      - name: Coverage report
+        if: always()
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: backend/TestResults/*.cobertura.xml
+          targetdir: backend/coverage
+          reporttypes: MarkdownSummaryGithub;Cobertura;HtmlInline
+          assemblyfilters: +EmTrading.*;-*.Tests
+          classfilters: -*.Migrations.*;-*.Designer
+
+      - name: Coverage summary
+        if: always()
+        shell: pwsh
+        run: Get-Content coverage/SummaryGithub.md | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: backend/coverage
