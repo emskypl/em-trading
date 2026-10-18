@@ -61,6 +61,12 @@ public sealed class Order : AggregateRoot<ClientOrderId>
     public DateTimeOffset? SubmittedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Increases with every state change. Storage uses it to refuse a save based on an outdated copy, e.g. when a trade
+    /// update and the submitting handler change the same order at the same time.
+    /// </summary>
+    public int Version { get; private set; }
+
     public bool IsFinal => Status is OrderStatus.Filled or OrderStatus.Cancelled or OrderStatus.Rejected or OrderStatus.Expired;
 
     /// <summary>Accepted by the broker and still able to fill.</summary>
@@ -114,6 +120,7 @@ public sealed class Order : AggregateRoot<ClientOrderId>
 
         Status = OrderStatus.Submitted;
         UpdatedAt = at;
+        Version++;
         Raise(new OrderSubmitted(Id, Symbol, Side, Quantity, at));
     }
 
@@ -135,6 +142,7 @@ public sealed class Order : AggregateRoot<ClientOrderId>
         AverageFillPrice = averagePrice;
         SubmittedAt ??= at;
         UpdatedAt = at;
+        Version++;
 
         if (FilledQuantity == Quantity)
         {
@@ -168,6 +176,7 @@ public sealed class Order : AggregateRoot<ClientOrderId>
         Status = status;
         RejectReason = reason;
         UpdatedAt = at;
+        Version++;
         Raise(new OrderClosed(Id, Symbol, status, FilledQuantity, reason, at));
         return true;
     }

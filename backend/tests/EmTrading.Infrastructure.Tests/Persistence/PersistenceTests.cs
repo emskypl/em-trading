@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Trading.Safety;
 using EmTrading.Application.Abstractions.Events;
 using EmTrading.Domain.Backtesting;
@@ -297,6 +298,36 @@ public sealed class PersistenceTests : IAsyncLifetime
         }
 
         Assert.Contains(_publisher.Published, e => e is OrderFilled);
+    }
+
+    [Fact]
+    public async Task A_save_based_on_an_outdated_order_is_refused_instead_of_overwriting_a_fill()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var order = Order.Create(ClientOrderId.New(T0), Symbol.Create("AAPL"), OrderSide.Buy, OrderType.Market, 10, null, null, TimeInForce.Day, T0);
+        await using (var db = CreateContext())
+        {
+            new OrderRepository(db).Add(order);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        // Two scopes load the same new order: the submitting handler and the trade update stream.
+        await using var handlerDb = CreateContext();
+        await using var streamDb = CreateContext();
+        var handlerCopy = (await new OrderRepository(handlerDb).GetAsync(order.Id, ct))!;
+        var streamCopy = (await new OrderRepository(streamDb).GetAsync(order.Id, ct))!;
+
+        streamCopy.MarkSubmitted("b-1", T0);
+        streamCopy.ApplyFill(10, 101, T0.AddSeconds(1));
+        await new UnitOfWork(streamDb, _publisher).SaveChangesAsync(ct);
+
+        handlerCopy.MarkSubmitted("b-1", T0);
+        var conflict = await Assert.ThrowsAsync<ConcurrencyConflictException>(() => new UnitOfWork(handlerDb, _publisher).SaveChangesAsync(ct));
+
+        Assert.Contains("Order", conflict.Message);
+        await using var check = CreateContext();
+        Assert.Equal(OrderStatus.Filled, (await new OrderRepository(check).GetAsync(order.Id, ct))!.Status);
+        Assert.Single(_publisher.Published.OfType<OrderSubmitted>());
     }
 
     [Fact]

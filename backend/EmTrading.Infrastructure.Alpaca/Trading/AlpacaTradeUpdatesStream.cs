@@ -1,4 +1,5 @@
 using EmTrading.Application.Abstractions.Messaging;
+using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Trading;
 using EmTrading.Application.Trading.Orders;
 using EmTrading.Application.Trading.Safety;
@@ -23,6 +24,7 @@ internal sealed class AlpacaTradeUpdatesStream(
     public const string StreamName = "Trade updates";
 
     private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(15);
+    private const int MaxApplyAttempts = 3;
 
     protected override string Name => StreamName;
 
@@ -71,9 +73,22 @@ internal sealed class AlpacaTradeUpdatesStream(
 
         try
         {
-            var result = await dispatcher.SendAsync(new ApplyTradeUpdateCommand(update), cancellationToken);
-            if (result.IsFailure)
-                logger.LogWarning("Trade update for {ClientOrderId} not applied: {Error}", update.Order.ClientOrderId, result.Error.Message);
+            // A conflict means the order was saved elsewhere meanwhile (e.g. by the submitting handler): each attempt
+            // runs in a new scope and reloads the order, so applying the update again is safe.
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    var result = await dispatcher.SendAsync(new ApplyTradeUpdateCommand(update), cancellationToken);
+                    if (result.IsFailure)
+                        logger.LogWarning("Trade update for {ClientOrderId} not applied: {Error}", update.Order.ClientOrderId, result.Error.Message);
+                    break;
+                }
+                catch (ConcurrencyConflictException) when (attempt < MaxApplyAttempts)
+                {
+                    logger.LogInformation("Trade update for {ClientOrderId} conflicted with another change; retrying", update.Order.ClientOrderId);
+                }
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -123,6 +138,11 @@ internal sealed class OrderReconciliationService(
                 catch (BrokerException ex)
                 {
                     logger.LogWarning("Reconciliation skipped: {Reason}", ex.Message);
+                }
+                catch (ConcurrencyConflictException ex)
+                {
+                    // An order changed while it was being reconciled; the next round compares it again.
+                    logger.LogInformation("Reconciliation deferred: {Reason}", ex.Message);
                 }
             }
         }

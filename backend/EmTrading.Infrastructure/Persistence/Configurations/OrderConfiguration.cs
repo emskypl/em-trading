@@ -36,6 +36,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CreatedAt);
         builder.Property(o => o.SubmittedAt);
         builder.Property(o => o.UpdatedAt);
+        builder.Property(o => o.Version).IsConcurrencyToken();
 
         builder.Ignore(o => o.DomainEvents);
         builder.Ignore(o => o.IsFinal);

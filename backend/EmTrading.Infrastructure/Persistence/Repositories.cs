@@ -19,7 +19,15 @@ internal sealed class UnitOfWork(TradingDbContext db, IDomainEventPublisher even
             .Where(aggregate => aggregate.DomainEvents.Count > 0)
             .ToList();
 
-        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            var names = string.Join(", ", ex.Entries.Select(e => e.Metadata.ClrType.Name).Distinct());
+            throw new ConcurrencyConflictException($"{names} changed while this change was being made.", ex);
+        }
 
         var events = aggregates.SelectMany(aggregate => aggregate.DequeueDomainEvents()).ToList();
         if (events.Count > 0)

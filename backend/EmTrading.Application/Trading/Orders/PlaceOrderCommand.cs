@@ -119,9 +119,10 @@ internal sealed class PlaceOrderCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         // From here on the submit is not cancelled by the caller: a half-sent order is worse than a late answer.
+        BrokerOrder accepted;
         try
         {
-            var accepted = await broker.SubmitOrderAsync(order, CancellationToken.None);
+            accepted = await broker.SubmitOrderAsync(order, CancellationToken.None);
             OrderStateSync.Apply(order, accepted, clock.GetUtcNow());
         }
         catch (BrokerException ex) when (ex.IsRejection)
@@ -137,7 +138,17 @@ internal sealed class PlaceOrderCommandHandler(
             return TradingErrors.SubmitUnknown(order.Id.Value, ex.Message);
         }
 
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // The trade update stream reported (and saved) this order before the submit returned. Its state comes
+            // from the broker too and may be newer, e.g. already filled, so it is kept rather than overwritten.
+            return new PlacedOrder(order.Id.Value, accepted.BrokerOrderId, accepted.Status, accepted.FilledQuantity, accepted.AverageFillPrice);
+        }
+
         return new PlacedOrder(order.Id.Value, order.BrokerOrderId, order.Status, order.FilledQuantity, order.AverageFillPrice);
     }
 
