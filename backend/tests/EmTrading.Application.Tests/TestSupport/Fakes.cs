@@ -5,6 +5,7 @@ using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
+using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
@@ -199,6 +200,23 @@ internal sealed class FakeStrategyCatalog : IStrategyCatalog
     public IReadOnlyList<StrategyDescriptor> GetAll() => [SmaCross];
 
     public StrategyDescriptor? Find(string name) => GetAll().FirstOrDefault(s => s.Name == name);
+}
+
+/// <summary>Returns one bar per day of the period and counts reads.</summary>
+internal sealed class FakePriceBarReader : IPriceBarReader
+{
+    private int _reads;
+
+    public int Reads => _reads;
+
+    public Task<IReadOnlyList<PriceBarData>> ReadAsync(Symbol symbol, BarResolution resolution, DateRange period, CancellationToken cancellationToken = default)
+    {
+        Interlocked.Increment(ref _reads);
+        IReadOnlyList<PriceBarData> bars = Enumerable.Range(0, period.Days)
+            .Select(i => new PriceBarData(period.Start.AddDays(i).ToDateTime(TimeOnly.MinValue), 10, 11, 9, 10.5m, 1000))
+            .ToList();
+        return Task.FromResult(bars);
+    }
 }
 
 internal sealed class SyncProgress<T>(Action<T> report) : IProgress<T>

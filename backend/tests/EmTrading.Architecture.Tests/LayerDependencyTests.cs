@@ -7,7 +7,8 @@ using EmTrading.Infrastructure;
 using EmTrading.Infrastructure.Alpaca;
 using EmTrading.Infrastructure.Lean;
 using EmTrading.Infrastructure.MarketData;
-using EmTrading.Presentation;
+using EmTrading.Presentation.Shell;
+using EmTrading.Wpf.Controls;
 using EmTrading.Strategies;
 using NetArchTest.Rules;
 
@@ -34,7 +35,8 @@ public class LayerDependencyTests
     private static readonly Assembly AlpacaAssembly = typeof(AlpacaDependencyInjection).Assembly;
     private static readonly Assembly LeanAssembly = typeof(LeanDependencyInjection).Assembly;
     private static readonly Assembly StrategiesAssembly = typeof(StrategyBase).Assembly;
-    private static readonly Assembly PresentationAssembly = typeof(MainViewModel).Assembly;
+    private static readonly Assembly PresentationAssembly = typeof(ShellViewModel).Assembly;
+    private static readonly Assembly ControlsAssembly = typeof(KpiCard).Assembly;
 
     [Fact]
     public void Domain_depends_on_no_other_layer_or_framework()
@@ -56,7 +58,15 @@ public class LayerDependencyTests
     public void Presentation_does_not_depend_on_infrastructure()
     {
         AssertNoDependency(PresentationAssembly,
-            InfrastructureNamespace, AppNamespace, StrategiesNamespace, "QuantConnect", "Microsoft.EntityFrameworkCore");
+            InfrastructureNamespace, AppNamespace, StrategiesNamespace, "QuantConnect", "Microsoft.EntityFrameworkCore", "Serilog");
+    }
+
+    [Fact]
+    public void Controls_library_knows_nothing_about_the_app()
+    {
+        // Reusable controls take their own simple types; view models map application data onto them.
+        AssertNoDependency(ControlsAssembly,
+            "EmTrading.Domain", ApplicationNamespace, InfrastructureNamespace, PresentationNamespace, AppNamespace, StrategiesNamespace);
     }
 
     [Fact]
