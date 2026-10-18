@@ -1,7 +1,12 @@
+using EmTrading.Application.Trading;
+using EmTrading.Infrastructure.Alpaca.MarketData;
+using EmTrading.Infrastructure.Alpaca.Streaming;
+using EmTrading.Infrastructure.Alpaca.Trading;
 using EmTrading.Infrastructure.Http;
 using EmTrading.Infrastructure.MarketData;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 
 namespace EmTrading.Infrastructure.Alpaca;
@@ -18,21 +23,61 @@ public static class AlpacaDependencyInjection
             .Bind(configuration.GetSection(AlpacaOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<AlpacaOptions>, PaperTradingOnlyValidation>();
 
         services.AddSingleton<AlpacaRateLimiter>();
         services.AddTransient<AlpacaRateLimitingHandler>();
 
         // Outer to inner: resilience (timeouts, retries, circuit breaker), then the rate limiter,
         // so every attempt including retries waits for a token.
-        var client = services.AddHttpClient<IHistoricalBarSource, AlpacaMarketDataClient>((sp, http) =>
-            {
-                var options = sp.GetRequiredService<IOptions<AlpacaOptions>>().Value;
-                http.BaseAddress = new Uri(options.DataBaseUrl.TrimEnd('/') + "/");
-            })
+        var client = services.AddHttpClient<IHistoricalBarSource, AlpacaMarketDataClient>(ConfigureDataClient)
             .ConfigurePrimaryHttpMessageHandler(HttpClientDefaults.CreatePrimaryHandler);
         client.AddStandardResilienceHandler(HttpClientDefaults.ConfigureResilience);
         client.AddHttpMessageHandler<AlpacaRateLimitingHandler>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Paper trading through Alpaca: the broker gateway, the trade update and market data streams, and periodic
+    /// reconciliation. Requires <see cref="AddAlpacaMarketData"/>.
+    /// </summary>
+    public static IServiceCollection AddAlpacaTrading(this IServiceCollection services)
+    {
+        var broker = services.AddHttpClient<IBrokerGateway, AlpacaBrokerClient>((sp, http) =>
+                http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<AlpacaOptions>>().Value.TradingBaseUrl.TrimEnd('/') + "/"))
+            .ConfigurePrimaryHttpMessageHandler(HttpClientDefaults.CreatePrimaryHandler);
+        broker.AddStandardResilienceHandler(options =>
+        {
+            HttpClientDefaults.ConfigureResilience(options);
+            options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+
+            // Never resend an order or a cancel: a timed-out POST may have been carried out. Reconciliation finds out.
+            options.Retry.DisableForUnsafeHttpMethods();
+        });
+        broker.AddHttpMessageHandler<AlpacaRateLimitingHandler>();
+
+        var latest = services.AddHttpClient<ILatestPriceSource, AlpacaLatestPriceClient>(ConfigureDataClient)
+            .ConfigurePrimaryHttpMessageHandler(HttpClientDefaults.CreatePrimaryHandler);
+        latest.AddStandardResilienceHandler(HttpClientDefaults.ConfigureResilience);
+        latest.AddHttpMessageHandler<AlpacaRateLimitingHandler>();
+
+        services.AddSingleton<StreamSocketFactory>(() => new ClientWebSocketStream());
+        services.AddSingleton<ConnectionMonitor>();
+        services.AddSingleton<IConnectionMonitor>(sp => sp.GetRequiredService<ConnectionMonitor>());
+
+        services.AddSingleton<AlpacaMarketDataStream>();
+        services.AddSingleton<ILiveMarketData>(sp => sp.GetRequiredService<AlpacaMarketDataStream>());
+        services.AddHostedService(sp => sp.GetRequiredService<AlpacaMarketDataStream>());
+        services.AddHostedService<AlpacaTradeUpdatesStream>();
+        services.AddHostedService<OrderReconciliationService>();
+
+        return services;
+    }
+
+    private static void ConfigureDataClient(IServiceProvider services, HttpClient http)
+    {
+        var options = services.GetRequiredService<IOptions<AlpacaOptions>>().Value;
+        http.BaseAddress = new Uri(options.DataBaseUrl.TrimEnd('/') + "/");
     }
 }
