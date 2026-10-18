@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/EmTrading.Benchmarks/EmTrading.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EmTrading.Application.Tests/EmTrading.Application.Tests.csproj" />
     <Project Path="tests/EmTrading.Architecture.Tests/EmTrading.Architecture.Tests.csproj" />
