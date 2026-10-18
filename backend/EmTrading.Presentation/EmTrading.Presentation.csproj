@@ -7,12 +7,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EmTrading.Application\EmTrading.Application.csproj" />
+    <ProjectReference Include="..\EmTrading.Wpf.Controls\EmTrading.Wpf.Controls.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="LiveCharts" />
-    <PackageReference Include="LiveCharts.Wpf" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
