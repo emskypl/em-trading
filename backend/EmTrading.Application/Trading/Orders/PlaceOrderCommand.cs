@@ -2,6 +2,7 @@ using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Common;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using FluentValidation;
@@ -64,11 +65,21 @@ internal sealed class PlaceOrderCommandHandler(
     IRiskLimitsStore riskLimits,
     IQuoteCache quotes,
     ILatestPriceSource latestPrices,
+    ITradingEnvironment environment,
+    LiveTradingSession liveSession,
+    Audit audit,
     TimeProvider clock) : ICommandHandler<PlaceOrderCommand, PlacedOrder>
 {
     public async Task<Result<PlacedOrder>> HandleAsync(PlaceOrderCommand command, CancellationToken cancellationToken)
     {
         var symbol = Symbol.Create(command.Symbol);
+        var intent = $"{command.Side} {command.Quantity} {symbol} {command.Type}";
+
+        if (environment.Mode == TradingMode.Live && !liveSession.IsArmed)
+        {
+            await audit.RecordAsync(AuditCategory.Risk, "Refused", $"{intent}: live trading is not armed.", symbol: symbol.Value);
+            return SafetyErrors.LiveNotArmed();
+        }
 
         // The broker's account and positions and the price are independent: fetch them at the same time.
         var accountTask = broker.GetAccountAsync(cancellationToken);
@@ -96,7 +107,10 @@ internal sealed class PlaceOrderCommandHandler(
         if (account.TradingBlocked)
             violations.Add("The broker has blocked trading on this account.");
         if (violations.Count > 0)
+        {
+            await audit.RecordAsync(AuditCategory.Risk, "Refused", $"{intent}: {string.Join(" ", violations)}", symbol: symbol.Value);
             return TradingErrors.RiskRejected(violations);
+        }
 
         var now = clock.GetUtcNow();
         var order = Order.Create(ClientOrderId.New(now), symbol, command.Side, command.Type, command.Quantity,
@@ -119,6 +133,7 @@ internal sealed class PlaceOrderCommandHandler(
         catch (BrokerException ex)
         {
             // Unknown outcome: the order stays New until reconciliation asks the broker about it.
+            await audit.RecordAsync(AuditCategory.Order, "SubmitUnknown", ex.Message, order.Id.Value, symbol.Value);
             return TradingErrors.SubmitUnknown(order.Id.Value, ex.Message);
         }
 

@@ -8,6 +8,7 @@ using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Application.Optimization;
 using EmTrading.Application.Trading;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
@@ -400,6 +401,35 @@ internal sealed class FakeRiskLimitsStore : IRiskLimitsStore
     public RiskLimits Current { get; private set; } = RiskLimits.Default;
 
     public void Update(RiskLimits limits) => Current = limits;
+}
+
+internal sealed class FakeTradingEnvironment : ITradingEnvironment
+{
+    public TradingMode Mode { get; set; } = TradingMode.Paper;
+}
+
+internal sealed class InMemoryAuditLog : IAuditLog
+{
+    private readonly List<AuditEntry> _entries = [];
+
+    public IReadOnlyList<AuditEntry> Entries
+    {
+        get
+        {
+            lock (_entries)
+                return _entries.ToList();
+        }
+    }
+
+    public Task RecordAsync(AuditEntry entry, CancellationToken cancellationToken = default)
+    {
+        lock (_entries)
+            _entries.Add(entry);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<AuditEntry>> ListAsync(int take, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<AuditEntry>>(Entries.AsEnumerable().Reverse().Take(take).ToList());
 }
 
 internal sealed class SyncProgress<T>(Action<T> report) : IProgress<T>

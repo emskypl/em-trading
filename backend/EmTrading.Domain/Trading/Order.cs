@@ -95,7 +95,9 @@ public sealed class Order : AggregateRoot<ClientOrderId>
         if (limitPrice <= 0 || stopPrice <= 0)
             throw new DomainException("Prices must be positive.");
 
-        return new Order(id, symbol, side, type, quantity, limitPrice, stopPrice, timeInForce, createdAt);
+        var order = new Order(id, symbol, side, type, quantity, limitPrice, stopPrice, timeInForce, createdAt);
+        order.Raise(new OrderCreated(id, symbol, side, type, quantity, limitPrice, stopPrice, createdAt));
+        return order;
     }
 
     /// <summary>The broker accepted the order.</summary>
@@ -170,6 +172,16 @@ public sealed class Order : AggregateRoot<ClientOrderId>
         return true;
     }
 }
+
+public sealed record OrderCreated(
+    ClientOrderId OrderId,
+    Symbol Symbol,
+    OrderSide Side,
+    OrderType Type,
+    decimal Quantity,
+    decimal? LimitPrice,
+    decimal? StopPrice,
+    DateTimeOffset OccurredAt) : IDomainEvent;
 
 public sealed record OrderSubmitted(ClientOrderId OrderId, Symbol Symbol, OrderSide Side, decimal Quantity, DateTimeOffset OccurredAt) : IDomainEvent;
 

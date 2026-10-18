@@ -2,6 +2,7 @@ using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Common;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using FluentValidation;
@@ -21,7 +22,7 @@ internal sealed class CancelOrderCommandValidator : AbstractValidator<CancelOrde
         RuleFor(c => c.ClientOrderId).Must(ClientOrderId.IsValid).WithMessage("'{PropertyValue}' is not a valid order id.");
 }
 
-internal sealed class CancelOrderCommandHandler(IBrokerGateway broker, IOrderRepository orders, TimeProvider clock)
+internal sealed class CancelOrderCommandHandler(IBrokerGateway broker, IOrderRepository orders, Audit audit, TimeProvider clock)
     : ICommandHandler<CancelOrderCommand, OrderStatus>
 {
     public async Task<Result<OrderStatus>> HandleAsync(CancelOrderCommand command, CancellationToken cancellationToken)
@@ -31,6 +32,8 @@ internal sealed class CancelOrderCommandHandler(IBrokerGateway broker, IOrderRep
             return TradingErrors.OrderNotFound(command.ClientOrderId);
         if (order.IsFinal)
             return TradingErrors.OrderNotCancellable(command.ClientOrderId, order.Status);
+
+        await audit.RecordAsync(AuditCategory.Order, "CancelRequested", $"Cancel requested while {order.Status}.", order.Id.Value, order.Symbol.Value);
 
         if (order.BrokerOrderId is null)
         {

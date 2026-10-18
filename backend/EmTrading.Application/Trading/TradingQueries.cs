@@ -2,6 +2,7 @@ using System.ComponentModel;
 using EmTrading.Application.Abstractions.Events;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Results;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Domain.Trading;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -100,12 +101,19 @@ internal sealed class UpdateRiskLimitsCommandValidator : AbstractValidator<Updat
     }
 }
 
-internal sealed class UpdateRiskLimitsCommandHandler(IRiskLimitsStore store) : ICommandHandler<UpdateRiskLimitsCommand, RiskLimits>
+internal sealed class UpdateRiskLimitsCommandHandler(IRiskLimitsStore store, Audit audit) : ICommandHandler<UpdateRiskLimitsCommand, RiskLimits>
 {
-    public Task<Result<RiskLimits>> HandleAsync(UpdateRiskLimitsCommand command, CancellationToken cancellationToken)
+    public async Task<Result<RiskLimits>> HandleAsync(UpdateRiskLimitsCommand command, CancellationToken cancellationToken)
     {
+        var before = store.Current;
         store.Update(command.Limits);
-        return Task.FromResult(Result<RiskLimits>.Success(store.Current));
+
+        if (before.TradingEnabled != command.Limits.TradingEnabled)
+            await audit.RecordAsync(AuditCategory.Risk, command.Limits.TradingEnabled ? "TradingEnabled" : "TradingDisabled", "Kill switch changed by the user.");
+        if (before with { TradingEnabled = command.Limits.TradingEnabled } != command.Limits)
+            await audit.RecordAsync(AuditCategory.Risk, "LimitsChanged", $"{before} -> {command.Limits}");
+
+        return store.Current;
     }
 }
 

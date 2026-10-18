@@ -7,6 +7,7 @@ using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Application.Optimization;
 using EmTrading.Application.Trading;
+using EmTrading.Application.Trading.Safety;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -50,6 +51,8 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IQuoteCache>(Quotes);
         services.AddSingleton<ILatestPriceSource>(LatestPrices);
         services.AddSingleton<IRiskLimitsStore>(RiskLimits);
+        services.AddSingleton<ITradingEnvironment>(Environment);
+        services.AddSingleton<IAuditLog>(AuditLog);
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
@@ -67,6 +70,8 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
     public FakeQuoteCache Quotes { get; } = new();
     public FakeLatestPriceSource LatestPrices { get; } = new();
     public FakeRiskLimitsStore RiskLimits { get; } = new();
+    public FakeTradingEnvironment Environment { get; } = new();
+    public InMemoryAuditLog AuditLog { get; } = new();
 
     public IDispatcher Dispatcher => _provider.GetRequiredService<IDispatcher>();
 

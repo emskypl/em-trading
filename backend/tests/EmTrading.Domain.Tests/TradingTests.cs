@@ -46,7 +46,7 @@ public class OrderTests
         Assert.Equal(OrderStatus.Filled, order.Status);
         Assert.Equal(100.5m, order.AverageFillPrice);
         Assert.Equal(
-            [typeof(OrderSubmitted), typeof(OrderPartiallyFilled), typeof(OrderFilled)],
+            [typeof(OrderCreated), typeof(OrderSubmitted), typeof(OrderPartiallyFilled), typeof(OrderFilled)],
             order.DomainEvents.Select(e => e.GetType()));
     }
 

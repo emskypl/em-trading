@@ -4,6 +4,13 @@ using EmTrading.Domain.Common;
 
 namespace EmTrading.Domain.Trading;
 
+/// <summary>Which account orders go to. Chosen at startup; live trading needs explicit opt-in.</summary>
+public enum TradingMode
+{
+    Paper,
+    Live
+}
+
 public enum OrderSide
 {
     Buy,
