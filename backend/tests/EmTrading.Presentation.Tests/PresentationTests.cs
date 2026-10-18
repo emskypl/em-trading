@@ -1,3 +1,7 @@
+using EmTrading.Presentation.Localization;
+using EmTrading.Presentation.Trading;
+using EmTrading.Domain.Trading;
+using EmTrading.Application.Trading.Orders;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.Optimization.StartOptimization;
 using EmTrading.Presentation.Backtesting;
@@ -178,5 +182,81 @@ public class OptimizationParameterInputTests
         Assert.Contains(nameof(OptimizationParameterInput.Count), changed);
         Assert.Contains(nameof(OptimizationParameterInput.Error), changed);
         Assert.Equal(11, input.Count);
+    }
+}
+
+[Collection(nameof(CultureCollection))]
+public class OrderTicketTests
+{
+    [Fact]
+    public void Shows_only_the_prices_the_order_type_uses()
+    {
+        var ticket = new OrderTicket();
+
+        Assert.False(ticket.HasLimitPrice || ticket.HasStopPrice);
+        ticket.Type = OrderType.StopLimit;
+        Assert.True(ticket.HasLimitPrice && ticket.HasStopPrice);
+        ticket.Type = OrderType.Stop;
+        Assert.Equal((false, true), (ticket.HasLimitPrice, ticket.HasStopPrice));
+    }
+
+    [Fact]
+    public void Creates_a_command_with_only_the_relevant_prices()
+    {
+        var ticket = new OrderTicket { Symbol = " msft ", Side = OrderSide.Sell, Type = OrderType.Limit, Quantity = "5", LimitPrice = "410,5", StopPrice = "999", TimeInForce = TimeInForce.Gtc };
+
+        Assert.True(ticket.TryCreateCommand(out var command));
+        Assert.Equal(new PlaceOrderCommand("MSFT", OrderSide.Sell, OrderType.Limit, 5, 410.5m, null, TimeInForce.Gtc), command);
+    }
+
+    [Theory]
+    [InlineData("AAPL", "0", OrderType.Market, "", TimeInForce.Day)]
+    [InlineData("AAPL", "x", OrderType.Market, "", TimeInForce.Day)]
+    [InlineData("AAPL", "1.5", OrderType.Limit, "100", TimeInForce.Day)]
+    [InlineData("AAPL", "1.5", OrderType.Market, "", TimeInForce.Gtc)]
+    [InlineData("AAPL", "1", OrderType.Limit, "", TimeInForce.Day)]
+    [InlineData("??", "1", OrderType.Market, "", TimeInForce.Day)]
+    public void Invalid_inputs_are_reported_and_create_no_command(string symbol, string quantity, OrderType type, string limit, TimeInForce timeInForce)
+    {
+        var ticket = new OrderTicket { Symbol = symbol, Quantity = quantity, Type = type, LimitPrice = limit, TimeInForce = timeInForce };
+
+        Assert.NotNull(ticket.Error);
+        Assert.False(ticket.TryCreateCommand(out _));
+    }
+
+    [Fact]
+    public void Estimates_the_value_from_the_limit_or_the_live_price()
+    {
+        var ticket = new OrderTicket { Quantity = "0.5" };
+        Assert.Null(ticket.EstimatedValue);
+
+        ticket.LivePrice = 200.333m;
+        Assert.Equal(100.17m, ticket.EstimatedValue);
+
+        ticket.Type = OrderType.Limit;
+        ticket.Quantity = "3";
+        ticket.LimitPrice = "150";
+        Assert.Equal(450m, ticket.EstimatedValue);
+    }
+
+    [Fact]
+    public void Describes_the_order_for_the_confirmation()
+    {
+        var previous = Loc.Instance.Culture;
+        Loc.Instance.SetCulture(Loc.English);
+        try
+        {
+            var ticket = new OrderTicket { Symbol = "AAPL", Type = OrderType.Limit, Quantity = "10", LimitPrice = "180" };
+            ticket.TryCreateCommand(out var command);
+
+            var text = ticket.Describe(command!);
+
+            Assert.StartsWith("Buy 10 AAPL, Limit (limit 180.00), Day.", text);
+            Assert.Contains("1,800.00 USD", text);
+        }
+        finally
+        {
+            Loc.Instance.SetCulture(previous);
+        }
     }
 }

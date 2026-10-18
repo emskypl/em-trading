@@ -225,4 +225,82 @@
   <data name="Analysis_DeclineDays" xml:space="preserve"><value>Decline (days)</value></data>
   <data name="Analysis_RecoveryDays" xml:space="preserve"><value>Recovery (days)</value></data>
   <data name="Analysis_TimeUnderwater" xml:space="preserve"><value>Time below the peak</value></data>
+  <data name="Nav_Trading" xml:space="preserve"><value>Paper trading</value></data>
+  <data name="Trading_Title" xml:space="preserve"><value>Paper trading</value></data>
+  <data name="Trading_PaperBadge" xml:space="preserve"><value>PAPER ACCOUNT</value></data>
+  <data name="Trading_KillSwitch" xml:space="preserve"><value>Trading enabled</value></data>
+  <data name="Trading_KillSwitchHint" xml:space="preserve"><value>Kill switch: when off, every order that adds exposure is refused; closing positions still works.</value></data>
+  <data name="Trading_Equity" xml:space="preserve"><value>Equity</value></data>
+  <data name="Trading_DayProfitLoss" xml:space="preserve"><value>Today's P/L</value></data>
+  <data name="Trading_BuyingPower" xml:space="preserve"><value>Buying power</value></data>
+  <data name="Trading_Cash" xml:space="preserve"><value>Cash</value></data>
+  <data name="Trading_Watchlist" xml:space="preserve"><value>Watchlist</value></data>
+  <data name="Trading_ApplyWatchlist" xml:space="preserve"><value>Apply</value></data>
+  <data name="Trading_WatchlistHint" xml:space="preserve"><value>Symbols separated by commas (max 30); live quotes and minute bars are streamed for them.</value></data>
+  <data name="Trading_Bid" xml:space="preserve"><value>Bid</value></data>
+  <data name="Trading_Ask" xml:space="preserve"><value>Ask</value></data>
+  <data name="Trading_Last" xml:space="preserve"><value>Last</value></data>
+  <data name="Trading_LiveChart" xml:space="preserve"><value>Today's minute candles:</value></data>
+  <data name="Trading_TabPositions" xml:space="preserve"><value>Positions</value></data>
+  <data name="Trading_TabOrders" xml:space="preserve"><value>Orders</value></data>
+  <data name="Trading_CloseAll" xml:space="preserve"><value>Close all positions</value></data>
+  <data name="Trading_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Trading_AveragePrice" xml:space="preserve"><value>Avg. price</value></data>
+  <data name="Trading_MarketValue" xml:space="preserve"><value>Market value</value></data>
+  <data name="Trading_UnrealizedPl" xml:space="preserve"><value>Unrealized P/L</value></data>
+  <data name="Trading_OpenOnly" xml:space="preserve"><value>Open orders only</value></data>
+  <data name="Trading_Filled" xml:space="preserve"><value>Filled</value></data>
+  <data name="Trading_ConfirmClose" xml:space="preserve"><value>Close the whole {0} position with a market order?</value></data>
+  <data name="Trading_ConfirmCloseAll" xml:space="preserve"><value>Cancel every open order and close every position with market orders?</value></data>
+  <data name="Ticket_Title" xml:space="preserve"><value>Order ticket</value></data>
+  <data name="Ticket_Side" xml:space="preserve"><value>Side</value></data>
+  <data name="Ticket_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Ticket_Quantity" xml:space="preserve"><value>Quantity</value></data>
+  <data name="Ticket_LimitPrice" xml:space="preserve"><value>Limit</value></data>
+  <data name="Ticket_StopPrice" xml:space="preserve"><value>Stop</value></data>
+  <data name="Ticket_TimeInForce" xml:space="preserve"><value>Valid</value></data>
+  <data name="Ticket_Estimated" xml:space="preserve"><value>Est. value (USD)</value></data>
+  <data name="Ticket_Submit" xml:space="preserve"><value>Place order</value></data>
+  <data name="Ticket_Hint" xml:space="preserve"><value>Every order is checked against the risk limits and confirmed before it is sent to the paper account.</value></data>
+  <data name="Ticket_InvalidSymbol" xml:space="preserve"><value>Enter a valid symbol.</value></data>
+  <data name="Ticket_InvalidQuantity" xml:space="preserve"><value>Enter a quantity above zero.</value></data>
+  <data name="Ticket_FractionalMarketOnly" xml:space="preserve"><value>Fractional quantities are allowed only for market day orders.</value></data>
+  <data name="Ticket_InvalidLimit" xml:space="preserve"><value>Enter a limit price above zero.</value></data>
+  <data name="Ticket_InvalidStop" xml:space="preserve"><value>Enter a stop price above zero.</value></data>
+  <data name="Ticket_ConfirmTitle" xml:space="preserve"><value>Confirm (paper account)</value></data>
+  <data name="Ticket_Describe" xml:space="preserve"><value>{0} {1} {2}, {3}{4}, {5}.
+Estimated value: {6} USD.</value></data>
+  <data name="Ticket_DescribeLimit" xml:space="preserve"><value>limit {0}</value></data>
+  <data name="Ticket_DescribeStop" xml:space="preserve"><value>stop {0}</value></data>
+  <data name="OrderSide_Buy" xml:space="preserve"><value>Buy</value></data>
+  <data name="OrderSide_Sell" xml:space="preserve"><value>Sell</value></data>
+  <data name="OrderType_Market" xml:space="preserve"><value>Market</value></data>
+  <data name="OrderType_Limit" xml:space="preserve"><value>Limit</value></data>
+  <data name="OrderType_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="OrderType_StopLimit" xml:space="preserve"><value>Stop limit</value></data>
+  <data name="TimeInForce_Day" xml:space="preserve"><value>Day</value></data>
+  <data name="TimeInForce_Gtc" xml:space="preserve"><value>Until cancelled</value></data>
+  <data name="OrderStatus_New" xml:space="preserve"><value>New</value></data>
+  <data name="OrderStatus_Submitted" xml:space="preserve"><value>Submitted</value></data>
+  <data name="OrderStatus_PartiallyFilled" xml:space="preserve"><value>Partially filled</value></data>
+  <data name="OrderStatus_Filled" xml:space="preserve"><value>Filled</value></data>
+  <data name="OrderStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="OrderStatus_Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="OrderStatus_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="ConnectionState_NotConfigured" xml:space="preserve"><value>no keys</value></data>
+  <data name="ConnectionState_Connecting" xml:space="preserve"><value>connecting</value></data>
+  <data name="ConnectionState_Connected" xml:space="preserve"><value>connected</value></data>
+  <data name="ConnectionState_Reconnecting" xml:space="preserve"><value>reconnecting</value></data>
+  <data name="ConnectionState_Stopped" xml:space="preserve"><value>stopped</value></data>
+  <data name="Status_WatchlistSet" xml:space="preserve"><value>Watching {0} symbol(s).</value></data>
+  <data name="Status_PlacingOrder" xml:space="preserve"><value>Placing {0} order...</value></data>
+  <data name="Status_OrderPlaced" xml:space="preserve"><value>Order {0}: {1}.</value></data>
+  <data name="Status_CancelRequested" xml:space="preserve"><value>Cancellation of the {0} order requested.</value></data>
+  <data name="Status_ClosingPosition" xml:space="preserve"><value>Closing {0}...</value></data>
+  <data name="Status_PositionClosing" xml:space="preserve"><value>Closing order for {0} placed.</value></data>
+  <data name="Status_ClosingAll" xml:space="preserve"><value>Closing all positions...</value></data>
+  <data name="Status_ClosedAll" xml:space="preserve"><value>{0} closing order(s) placed.</value></data>
+  <data name="Status_ClosedAllWithFailures" xml:space="preserve"><value>{0} closing order(s) placed; failed: {1}</value></data>
+  <data name="Status_TradingEnabled" xml:space="preserve"><value>Trading enabled.</value></data>
+  <data name="Status_TradingDisabled" xml:space="preserve"><value>Trading disabled: only orders that reduce positions are allowed.</value></data>
 </root>

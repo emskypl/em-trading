@@ -7,6 +7,7 @@ using EmTrading.Presentation.MarketData;
 using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
 using EmTrading.Presentation.Shell;
+using EmTrading.Presentation.Trading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EmTrading.Presentation;
@@ -14,8 +15,8 @@ namespace EmTrading.Presentation;
 public static class PresentationDependencyInjection
 {
     /// <summary>
-    /// View models. The host must also register <see cref="UserSettings"/>, <see cref="IUserSettingsStore"/> and
-    /// <see cref="AppEnvironmentInfo"/>. Pages are singletons so their state survives navigation.
+    /// View models. The host must also register <see cref="UserSettings"/>, <see cref="IUserSettingsStore"/>,
+    /// <see cref="AppEnvironmentInfo"/> and <see cref="Common.IUserConfirmation"/>. Pages are singletons so their state survives navigation.
     /// </summary>
     public static IServiceCollection AddPresentationServices(this IServiceCollection services)
     {
@@ -27,6 +28,7 @@ public static class PresentationDependencyInjection
         services.AddSingleton<HistoryViewModel>();
         services.AddSingleton<OptimizationViewModel>();
         services.AddSingleton<AnalysisViewModel>();
+        services.AddSingleton<TradingViewModel>();
         services.AddSingleton<MarketDataViewModel>();
         services.AddSingleton<JobsViewModel>();
         services.AddSingleton<LogsViewModel>();

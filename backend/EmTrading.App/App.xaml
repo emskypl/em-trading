@@ -8,7 +8,8 @@
              xmlns:logs="clr-namespace:EmTrading.Presentation.Logging;assembly=EmTrading.Presentation"
              xmlns:settings="clr-namespace:EmTrading.Presentation.Settings;assembly=EmTrading.Presentation"
              xmlns:optimization="clr-namespace:EmTrading.Presentation.Optimization;assembly=EmTrading.Presentation"
-             xmlns:analytics="clr-namespace:EmTrading.Presentation.Analytics;assembly=EmTrading.Presentation">
+             xmlns:analytics="clr-namespace:EmTrading.Presentation.Analytics;assembly=EmTrading.Presentation"
+             xmlns:trading="clr-namespace:EmTrading.Presentation.Trading;assembly=EmTrading.Presentation">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -20,6 +21,7 @@
             <DataTemplate DataType="{x:Type backtesting:HistoryViewModel}"><views:HistoryView /></DataTemplate>
             <DataTemplate DataType="{x:Type optimization:OptimizationViewModel}"><views:OptimizationView /></DataTemplate>
             <DataTemplate DataType="{x:Type analytics:AnalysisViewModel}"><views:AnalysisView /></DataTemplate>
+            <DataTemplate DataType="{x:Type trading:TradingViewModel}"><views:TradingView /></DataTemplate>
             <DataTemplate DataType="{x:Type marketData:MarketDataViewModel}"><views:MarketDataView /></DataTemplate>
             <DataTemplate DataType="{x:Type jobs:JobsViewModel}"><views:JobsView /></DataTemplate>
             <DataTemplate DataType="{x:Type logs:LogsViewModel}"><views:LogsView /></DataTemplate>

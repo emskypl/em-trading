@@ -9,6 +9,7 @@ using EmTrading.App.Hosting;
 using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Presentation;
+using EmTrading.Presentation.Common;
 using EmTrading.Presentation.Localization;
 using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.Settings;
@@ -84,6 +85,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<IUserSettingsStore>(settingsStore);
         builder.Services.AddSingleton(userSettings);
         builder.Services.AddSingleton(CreateEnvironmentInfo);
+        builder.Services.AddSingleton<IUserConfirmation, MessageBoxConfirmation>();
 
         builder.Services.AddSerilog((services, logger) => logger
             .ReadFrom.Configuration(builder.Configuration)
@@ -96,6 +98,7 @@ public partial class App : System.Windows.Application
             .AddApplicationServices()
             .AddInfrastructureServices(builder.Configuration)
             .AddAlpacaMarketData(builder.Configuration)
+            .AddAlpacaTrading()
             .AddLeanEngine(builder.Configuration)
             .AddPresentationServices();
 

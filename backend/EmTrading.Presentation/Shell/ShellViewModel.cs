@@ -11,6 +11,7 @@ using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.MarketData;
 using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
+using EmTrading.Presentation.Trading;
 
 namespace EmTrading.Presentation.Shell;
 
@@ -25,6 +26,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         HistoryViewModel history,
         OptimizationViewModel optimization,
         AnalysisViewModel analysis,
+        TradingViewModel trading,
         MarketDataViewModel marketData,
         JobsViewModel jobs,
         LogsViewModel logs,
@@ -40,6 +42,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
             new NavigationItem("Nav_History", "", history),
             new NavigationItem("Nav_Optimization", "", optimization),
             new NavigationItem("Nav_Analysis", "", analysis),
+            new NavigationItem("Nav_Trading", "", trading),
             new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Jobs", "", jobs),
             new NavigationItem("Nav_Logs", "", logs),
