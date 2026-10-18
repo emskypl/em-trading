@@ -32,7 +32,7 @@ public sealed partial class HistoryViewModel : PageViewModel, IRecipient<Backtes
     [ObservableProperty] private IReadOnlyList<BacktestRunSummary> _runs = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(OpenRunCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenRunCommand), nameof(AnalyzeRunCommand))]
     private BacktestRunSummary? _selectedRun;
 
     [ObservableProperty] private IReadOnlyList<ComparedRun> _comparedRuns = [];
@@ -68,6 +68,13 @@ public sealed partial class HistoryViewModel : PageViewModel, IRecipient<Backtes
     {
         _messenger.Send(new NavigateMessage(typeof(BacktestViewModel)));
         _messenger.Send(new OpenBacktestRunMessage(SelectedRun!));
+    }
+
+    [RelayCommand(CanExecute = nameof(CanOpenRun))]
+    private void AnalyzeRun()
+    {
+        _messenger.Send(new NavigateMessage(typeof(Analytics.AnalysisViewModel)));
+        _messenger.Send(new OpenAnalysisMessage(SelectedRun!));
     }
 
     /// <param name="selectedRows">The history grid's selected items.</param>

@@ -21,6 +21,7 @@ public sealed partial class JobsViewModel : PageViewModel
     private readonly IMessenger _messenger;
     private readonly ThrottledAction _refresh;
     private readonly HashSet<Guid> _seenFinished = [];
+    private readonly Dictionary<Guid, int> _optimizationProgress = [];
 
     public JobsViewModel(IJobQueue queue, IJobMonitor monitor, IMessenger messenger, StatusViewModel status, ILogger<JobsViewModel> logger)
         : base(status, logger)
@@ -47,9 +48,25 @@ public sealed partial class JobsViewModel : PageViewModel
         ActiveCount = Jobs.Count(j => j.IsActive);
 
         var newlyFinished = Jobs.Where(j => !j.IsActive && _seenFinished.Add(j.Id)).ToList();
-        if (newlyFinished.Any(j => j.Key?.StartsWith("backtest:", StringComparison.Ordinal) == true))
+        if (newlyFinished.Any(j => IsBacktest(j) || IsOptimization(j)))
             _messenger.Send(new BacktestRunsChangedMessage());
-        if (newlyFinished.Any(j => j.Key?.StartsWith("backtest:", StringComparison.Ordinal) != true && j.Status == JobStatus.Succeeded))
+        if (newlyFinished.Any(j => !IsBacktest(j) && !IsOptimization(j) && j.Status == JobStatus.Succeeded))
             _messenger.Send(new MarketDataChangedMessage());
+
+        // Optimizations save after every trial: tell their page when a job's progress moves, not on every refresh.
+        var optimizationsChanged = false;
+        foreach (var job in Jobs.Where(IsOptimization))
+        {
+            if (!_optimizationProgress.TryGetValue(job.Id, out var seen) || seen != job.Progress || newlyFinished.Contains(job))
+                optimizationsChanged = true;
+            _optimizationProgress[job.Id] = job.Progress;
+        }
+
+        if (optimizationsChanged)
+            _messenger.Send(new OptimizationsChangedMessage());
     }
+
+    private static bool IsBacktest(JobSnapshot job) => job.Key?.StartsWith("backtest:", StringComparison.Ordinal) == true;
+
+    private static bool IsOptimization(JobSnapshot job) => job.Key?.StartsWith("optimization:", StringComparison.Ordinal) == true;
 }

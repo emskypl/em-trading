@@ -3,11 +3,13 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using EmTrading.Presentation.Analytics;
 using EmTrading.Presentation.Backtesting;
 using EmTrading.Presentation.Jobs;
 using EmTrading.Presentation.Localization;
 using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.MarketData;
+using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
 
 namespace EmTrading.Presentation.Shell;
@@ -21,6 +23,8 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
     public ShellViewModel(
         BacktestViewModel backtest,
         HistoryViewModel history,
+        OptimizationViewModel optimization,
+        AnalysisViewModel analysis,
         MarketDataViewModel marketData,
         JobsViewModel jobs,
         LogsViewModel logs,
@@ -34,6 +38,8 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         [
             new NavigationItem("Nav_Backtest", "", backtest),
             new NavigationItem("Nav_History", "", history),
+            new NavigationItem("Nav_Optimization", "", optimization),
+            new NavigationItem("Nav_Analysis", "", analysis),
             new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Jobs", "", jobs),
             new NavigationItem("Nav_Logs", "", logs),

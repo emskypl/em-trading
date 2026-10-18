@@ -27,7 +27,7 @@ namespace EmTrading.Presentation.Backtesting;
 /// Run a strategy (interactively or as background jobs for a symbol list) and inspect one report:
 /// key figures, equity with drawdown, price chart with trades, and the trade list.
 /// </summary>
-public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBacktestRunMessage>
+public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBacktestRunMessage>, IRecipient<ApplyBacktestSetupMessage>
 {
     private static readonly char[] SymbolSeparators = [',', ';', ' '];
 
@@ -209,6 +209,24 @@ public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBa
             await ShowReportAsync(report.Value, run.Symbol, run.Start, run.End, CancellationToken.None);
             return Loc.Format("Status_Loaded", run.RunId);
         });
+    }
+
+    /// <summary>From the optimization page: fill the form with a strategy setup, e.g. the best parameters found.</summary>
+    public async void Receive(ApplyBacktestSetupMessage message)
+    {
+        if (Strategies.Count == 0)
+            await LoadAsync();
+
+        SelectedStrategy = Strategies.FirstOrDefault(s => s.Name == message.StrategyName) ?? SelectedStrategy;
+        Symbol = message.Symbol;
+        StartDate = message.Start.ToDateTime(TimeOnly.MinValue);
+        EndDate = message.End.ToDateTime(TimeOnly.MinValue);
+        InitialCapital = message.InitialCapital;
+        foreach (var input in StrategyParameters)
+        {
+            if (message.Parameters.TryGetValue(input.Name, out var value))
+                input.Value = value;
+        }
     }
 
     private async Task ShowReportAsync(BacktestReport report, string symbol, DateOnly? start, DateOnly? end, CancellationToken cancellationToken)

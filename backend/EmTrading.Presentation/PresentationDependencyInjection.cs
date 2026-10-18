@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
+using EmTrading.Presentation.Analytics;
 using EmTrading.Presentation.Backtesting;
 using EmTrading.Presentation.Jobs;
 using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.MarketData;
+using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
 using EmTrading.Presentation.Shell;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,8 @@ public static class PresentationDependencyInjection
 
         services.AddSingleton<BacktestViewModel>();
         services.AddSingleton<HistoryViewModel>();
+        services.AddSingleton<OptimizationViewModel>();
+        services.AddSingleton<AnalysisViewModel>();
         services.AddSingleton<MarketDataViewModel>();
         services.AddSingleton<JobsViewModel>();
         services.AddSingleton<LogsViewModel>();

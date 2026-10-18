@@ -1,7 +1,9 @@
 using EmTrading.Application.Backtesting.Strategies;
+using EmTrading.Application.Optimization.StartOptimization;
 using EmTrading.Presentation.Backtesting;
 using EmTrading.Presentation.Common;
 using EmTrading.Presentation.Logging;
+using EmTrading.Presentation.Optimization;
 
 namespace EmTrading.Presentation.Tests;
 
@@ -108,5 +110,73 @@ public class StrategyParameterInputTests
     {
         Assert.Contains("In 15-minute bars.", new StrategyParameterInput(Period).Hint);
         Assert.Contains("2 – 500", new StrategyParameterInput(Period).Hint);
+    }
+}
+
+[Collection(nameof(CultureCollection))]
+public class OptimizationParameterInputTests
+{
+    private static readonly StrategyParameterDescriptor Period =
+        new("fast-period", "Fast EMA period", StrategyParameterKind.Integer, 26, 2, 500, null, null);
+
+    private static readonly StrategyParameterDescriptor Risk =
+        new("risk-percent", "Risk per trade (%)", StrategyParameterKind.Decimal, 1, 0.1m, 10, null, null);
+
+    [Fact]
+    public void Starts_fixed_at_the_default_with_a_five_value_range_ready()
+    {
+        var input = new OptimizationParameterInput(Period);
+
+        Assert.False(input.IsVaried);
+        Assert.Equal("26", input.Value);
+        Assert.Equal(1, input.Count);
+        Assert.False(input.TryGetRange(out _));
+
+        input.IsVaried = true;
+
+        Assert.Null(input.Error);
+        Assert.Equal(("26", "46", "5"), (input.From, input.To, input.Step));
+        Assert.Equal(5, input.Count);
+        Assert.True(input.TryGetRange(out var range));
+        Assert.Equal(new ParameterRangeInput("fast-period", 26, 46, 5), range);
+    }
+
+    [Fact]
+    public void Decimal_parameters_get_a_decimal_step()
+    {
+        var input = new OptimizationParameterInput(Risk) { IsVaried = true };
+
+        Assert.Equal(("1", "1.8", "0.2"), (input.From, input.To, input.Step));
+        Assert.Equal(5, input.Count);
+    }
+
+    [Theory]
+    [InlineData("10", "20", "0")]
+    [InlineData("20", "10", "1")]
+    [InlineData("10", "20", "2.5")]
+    [InlineData("2", "500", "1")]
+    [InlineData("1", "20", "1")]
+    [InlineData("x", "20", "1")]
+    public void Invalid_ranges_show_an_error_and_count_zero(string from, string to, string step)
+    {
+        var input = new OptimizationParameterInput(Period) { IsVaried = true, From = from, To = to, Step = step };
+
+        Assert.NotNull(input.Error);
+        Assert.Equal(0, input.Count);
+        Assert.False(input.TryGetRange(out _));
+    }
+
+    [Fact]
+    public void Changing_a_bound_notifies_count_and_error()
+    {
+        var input = new OptimizationParameterInput(Period) { IsVaried = true };
+        var changed = new List<string?>();
+        input.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        input.To = "76";
+
+        Assert.Contains(nameof(OptimizationParameterInput.Count), changed);
+        Assert.Contains(nameof(OptimizationParameterInput.Error), changed);
+        Assert.Equal(11, input.Count);
     }
 }

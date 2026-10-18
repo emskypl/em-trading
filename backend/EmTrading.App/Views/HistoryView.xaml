@@ -17,6 +17,7 @@
         <StackPanel Grid.Row="1" Style="{StaticResource Toolbar}">
             <Button Content="{loc:Tr Common_Refresh}" Command="{Binding RefreshCommand}" Margin="0,0,6,0" />
             <Button Content="{loc:Tr History_Open}" Command="{Binding OpenRunCommand}" Margin="0,0,6,0" />
+            <Button Content="{loc:Tr History_Analyze}" Command="{Binding AnalyzeRunCommand}" Margin="0,0,6,0" />
             <Button Content="{loc:Tr History_Compare}" Command="{Binding CompareCommand}"
                     CommandParameter="{Binding SelectedItems, ElementName=HistoryGrid}" ToolTip="{loc:Tr History_CompareHint}" />
         </StackPanel>

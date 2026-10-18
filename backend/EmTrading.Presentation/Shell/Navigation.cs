@@ -96,3 +96,18 @@ public sealed record OpenBacktestRunMessage(BacktestRunSummary Run);
 
 /// <summary>Switch the shell to the page of the given type.</summary>
 public sealed record NavigateMessage(Type PageType);
+
+/// <summary>An optimization was started, finished a trial, or ended.</summary>
+public sealed record OptimizationsChangedMessage;
+
+/// <summary>Analyze a finished run on the analysis page.</summary>
+public sealed record OpenAnalysisMessage(BacktestRunSummary Run);
+
+/// <summary>Fill the backtest form, e.g. with the best parameters of an optimization.</summary>
+public sealed record ApplyBacktestSetupMessage(
+    string StrategyName,
+    string Symbol,
+    DateOnly Start,
+    DateOnly End,
+    decimal InitialCapital,
+    IReadOnlyDictionary<string, string> Parameters);

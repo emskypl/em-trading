@@ -6,7 +6,9 @@
              xmlns:marketData="clr-namespace:EmTrading.Presentation.MarketData;assembly=EmTrading.Presentation"
              xmlns:jobs="clr-namespace:EmTrading.Presentation.Jobs;assembly=EmTrading.Presentation"
              xmlns:logs="clr-namespace:EmTrading.Presentation.Logging;assembly=EmTrading.Presentation"
-             xmlns:settings="clr-namespace:EmTrading.Presentation.Settings;assembly=EmTrading.Presentation">
+             xmlns:settings="clr-namespace:EmTrading.Presentation.Settings;assembly=EmTrading.Presentation"
+             xmlns:optimization="clr-namespace:EmTrading.Presentation.Optimization;assembly=EmTrading.Presentation"
+             xmlns:analytics="clr-namespace:EmTrading.Presentation.Analytics;assembly=EmTrading.Presentation">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -16,6 +18,8 @@
             <!-- View-model-first navigation: the shell shows a page view model, WPF picks its view here. -->
             <DataTemplate DataType="{x:Type backtesting:BacktestViewModel}"><views:BacktestView /></DataTemplate>
             <DataTemplate DataType="{x:Type backtesting:HistoryViewModel}"><views:HistoryView /></DataTemplate>
+            <DataTemplate DataType="{x:Type optimization:OptimizationViewModel}"><views:OptimizationView /></DataTemplate>
+            <DataTemplate DataType="{x:Type analytics:AnalysisViewModel}"><views:AnalysisView /></DataTemplate>
             <DataTemplate DataType="{x:Type marketData:MarketDataViewModel}"><views:MarketDataView /></DataTemplate>
             <DataTemplate DataType="{x:Type jobs:JobsViewModel}"><views:JobsView /></DataTemplate>
             <DataTemplate DataType="{x:Type logs:LogsViewModel}"><views:LogsView /></DataTemplate>

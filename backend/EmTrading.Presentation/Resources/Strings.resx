@@ -140,4 +140,89 @@
   <data name="Timeframe_Minute" xml:space="preserve"><value>Minute</value></data>
   <data name="Timeframe_Hour" xml:space="preserve"><value>Hour</value></data>
   <data name="Timeframe_Daily" xml:space="preserve"><value>Daily</value></data>
+  <data name="Nav_Optimization" xml:space="preserve"><value>Optimization</value></data>
+  <data name="Nav_Analysis" xml:space="preserve"><value>Risk analysis</value></data>
+  <data name="History_Analyze" xml:space="preserve"><value>Analyze risk</value></data>
+  <data name="Optimization_Title" xml:space="preserve"><value>Parameter optimization</value></data>
+  <data name="Optimization_Objective" xml:space="preserve"><value>Objective</value></data>
+  <data name="Optimization_ParallelTrials" xml:space="preserve"><value>Parallel engine processes</value></data>
+  <data name="Optimization_Parameters" xml:space="preserve"><value>Parameters</value></data>
+  <data name="Optimization_Vary" xml:space="preserve"><value>vary</value></data>
+  <data name="Optimization_From" xml:space="preserve"><value>From</value></data>
+  <data name="Optimization_To" xml:space="preserve"><value>To</value></data>
+  <data name="Optimization_Step" xml:space="preserve"><value>Step</value></data>
+  <data name="Optimization_Start" xml:space="preserve"><value>Start optimization</value></data>
+  <data name="Optimization_StartHint" xml:space="preserve"><value>Runs as one background job; its trials run in parallel engine processes. Progress is also shown on the Jobs page.</value></data>
+  <data name="Optimization_SelectVaried" xml:space="preserve"><value>Select at least one parameter to vary.</value></data>
+  <data name="Optimization_Combinations" xml:space="preserve"><value>{0} combinations (max {1})</value></data>
+  <data name="Optimization_StepPositive" xml:space="preserve"><value>The step must be positive.</value></data>
+  <data name="Optimization_ToBelowFrom" xml:space="preserve"><value>'To' must not be below 'from'.</value></data>
+  <data name="Optimization_WholeStep" xml:space="preserve"><value>From, to and step must be whole numbers.</value></data>
+  <data name="Optimization_TooManyValues" xml:space="preserve"><value>{0} values; at most {1} are allowed.</value></data>
+  <data name="Optimization_BestTrial" xml:space="preserve"><value>Best: trial #{0} ({1}), score {2}</value></data>
+  <data name="Optimization_Runs" xml:space="preserve"><value>Optimizations</value></data>
+  <data name="Optimization_CancelRun" xml:space="preserve"><value>Stop optimization</value></data>
+  <data name="Optimization_ApplyBest" xml:space="preserve"><value>Use best parameters</value></data>
+  <data name="Optimization_ApplyBestHint" xml:space="preserve"><value>Copies the best trial's parameters to the backtest form.</value></data>
+  <data name="Optimization_OpenTrial" xml:space="preserve"><value>Show trial results</value></data>
+  <data name="Optimization_TabHeatmap" xml:space="preserve"><value>Heatmap</value></data>
+  <data name="Optimization_TabTrials" xml:space="preserve"><value>Trials</value></data>
+  <data name="Optimization_XAxis" xml:space="preserve"><value>X axis</value></data>
+  <data name="Optimization_YAxis" xml:space="preserve"><value>Y axis</value></data>
+  <data name="Optimization_HeatmapHint" xml:space="preserve"><value>Each cell shows the trial's score; with three varied parameters, the best over the one not shown. The best trial is outlined.</value></data>
+  <data name="Optimization_Trial" xml:space="preserve"><value>Trial</value></data>
+  <data name="Optimization_Point" xml:space="preserve"><value>Parameters</value></data>
+  <data name="Optimization_Score" xml:space="preserve"><value>Score</value></data>
+  <data name="Optimization_Trials" xml:space="preserve"><value>Trials</value></data>
+  <data name="Optimization_BestScore" xml:space="preserve"><value>Best score</value></data>
+  <data name="OptimizationObjective_SharpeRatio" xml:space="preserve"><value>Sharpe ratio</value></data>
+  <data name="OptimizationObjective_NetProfit" xml:space="preserve"><value>Net profit</value></data>
+  <data name="OptimizationObjective_ReturnOverDrawdown" xml:space="preserve"><value>Return / max drawdown</value></data>
+  <data name="OptimizationStatus_Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="OptimizationStatus_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="OptimizationStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="OptimizationStatus_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="OptimizationStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="TrialStatus_Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="TrialStatus_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="TrialStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="TrialStatus_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="TrialStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="MonteCarloMethod_Shuffle" xml:space="preserve"><value>Shuffle trade order</value></data>
+  <data name="MonteCarloMethod_Bootstrap" xml:space="preserve"><value>Resample trades (bootstrap)</value></data>
+  <data name="Status_OptimizationStarted" xml:space="preserve"><value>Optimization started: {0} trials.</value></data>
+  <data name="Status_OptimizationStartedSkipped" xml:space="preserve"><value>Optimization started: {0} trials ({1} invalid combinations skipped).</value></data>
+  <data name="Status_BestApplied" xml:space="preserve"><value>Best parameters copied to the backtest form.</value></data>
+  <data name="Status_Analyzing" xml:space="preserve"><value>Analyzing {0} ({1:N0} simulations)...</value></data>
+  <data name="Status_Analyzed" xml:space="preserve"><value>Analysis of {0} is ready.</value></data>
+  <data name="Analysis_Title" xml:space="preserve"><value>Risk analysis</value></data>
+  <data name="Analysis_Run" xml:space="preserve"><value>Backtest run</value></data>
+  <data name="Analysis_Simulations" xml:space="preserve"><value>Simulations</value></data>
+  <data name="Analysis_Method" xml:space="preserve"><value>Method</value></data>
+  <data name="Analysis_Seed" xml:space="preserve"><value>Seed</value></data>
+  <data name="Analysis_Analyze" xml:space="preserve"><value>Analyze</value></data>
+  <data name="Analysis_MethodHint" xml:space="preserve"><value>Shuffling keeps every trade and changes only their order: the final result stays the same and the drawdowns vary. Bootstrap draws trades with replacement, so the results vary too. The same seed gives the same result.</value></data>
+  <data name="Analysis_NoRun" xml:space="preserve"><value>Select a completed run, or use "Analyze risk" on the History page.</value></data>
+  <data name="Analysis_FinalReturn" xml:space="preserve"><value>Final return</value></data>
+  <data name="Analysis_MaxDrawdown" xml:space="preserve"><value>Max drawdown</value></data>
+  <data name="Analysis_SimulatedPath" xml:space="preserve"><value>Simulated</value></data>
+  <data name="Analysis_HistoricalPath" xml:space="preserve"><value>Historical order</value></data>
+  <data name="Analysis_ComputeInfo" xml:space="preserve"><value>{0:N0} simulations of {1} trades in {2} ms on {3} logical cores</value></data>
+  <data name="Analysis_ProbabilityOfLoss" xml:space="preserve"><value>Probability of loss</value></data>
+  <data name="Analysis_MedianDrawdown" xml:space="preserve"><value>Median drawdown</value></data>
+  <data name="Analysis_Drawdown95" xml:space="preserve"><value>Drawdown (95th percentile)</value></data>
+  <data name="Analysis_HistoricalDrawdown" xml:space="preserve"><value>Historical drawdown</value></data>
+  <data name="Analysis_Percentiles" xml:space="preserve"><value>Percentiles</value></data>
+  <data name="Analysis_Statistic" xml:space="preserve"><value>Statistic</value></data>
+  <data name="Analysis_TabPaths" xml:space="preserve"><value>Equity paths</value></data>
+  <data name="Analysis_TabDistribution" xml:space="preserve"><value>Drawdown distribution</value></data>
+  <data name="Analysis_TabDrawdowns" xml:space="preserve"><value>Drawdown periods</value></data>
+  <data name="Analysis_TradeNumber" xml:space="preserve"><value>Trade number</value></data>
+  <data name="Analysis_Peak" xml:space="preserve"><value>Peak</value></data>
+  <data name="Analysis_Trough" xml:space="preserve"><value>Trough</value></data>
+  <data name="Analysis_Recovered" xml:space="preserve"><value>Recovered</value></data>
+  <data name="Analysis_Depth" xml:space="preserve"><value>Depth</value></data>
+  <data name="Analysis_DeclineDays" xml:space="preserve"><value>Decline (days)</value></data>
+  <data name="Analysis_RecoveryDays" xml:space="preserve"><value>Recovery (days)</value></data>
+  <data name="Analysis_TimeUnderwater" xml:space="preserve"><value>Time below the peak</value></data>
 </root>
