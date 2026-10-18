@@ -5,6 +5,7 @@ using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Trading;
 using EmTrading.Application.Trading.Orders;
+using EmTrading.Application.Trading.Safety;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
 using EmTrading.Presentation.Common;
@@ -85,14 +86,22 @@ public sealed partial class TradingViewModel : PageViewModel
     [ObservableProperty] private bool _openOrdersOnly = true;
     [ObservableProperty] private string? _accountError;
 
-    // Risk
+    // Risk and safety
     [ObservableProperty] private RiskLimits? _riskLimits;
+    [ObservableProperty] private TradingSessionState? _session;
+    [ObservableProperty] private IReadOnlyList<AuditEntry> _auditLog = [];
+
+    public bool IsLive => Session?.Mode == TradingMode.Live;
+
+    /// <summary>Live confirmations say plainly that real money is at stake.</summary>
+    private string ConfirmTitle => IsLive ? Loc.Get("Ticket_ConfirmTitleLive") : Loc.Get("Ticket_ConfirmTitle");
+    public bool IsArmed => Session?.IsArmed == true;
 
     public string EquityText => Account?.Equity.ToString("N2", Loc.Instance.Culture) ?? "–";
     public string DayProfitLossText => Account is { } a ? $"{a.DailyProfitLoss.ToString("+#,0.00;-#,0.00;0.00", Loc.Instance.Culture)} ({a.DailyProfitLossPercent:+0.00;-0.00;0.00}%)" : "–";
     public string BuyingPowerText => Account?.BuyingPower.ToString("N2", Loc.Instance.Culture) ?? "–";
     public string CashText => Account?.Cash.ToString("N2", Loc.Instance.Culture) ?? "–";
-    public bool IsPaper => Account?.IsPaper ?? true;
+    public bool IsPaper => !IsLive;
 
     public bool TradingEnabled
     {
@@ -106,10 +115,16 @@ public sealed partial class TradingViewModel : PageViewModel
         OnPropertyChanged(nameof(DayProfitLossText));
         OnPropertyChanged(nameof(BuyingPowerText));
         OnPropertyChanged(nameof(CashText));
-        OnPropertyChanged(nameof(IsPaper));
     }
 
     partial void OnRiskLimitsChanged(RiskLimits? value) => OnPropertyChanged(nameof(TradingEnabled));
+
+    partial void OnSessionChanged(TradingSessionState? value)
+    {
+        OnPropertyChanged(nameof(IsLive));
+        OnPropertyChanged(nameof(IsArmed));
+        OnPropertyChanged(nameof(IsPaper));
+    }
 
     partial void OnOpenOrdersOnlyChanged(bool value) => _accountRefresh.Request();
 
@@ -122,7 +137,6 @@ public sealed partial class TradingViewModel : PageViewModel
 
     protected override async Task LoadAsync()
     {
-        RiskLimits = (await _dispatcher.SendAsync(new GetRiskLimitsQuery())).Value;
         await ApplyWatchlistAsync(CancellationToken.None);
         await RefreshAccountAsync();
         _ = PollAccountAsync();
@@ -166,7 +180,14 @@ public sealed partial class TradingViewModel : PageViewModel
         var accountTask = _dispatcher.SendAsync(new GetAccountQuery());
         var positionsTask = _dispatcher.SendAsync(new GetPositionsQuery());
         var ordersTask = _dispatcher.SendAsync(new GetOrdersQuery(OpenOrdersOnly));
-        await Task.WhenAll(accountTask, positionsTask, ordersTask);
+        var auditTask = _dispatcher.SendAsync(new GetAuditLogQuery());
+        await Task.WhenAll(accountTask, positionsTask, ordersTask, auditTask);
+
+        // The daily loss guard may have switched trading off in the background.
+        RiskLimits = (await _dispatcher.SendAsync(new GetRiskLimitsQuery())).Value;
+        Session = (await _dispatcher.SendAsync(new GetTradingSessionQuery())).Value;
+        if (await auditTask is { IsSuccess: true } audit)
+            AuditLog = audit.Value;
 
         var account = await accountTask;
         Account = account.IsSuccess ? account.Value : null;
@@ -189,7 +210,7 @@ public sealed partial class TradingViewModel : PageViewModel
             return;
         }
 
-        if (!_confirmation.Confirm(Loc.Get("Ticket_ConfirmTitle"), Ticket.Describe(command)))
+        if (!_confirmation.Confirm(ConfirmTitle, Ticket.Describe(command)))
             return;
 
         await RunOperationAsync(Loc.Format("Status_PlacingOrder", command.Symbol), async _ =>
@@ -219,7 +240,7 @@ public sealed partial class TradingViewModel : PageViewModel
     private async Task ClosePositionAsync(string? symbol)
     {
         symbol ??= SelectedSymbol;
-        if (symbol is null || !_confirmation.Confirm(Loc.Get("Ticket_ConfirmTitle"), Loc.Format("Trading_ConfirmClose", symbol)))
+        if (symbol is null || !_confirmation.Confirm(ConfirmTitle, Loc.Format("Trading_ConfirmClose", symbol)))
             return;
 
         await RunOperationAsync(Loc.Format("Status_ClosingPosition", symbol), async _ =>
@@ -233,7 +254,7 @@ public sealed partial class TradingViewModel : PageViewModel
     [RelayCommand]
     private async Task CloseAllAsync()
     {
-        if (!_confirmation.Confirm(Loc.Get("Ticket_ConfirmTitle"), Loc.Get("Trading_ConfirmCloseAll")))
+        if (!_confirmation.Confirm(ConfirmTitle, Loc.Get("Trading_ConfirmCloseAll")))
             return;
 
         await RunOperationAsync(Loc.Get("Status_ClosingAll"), async _ =>
@@ -247,6 +268,27 @@ public sealed partial class TradingViewModel : PageViewModel
                 ? Loc.Format("Status_ClosedAll", result.Value.Orders.Count)
                 : Loc.Format("Status_ClosedAllWithFailures", result.Value.Orders.Count, string.Join("; ", result.Value.Failures));
         });
+    }
+
+    /// <summary>Live only: the user types the account number to allow orders for this session.</summary>
+    [RelayCommand]
+    private async Task ArmLiveTradingAsync()
+    {
+        var typed = _confirmation.Prompt(Loc.Get("Trading_ArmTitle"), Loc.Format("Trading_ArmMessage", Account?.AccountNumber ?? "?"));
+        if (typed is null)
+            return;
+
+        var result = await _dispatcher.SendAsync(new ArmLiveTradingCommand(typed));
+        Status.Show(result.IsSuccess ? Loc.Get("Status_LiveArmed") : Describe(result.Error));
+        await RefreshAccountAsync();
+    }
+
+    [RelayCommand]
+    private async Task DisarmLiveTradingAsync()
+    {
+        await _dispatcher.SendAsync(new DisarmLiveTradingCommand());
+        Status.Show(Loc.Get("Status_LiveDisarmed"));
+        await RefreshAccountAsync();
     }
 
     private async Task SetTradingEnabledAsync(bool enabled)

@@ -303,4 +303,27 @@ Szacowana wartość: {6} USD.</value></data>
   <data name="Status_ClosedAllWithFailures" xml:space="preserve"><value>Złożono zleceń zamykających: {0}; nieudane: {1}</value></data>
   <data name="Status_TradingEnabled" xml:space="preserve"><value>Handel włączony.</value></data>
   <data name="Status_TradingDisabled" xml:space="preserve"><value>Handel wyłączony: dozwolone są tylko zlecenia zmniejszające pozycje.</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Ticket_ConfirmTitleLive" xml:space="preserve"><value>ZLECENIE NA ŻYWO: prawdziwe pieniądze</value></data>
+  <data name="Trading_LiveBadge" xml:space="preserve"><value>KONTO RZECZYWISTE: PRAWDZIWE PIENIĄDZE</value></data>
+  <data name="Trading_Arm" xml:space="preserve"><value>Uzbrój handel na żywo</value></data>
+  <data name="Trading_Disarm" xml:space="preserve"><value>Rozbrój</value></data>
+  <data name="Trading_Armed" xml:space="preserve"><value>Handel na żywo UZBROJONY</value></data>
+  <data name="Trading_NotArmed" xml:space="preserve"><value>Handel na żywo nieuzbrojony: zlecenia są odrzucane</value></data>
+  <data name="Trading_ArmTitle" xml:space="preserve"><value>Uzbrojenie handlu na żywo</value></data>
+  <data name="Trading_ArmMessage" xml:space="preserve"><value>Zlecenia będą trafiać na konto RZECZYWISTE i używać prawdziwych pieniędzy, dopóki nie rozbroisz handlu lub nie zamkniesz aplikacji. Wpisz numer konta ({0}), aby potwierdzić.</value></data>
+  <data name="Trading_TabAudit" xml:space="preserve"><value>Dziennik audytu</value></data>
+  <data name="Audit_Time" xml:space="preserve"><value>Czas</value></data>
+  <data name="Audit_Mode" xml:space="preserve"><value>Konto</value></data>
+  <data name="Audit_Category" xml:space="preserve"><value>Kategoria</value></data>
+  <data name="Audit_Action" xml:space="preserve"><value>Akcja</value></data>
+  <data name="Audit_Order" xml:space="preserve"><value>Zlecenie</value></data>
+  <data name="Audit_Details" xml:space="preserve"><value>Szczegóły</value></data>
+  <data name="TradingMode_Paper" xml:space="preserve"><value>Paper</value></data>
+  <data name="TradingMode_Live" xml:space="preserve"><value>Rzeczywiste</value></data>
+  <data name="AuditCategory_Order" xml:space="preserve"><value>Zlecenie</value></data>
+  <data name="AuditCategory_Risk" xml:space="preserve"><value>Ryzyko</value></data>
+  <data name="AuditCategory_Session" xml:space="preserve"><value>Sesja</value></data>
+  <data name="Status_LiveArmed" xml:space="preserve"><value>Handel na żywo uzbrojony na tę sesję.</value></data>
+  <data name="Status_LiveDisarmed" xml:space="preserve"><value>Handel na żywo rozbrojony.</value></data>
 </root>

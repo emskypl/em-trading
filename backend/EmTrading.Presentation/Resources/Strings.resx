@@ -303,4 +303,27 @@ Estimated value: {6} USD.</value></data>
   <data name="Status_ClosedAllWithFailures" xml:space="preserve"><value>{0} closing order(s) placed; failed: {1}</value></data>
   <data name="Status_TradingEnabled" xml:space="preserve"><value>Trading enabled.</value></data>
   <data name="Status_TradingDisabled" xml:space="preserve"><value>Trading disabled: only orders that reduce positions are allowed.</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Ticket_ConfirmTitleLive" xml:space="preserve"><value>LIVE ORDER: real money</value></data>
+  <data name="Trading_LiveBadge" xml:space="preserve"><value>LIVE ACCOUNT: REAL MONEY</value></data>
+  <data name="Trading_Arm" xml:space="preserve"><value>Arm live trading</value></data>
+  <data name="Trading_Disarm" xml:space="preserve"><value>Disarm</value></data>
+  <data name="Trading_Armed" xml:space="preserve"><value>Live trading ARMED</value></data>
+  <data name="Trading_NotArmed" xml:space="preserve"><value>Live trading not armed: orders are refused</value></data>
+  <data name="Trading_ArmTitle" xml:space="preserve"><value>Arm live trading</value></data>
+  <data name="Trading_ArmMessage" xml:space="preserve"><value>Orders will go to the LIVE account and use real money until you disarm or close the app. Type the account number ({0}) to confirm.</value></data>
+  <data name="Trading_TabAudit" xml:space="preserve"><value>Audit log</value></data>
+  <data name="Audit_Time" xml:space="preserve"><value>Time</value></data>
+  <data name="Audit_Mode" xml:space="preserve"><value>Account</value></data>
+  <data name="Audit_Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Audit_Action" xml:space="preserve"><value>Action</value></data>
+  <data name="Audit_Order" xml:space="preserve"><value>Order</value></data>
+  <data name="Audit_Details" xml:space="preserve"><value>Details</value></data>
+  <data name="TradingMode_Paper" xml:space="preserve"><value>Paper</value></data>
+  <data name="TradingMode_Live" xml:space="preserve"><value>Live</value></data>
+  <data name="AuditCategory_Order" xml:space="preserve"><value>Order</value></data>
+  <data name="AuditCategory_Risk" xml:space="preserve"><value>Risk</value></data>
+  <data name="AuditCategory_Session" xml:space="preserve"><value>Session</value></data>
+  <data name="Status_LiveArmed" xml:space="preserve"><value>Live trading armed for this session.</value></data>
+  <data name="Status_LiveDisarmed" xml:space="preserve"><value>Live trading disarmed.</value></data>
 </root>
