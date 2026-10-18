@@ -26,9 +26,7 @@ internal sealed class GetBacktestReportQueryValidator : AbstractValidator<GetBac
     public GetBacktestReportQueryValidator()
     {
         RuleFor(q => q.Symbol).MustBeSymbol();
-        RuleFor(q => q.RunId)
-            .Must(id => !string.IsNullOrWhiteSpace(id) && id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.'))
-            .WithMessage("'{PropertyValue}' is not a valid run id.");
+        RuleFor(q => q.RunId).MustBeRunId();
     }
 }
 
