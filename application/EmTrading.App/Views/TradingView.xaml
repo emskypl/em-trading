@@ -94,7 +94,7 @@
 
             <!-- Watchlist and order ticket -->
             <Border Style="{StaticResource Card}" Margin="0,0,12,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Style="{StaticResource FormScrollViewer}">
                     <StackPanel>
                         <TextBlock Text="{loc:Tr Trading_Watchlist}" Style="{StaticResource SectionTitle}" />
                         <DockPanel>

@@ -5,6 +5,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UserSecretsId>emtrading-app-5b0f3c1e-2f4e-4d8b-9a57-6a3e2f1c9d40</UserSecretsId>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

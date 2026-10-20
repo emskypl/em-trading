@@ -21,6 +21,16 @@
         <Setter Property="Padding" Value="12" />
     </Style>
 
+    <!-- Keeps content off the vertical scrollbar, but only while the scrollbar is shown. -->
+    <Style x:Key="FormScrollViewer" TargetType="ScrollViewer">
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        <Style.Triggers>
+            <Trigger Property="ComputedVerticalScrollBarVisibility" Value="Visible">
+                <Setter Property="Padding" Value="0,0,10,0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style x:Key="PageTitle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />

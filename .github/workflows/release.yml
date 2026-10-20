@@ -22,6 +22,14 @@ jobs:
       - name: Restore
         run: dotnet restore EmTradingSolution.slnx
 
+      - name: Restore local tools (wix)
+        run: dotnet tool restore
+
+      - name: Accept WiX Toolset EULA
+        # Free for this project (OSMF only applies to orgs with >$10k/year revenue).
+        # See https://www.firegiant.com/oss-maintenance-fee/
+        run: dotnet wix eula accept wix7
+
       - name: Publish EmTrading.App (self-contained, win-x64)
         run: >
           dotnet publish EmTrading.App/EmTrading.App.csproj
@@ -36,6 +44,15 @@ jobs:
           -p:PublishSingleFile=false
           -o ../dist
 
+      - name: Build installer (.msi)
+        shell: pwsh
+        run: |
+          $productVersion = "${{ github.ref_name }}" -replace '^v', ''
+          dotnet build installer/EmTrading.Installer/EmTrading.Installer.wixproj `
+            -c Release `
+            -p:PublishDir="$pwd/../dist" `
+            -p:ProductVersion=$productVersion
+
       - name: Package
         shell: pwsh
         run: |
@@ -45,6 +62,12 @@ jobs:
           $hash = (Get-FileHash -Algorithm SHA256 $zipName).Hash.ToLower()
           "$hash  $zipName" | Out-File -Encoding utf8 "$zipName.sha256"
           echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+
+          $msiName = "EmTrading-$version-win-x64.msi"
+          Copy-Item "application/installer/EmTrading.Installer/bin/Release/EmTrading-Setup.msi" $msiName
+          $msiHash = (Get-FileHash -Algorithm SHA256 $msiName).Hash.ToLower()
+          "$msiHash  $msiName" | Out-File -Encoding utf8 "$msiName.sha256"
+          echo "MSI_NAME=$msiName" >> $env:GITHUB_ENV
         working-directory: .
 
       - name: Create GitHub release
@@ -55,5 +78,6 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" `
             "$env:ZIP_NAME" "$env:ZIP_NAME.sha256" `
+            "$env:MSI_NAME" "$env:MSI_NAME.sha256" `
             --title "${{ github.ref_name }}" `
             --generate-notes
