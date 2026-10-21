@@ -140,7 +140,7 @@ export const pl: typeof en = {
     requirements: ['Windows 10 lub 11, 64-bit', 'Darmowe konto Alpaca do danych rynkowych i handlu demo'],
     quickStartTitle: 'Szybki start',
     quickStart: [
-      'Rozpakuj pobrane archiwum',
+      'Uruchom instalator (albo rozpakuj wersję przenośną)',
       'Dodaj swoje klucze API Alpaca do appsettings.json (Alpaca:ApiKey / Alpaca:ApiSecret) albo ustaw je jako zmienne środowiskowe',
       'Uruchom EmTrading.App.exe',
     ],
@@ -153,6 +153,7 @@ export const pl: typeof en = {
     publishedOn: 'Opublikowano',
     size: 'Rozmiar',
     downloadButton: 'Pobierz {version} dla Windows',
+    portable: 'Wersja przenośna .zip',
   },
   faq: {
     title: 'Najczęściej zadawane pytania',

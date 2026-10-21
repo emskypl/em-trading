@@ -136,7 +136,7 @@ export const en = {
     requirements: ['Windows 10 or 11, 64-bit', 'A free Alpaca account for market data and paper trading'],
     quickStartTitle: 'Quick start',
     quickStart: [
-      'Unzip the downloaded archive',
+      'Run the installer (or unzip the portable archive)',
       'Add your Alpaca API keys to appsettings.json (Alpaca:ApiKey / Alpaca:ApiSecret), or set them as environment variables',
       'Run EmTrading.App.exe',
     ],
@@ -149,6 +149,7 @@ export const en = {
     publishedOn: 'Published on',
     size: 'Size',
     downloadButton: 'Download {version} for Windows',
+    portable: 'Portable .zip',
   },
   faq: {
     title: 'Frequently asked questions',

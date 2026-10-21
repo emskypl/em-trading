@@ -8,6 +8,11 @@ jobs:
   build-and-release:
     # WPF projects need Windows.
     runs-on: windows-latest
+    # The Azure federated credential trusts this environment; see docs/release-distribution.md.
+    environment: release
+    permissions:
+      contents: write   # gh release create
+      id-token: write   # OIDC login to Azure, no stored keys
     defaults:
       run:
         working-directory: application
@@ -81,3 +86,54 @@ jobs:
             "$env:MSI_NAME" "$env:MSI_NAME.sha256" `
             --title "${{ github.ref_name }}" `
             --generate-notes
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload to Azure Storage
+        shell: pwsh
+        working-directory: .
+        run: |
+          $version = "${{ github.ref_name }}"
+          $account = "emtradingstorage"
+          $container = "releases"
+          $base = "https://$account.blob.core.windows.net/$container"
+          $common = @('--auth-mode', 'login', '--account-name', $account, '--container-name', $container, '--only-show-errors')
+
+          function Upload($file, $blobName, $contentType, $cacheControl, [switch]$Overwrite) {
+            $extra = if ($Overwrite) { @('--overwrite') } else { @() }
+            az storage blob upload @common --file $file --name $blobName `
+              --content-type $contentType --content-cache-control $cacheControl @extra
+            if ($LASTEXITCODE -ne 0) { throw "Upload of $blobName failed" }
+          }
+
+          # Versioned blobs are write-once: re-running a tag fails here instead of replacing a published build.
+          $immutable = "public, max-age=31536000, immutable"
+          Upload $env:MSI_NAME "$version/$env:MSI_NAME" "application/x-msi" $immutable
+          Upload "$env:MSI_NAME.sha256" "$version/$env:MSI_NAME.sha256" "text/plain" $immutable
+          Upload $env:ZIP_NAME "$version/$env:ZIP_NAME" "application/zip" $immutable
+          Upload "$env:ZIP_NAME.sha256" "$version/$env:ZIP_NAME.sha256" "text/plain" $immutable
+
+          # Stable links that always point at the newest release.
+          $short = "public, max-age=300"
+          Upload $env:MSI_NAME "latest/EmTrading-Setup.msi" "application/x-msi" $short -Overwrite
+
+          function Describe($file) {
+            [ordered]@{
+              name      = $file
+              url       = "$base/$version/$file"
+              sha256Url = "$base/$version/$file.sha256"
+              size      = (Get-Item $file).Length
+            }
+          }
+          [ordered]@{
+            version     = $version
+            publishedAt = (Get-Date).ToUniversalTime().ToString('o')
+            msi         = Describe $env:MSI_NAME
+            zip         = Describe $env:ZIP_NAME
+          } | ConvertTo-Json | Set-Content -Encoding utf8NoBOM latest.json
+          Upload "latest.json" "latest.json" "application/json" $short -Overwrite

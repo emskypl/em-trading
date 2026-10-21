@@ -41,6 +41,11 @@ export function Download() {
                   SHA-256
                 </a>
               )}
+              {release.portableUrl && (
+                <a className="sha-link" href={release.portableUrl}>
+                  {t.download.portable}
+                </a>
+              )}
             </>
           )}
 
