@@ -102,10 +102,11 @@ jobs:
           $account = "emtradingstorage"
           $container = "releases"
           $base = "https://$account.blob.core.windows.net/$container"
-          $common = @('--auth-mode', 'login', '--account-name', $account, '--container-name', $container, '--only-show-errors')
+          $common = @('--auth-mode', 'login', '--account-name', $account, '--container-name', $container, '--only-show-errors', '--no-progress', '--output', 'none')
 
           function Upload($file, $blobName, $contentType, $cacheControl, [switch]$Overwrite) {
-            $extra = if ($Overwrite) { @('--overwrite') } else { @() }
+            # @() keeps this an array: a bare `if` unwraps one item to a string, and splatting a string passes its characters.
+            $extra = @(if ($Overwrite) { '--overwrite' })
             az storage blob upload @common --file $file --name $blobName `
               --content-type $contentType --content-cache-control $cacheControl @extra
             if ($LASTEXITCODE -ne 0) { throw "Upload of $blobName failed" }

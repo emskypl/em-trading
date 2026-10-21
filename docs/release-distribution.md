@@ -30,6 +30,9 @@ Run the commands in Git Bash with the [Azure CLI](https://learn.microsoft.com/cl
 ### 0. Set variables
 
 ```bash
+# Git Bash rewrites arguments that start with "/" into Windows paths, which breaks --scope "/subscriptions/...".
+export MSYS_NO_PATHCONV=1
+
 RG="<resource-group-of-emtradingstorage>"   # az storage account show -n emtradingstorage --query resourceGroup -o tsv
 ACCOUNT="emtradingstorage"
 CONTAINER="releases"
@@ -92,14 +95,21 @@ az ad sp create --id "$APP_ID"
 
 Microsoft Entra federated credentials match the token subject exactly. A wildcard like `refs/tags/v*` doesn't work, so the trust is tied to a GitHub environment instead.
 
+This repo's tokens put the numeric owner and repo IDs in the subject, e.g. `repo:emskypl@24610604/em-trading@1340081797:environment:release`, not just `repo:emskypl/em-trading:...`. So the subject is built from those IDs:
+
 ```bash
+SUBJECT=$(gh api "repos/$REPO" --jq '"repo:\(.owner.login)@\(.owner.id)/\(.name)@\(.id):environment:release"')
+echo "$SUBJECT"
+
 az ad app federated-credential create --id "$APP_ID" --parameters "{
   \"name\": \"github-release-environment\",
   \"issuer\": \"https://token.actions.githubusercontent.com\",
-  \"subject\": \"repo:$REPO:environment:release\",
+  \"subject\": \"$SUBJECT\",
   \"audiences\": [\"api://AzureADTokenExchange\"]
 }"
 ```
+
+If login still fails with `AADSTS700213`, the error message quotes the exact subject GitHub sent. Put that string in the credential.
 
 ### 6. Give the identity write access to the `releases` container only
 
@@ -153,9 +163,10 @@ If the storage account's static-website feature isn't used for anything else, yo
 
 ## Troubleshooting
 
-| Error in the workflow | Cause |
+| Error | Cause |
 |---|---|
-| `AADSTS700213` / `AADSTS70021: No matching federated identity record` | The subject doesn't match. The job must run with `environment: release`, and the credential subject must be `repo:emskypl/em-trading:environment:release`. Repo names are case-sensitive. |
+| `MissingSubscription` from `az role assignment create` (setup) | Git Bash turned `/subscriptions/...` into a Windows path. Run `export MSYS_NO_PATHCONV=1` (step 0). Also check that `$SUB_ID` and `$RG` aren't empty: variables don't carry over to a new terminal. |
+| `AADSTS700213` / `AADSTS70021: No matching federated identity record` | The subject doesn't match. The job must run with `environment: release`, and the credential subject must equal the one quoted in the error, including the `@<id>` parts (step 5). |
 | `AuthorizationPermissionMismatch` | The role from step 6 is missing, or hasn't applied yet. |
 | `BlobAlreadyExists` | That tag was already uploaded. Versioned files are write-once on purpose. Publish a new tag, or delete the `vX.Y.Z/` blobs by hand if you really mean to replace them. |
 | `PublicAccessNotPermitted` when downloading | Step 2 wasn't done: the account doesn't allow anonymous blob access. |
