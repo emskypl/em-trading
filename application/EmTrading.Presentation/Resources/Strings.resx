@@ -12,6 +12,61 @@
   <data name="Nav_Jobs" xml:space="preserve"><value>Jobs</value></data>
   <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav_Guide" xml:space="preserve"><value>Guide</value></data>
+  <data name="Guide_Title" xml:space="preserve"><value>How to use EmTrading</value></data>
+  <data name="Guide_Intro" xml:space="preserve"><value>The sections follow a typical path: from downloading data, through testing and tuning a strategy, to a paper trade. Each section opens its page.</value></data>
+  <data name="Guide_OpenPage" xml:space="preserve"><value>Open page</value></data>
+  <data name="Guide_Start_Title" xml:space="preserve"><value>1. First start: keys and language</value></data>
+  <data name="Guide_Start_Body" xml:space="preserve"><value>Market data and paper trading come from Alpaca. Create a free account at alpaca.markets and generate API keys for the paper account.
+• Store the keys as Windows user environment variables Alpaca__ApiKey and Alpaca__ApiSecret (two underscores), then restart the app. When developing from source, user secrets work too (see the README).
+• Backtests of data you already have work without keys.
+• Language: Settings → Language switches between Polish and English at once.
+• Settings → Defaults sets the symbols and the initial capital the forms start with.</value></data>
+  <data name="Guide_MarketData_Title" xml:space="preserve"><value>2. Download market data</value></data>
+  <data name="Guide_MarketData_Body" xml:space="preserve"><value>Strategies are tested on data stored on this computer, so download it first.
+• Enter the symbols (e.g. AAPL, MSFT), choose the interval (Minute for the built-in strategies) and the period, then click Download.
+• Each symbol becomes a background job; SPY daily data is added automatically as the benchmark.
+• Downloading again fetches only the missing days, so a daily update takes seconds.
+• Stored locally lists what you have; select a row to preview its candles.</value></data>
+  <data name="Guide_Backtest_Title" xml:space="preserve"><value>3. Run a backtest</value></data>
+  <data name="Guide_Backtest_Body" xml:space="preserve"><value>A backtest replays a strategy over past data and reports how it would have done.
+• Choose the symbol, the period, the initial capital and the strategy. Its parameters appear below and are checked as you type.
+• Run backtest starts the engine; the status bar shows its progress and Cancel stops it.
+• The report: key figures at the top, then Equity &amp; drawdown, Price &amp; trades (entries and exits on the chart), Trade log and Analysis.
+• Background runs: enter a list of symbols and click Run for the list in background to test the same setup on all of them. Up to three run at once; results appear in History.</value></data>
+  <data name="Guide_History_Title" xml:space="preserve"><value>4. History and comparing runs</value></data>
+  <data name="Guide_History_Body" xml:space="preserve"><value>Every run is stored, including failed and cancelled ones.
+• Show results opens a run's report on the Backtest page (double-click works too).
+• Select 2 to 8 completed runs with Ctrl or Shift and click Compare selected to see their key figures side by side and their returns on one chart.
+• Analyze risk opens the selected run on the Risk analysis page.</value></data>
+  <data name="Guide_Optimization_Title" xml:space="preserve"><value>5. Optimize parameters</value></data>
+  <data name="Guide_Optimization_Body" xml:space="preserve"><value>Optimization runs one backtest for every combination of the parameters you vary and finds the best one.
+• Tick vary for the parameters to test and set from, to and step; the form shows how many combinations that gives.
+• Choose the Objective (Sharpe ratio, net profit, or return divided by maximum drawdown) and how many engine processes run in parallel.
+• The heatmap shows the score of every combination, with the best one outlined.
+• Use best parameters copies them to the backtest form. Keep in mind that the best result on past data is often partly luck: check it on another period before trusting it.</value></data>
+  <data name="Guide_Analysis_Title" xml:space="preserve"><value>6. Risk analysis (Monte Carlo)</value></data>
+  <data name="Guide_Analysis_Body" xml:space="preserve"><value>One backtest is one possible history. The risk analysis replays the same trades thousands of times to show how much worse it could have gone.
+• Shuffle trade order keeps every trade and changes only their order: the final result stays the same, the drawdowns vary.
+• Bootstrap draws trades with replacement, so the final result varies too.
+• Read the probability of loss and the percentiles: a 95th percentile drawdown of 15% means 1 simulation in 20 was worse than that.</value></data>
+  <data name="Guide_Trading_Title" xml:space="preserve"><value>7. Paper trading</value></data>
+  <data name="Guide_Trading_Body" xml:space="preserve"><value>Orders go to your Alpaca paper account: real market prices, no real money.
+• Watchlist: enter symbols and click Apply to stream their prices.
+• Order ticket: choose side, type, quantity and validity. Place order checks the risk limits and asks for confirmation before anything is sent.
+• Positions and Orders show what you hold and what is working; Close and Close all positions exit with market orders.
+• Trading enabled is the kill switch: when off, only orders that reduce a position are accepted. It switches off automatically when the day's loss limit is reached.
+• Audit log records every step, including refused orders.</value></data>
+  <data name="Guide_Jobs_Title" xml:space="preserve"><value>8. Background jobs and logs</value></data>
+  <data name="Guide_Jobs_Body" xml:space="preserve"><value>Downloads, background backtests, optimizations and symbol list refreshes run as jobs, so the app stays responsive.
+• Jobs shows their progress; a job can be cancelled there.
+• The number of active jobs is always visible in the status bar.
+• Logs shows what the app is doing, useful when something fails.</value></data>
+  <data name="Guide_Symbols_Title" xml:space="preserve"><value>Tip: finding symbols</value></data>
+  <data name="Guide_Symbols_Body" xml:space="preserve"><value>The app keeps a list of US stocks and ETFs from Alpaca and refreshes it weekly (Market data → Refresh symbols).
+• In any symbol field, type a ticker or part of a company name, e.g. "micro" or "nvidia".
+• Up and Down move through the suggestions, Enter or Tab picks one, Escape closes the list.
+• In fields that take several symbols, a picked symbol is followed by a comma, so you can type the next one straight away.</value></data>
   <data name="Shell_ActiveJobs" xml:space="preserve"><value>Active jobs:</value></data>
   <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Common_Refresh" xml:space="preserve"><value>Refresh</value></data>

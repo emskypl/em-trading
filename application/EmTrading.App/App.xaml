@@ -6,6 +6,7 @@
              xmlns:marketData="clr-namespace:EmTrading.Presentation.MarketData;assembly=EmTrading.Presentation"
              xmlns:jobs="clr-namespace:EmTrading.Presentation.Jobs;assembly=EmTrading.Presentation"
              xmlns:logs="clr-namespace:EmTrading.Presentation.Logging;assembly=EmTrading.Presentation"
+             xmlns:guide="clr-namespace:EmTrading.Presentation.Guide;assembly=EmTrading.Presentation"
              xmlns:settings="clr-namespace:EmTrading.Presentation.Settings;assembly=EmTrading.Presentation"
              xmlns:optimization="clr-namespace:EmTrading.Presentation.Optimization;assembly=EmTrading.Presentation"
              xmlns:analytics="clr-namespace:EmTrading.Presentation.Analytics;assembly=EmTrading.Presentation"
@@ -25,6 +26,7 @@
             <DataTemplate DataType="{x:Type marketData:MarketDataViewModel}"><views:MarketDataView /></DataTemplate>
             <DataTemplate DataType="{x:Type jobs:JobsViewModel}"><views:JobsView /></DataTemplate>
             <DataTemplate DataType="{x:Type logs:LogsViewModel}"><views:LogsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type guide:GuideViewModel}"><views:GuideView /></DataTemplate>
             <DataTemplate DataType="{x:Type settings:SettingsViewModel}"><views:SettingsView /></DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

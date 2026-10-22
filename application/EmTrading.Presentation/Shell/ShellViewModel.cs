@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Presentation.Analytics;
 using EmTrading.Presentation.Backtesting;
+using EmTrading.Presentation.Guide;
 using EmTrading.Presentation.Jobs;
 using EmTrading.Presentation.Localization;
 using EmTrading.Presentation.Logging;
@@ -30,6 +31,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         MarketDataViewModel marketData,
         JobsViewModel jobs,
         LogsViewModel logs,
+        GuideViewModel guide,
         SettingsViewModel settings,
         StatusViewModel status,
         IMessenger messenger)
@@ -46,6 +48,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
             new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Jobs", "", jobs),
             new NavigationItem("Nav_Logs", "", logs),
+            new NavigationItem("Nav_Guide", "", guide),
             new NavigationItem("Nav_Settings", "", settings)
         ];
 
