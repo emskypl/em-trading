@@ -74,8 +74,8 @@ Role assignments can take a few minutes to apply. If you get `AuthorizationPermi
 ### 3. Allow the landing page to read `latest.json` (CORS)
 
 ```bash
-SWA_HOST=$(az staticwebapp list --query "[0].defaultHostname" -o tsv)
-echo "$SWA_HOST"   # check that this is the landing page
+SWA_HOST=$(az staticwebapp show -n emtrading-landing-page --query defaultHostname -o tsv)
+echo "$SWA_HOST"   # gray-plant-03997c40f.2.azurestaticapps.net
 
 az storage cors add --account-name "$ACCOUNT" --services b \
   --methods GET HEAD --origins "https://$SWA_HOST" "http://localhost:5173" \
@@ -151,13 +151,9 @@ Finally, open the landing page in a private window. The download button should s
 
 ### 9. Retire the old `$web` link
 
-Once you've updated anything that links to `https://emtradingstorage.blob.core.windows.net/$web/EmTrading-Setup.msi`:
+Done: `$web/EmTrading-Setup.msi` has been removed and `$web` is empty. Use the `releases/latest/` link instead.
 
-```bash
-az storage blob delete --account-name "$ACCOUNT" -c '$web' -n EmTrading-Setup.msi --auth-mode login
-```
-
-If the storage account's static-website feature isn't used for anything else, you can turn it off: `az storage blob service-properties update --account-name "$ACCOUNT" --static-website false`.
+Optional: the storage account's static-website feature is still turned on, but with `$web` empty it serves nothing. To turn it off: `az storage blob service-properties update --account-name "$ACCOUNT" --static-website false`.
 
 ---
 
