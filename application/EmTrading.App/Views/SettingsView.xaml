@@ -35,6 +35,21 @@
                 </StackPanel>
             </Border>
 
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr Settings_Assistant}" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding AssistantStatus}" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Tr Settings_ApiKey}" Style="{StaticResource FieldLabel}" />
+                    <!-- A password box keeps the key off the screen; it has no bindable value, so the view hands it over. -->
+                    <PasswordBox x:Name="ApiKeyBox" AutomationProperties.Name="{loc:Tr Settings_ApiKey}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="{loc:Tr Settings_SaveApiKey}" Click="OnSaveApiKey" Style="{StaticResource PrimaryButton}" Margin="0,0,6,0" />
+                        <Button Content="{loc:Tr Settings_RemoveApiKey}" Command="{Binding RemoveApiKeyCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{loc:Tr Settings_ApiKeyHint}" Foreground="Gray" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource Card}">
                 <Grid>
                     <Grid.ColumnDefinitions>

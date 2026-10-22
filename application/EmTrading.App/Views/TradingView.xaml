@@ -158,6 +158,21 @@
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="{Binding Ticket.Error}" Foreground="{StaticResource NegativeBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <!-- Shown when the assistant filled in the ticket: its reason; the user still decides. -->
+                        <Border Background="#FFF6DD" CornerRadius="4" Padding="6,4" Margin="0,6,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Ticket.ProposalNote}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock TextWrapping="Wrap" FontSize="11">
+                                <Run Text="{loc:Tr Ticket_ProposedBy}" FontWeight="SemiBold" /> <Run Text="{Binding Ticket.ProposalNote, Mode=OneWay}" />
+                            </TextBlock>
+                        </Border>
                         <Button Content="{loc:Tr Ticket_Submit}" Command="{Binding PlaceOrderCommand}" Style="{StaticResource PrimaryButton}" Margin="0,8,0,4" />
                         <TextBlock Text="{loc:Tr Ticket_Hint}" Foreground="Gray" FontSize="10" TextWrapping="Wrap" />
                     </StackPanel>

@@ -20,7 +20,7 @@ public sealed record QueueBacktestsCommand(
     decimal InitialCapital,
     IReadOnlyDictionary<string, string> Parameters) : ICommand<QueuedBacktests>
 {
-    public const int MaxSymbols = 25;
+    public const int MaxSymbols = 100;
 
     internal RunBacktestCommand ForSymbol(string symbol) => new(StrategyName, symbol, Start, End, InitialCapital, Parameters);
 }

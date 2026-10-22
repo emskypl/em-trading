@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Presentation.Analytics;
+using EmTrading.Application.Assistant;
+using EmTrading.Presentation.Assistant;
 using EmTrading.Presentation.Backtesting;
+using EmTrading.Presentation.Compare;
 using EmTrading.Presentation.Guide;
 using EmTrading.Presentation.Instruments;
 using EmTrading.Presentation.Jobs;
@@ -29,6 +32,9 @@ public static class PresentationDependencyInjection
 
         services.AddSingleton<BacktestViewModel>();
         services.AddSingleton<HistoryViewModel>();
+        services.AddSingleton<CompareViewModel>();
+        services.AddSingleton<AssistantViewModel>();
+        services.AddSingleton<IAssistantActions>(sp => sp.GetRequiredService<AssistantViewModel>());
         services.AddSingleton<OptimizationViewModel>();
         services.AddSingleton<AnalysisViewModel>();
         services.AddSingleton<TradingViewModel>();

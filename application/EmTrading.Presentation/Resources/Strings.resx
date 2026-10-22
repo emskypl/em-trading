@@ -13,6 +13,72 @@
   <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Nav_Guide" xml:space="preserve"><value>Guide</value></data>
+  <data name="Nav_Compare" xml:space="preserve"><value>Compare</value></data>
+  <data name="Nav_Assistant" xml:space="preserve"><value>AI assistant</value></data>
+  <data name="Compare_Title" xml:space="preserve"><value>Compare stocks</value></data>
+  <data name="Compare_SymbolsHint" xml:space="preserve"><value>Up to 100 symbols separated by commas; type a ticker or company name for suggestions.</value></data>
+  <data name="Compare_DownloadData" xml:space="preserve"><value>1. Download data</value></data>
+  <data name="Compare_RunBacktests" xml:space="preserve"><value>2. Run backtests</value></data>
+  <data name="Compare_RunHint" xml:space="preserve"><value>Both run as background jobs (see Jobs). Backtests use the strategy's default parameters; to change them, use the Backtest page. Results appear in the table as they finish.</value></data>
+  <data name="Compare_Ranking" xml:space="preserve"><value>Ranking</value></data>
+  <data name="Compare_AllStrategies" xml:space="preserve"><value>All strategies</value></data>
+  <data name="Compare_LatestOnly" xml:space="preserve"><value>Latest run per symbol</value></data>
+  <data name="Compare_OnlyListed" xml:space="preserve"><value>Only symbols from the list</value></data>
+  <data name="Compare_ChartSelected" xml:space="preserve"><value>Chart selected</value></data>
+  <data name="Compare_ChartHint" xml:space="preserve"><value>Cumulative return of up to 8 selected runs on one chart (Ctrl/Shift + click to select).</value></data>
+  <data name="Compare_AskAssistant" xml:space="preserve"><value>Ask the assistant</value></data>
+  <data name="Compare_AskAssistantHint" xml:space="preserve"><value>Asks the AI assistant to assess the selected runs, or the top 10 when none is selected.</value></data>
+  <data name="Compare_AssistantPrompt" xml:space="preserve"><value>Compare the latest backtests of {0}. Which look strongest on risk-adjusted terms, which results are unreliable, and would any be worth a position given my account and risk limits?</value></data>
+  <data name="Compare_NetProfit" xml:space="preserve"><value>Net profit %</value></data>
+  <data name="Compare_MaxDrawdown" xml:space="preserve"><value>Max DD %</value></data>
+  <data name="Compare_ReturnOverDrawdown" xml:space="preserve"><value>Return/DD</value></data>
+  <data name="Compare_WinRate" xml:space="preserve"><value>Win rate %</value></data>
+  <data name="Compare_Empty" xml:space="preserve"><value>No completed backtests to compare yet. Enter symbols on the left, download their data, then run the backtests.</value></data>
+  <data name="Assistant_Title" xml:space="preserve"><value>AI assistant</value></data>
+  <data name="Assistant_Model" xml:space="preserve"><value>Model:</value></data>
+  <data name="Assistant_NewChat" xml:space="preserve"><value>New chat</value></data>
+  <data name="Assistant_OpenSettings" xml:space="preserve"><value>Open Settings</value></data>
+  <data name="Assistant_NoKey" xml:space="preserve"><value>The assistant needs an Anthropic API key. Enter it in Settings → AI assistant.</value></data>
+  <data name="Assistant_Intro" xml:space="preserve"><value>Ask about your backtest results, e.g. "Which of my compared stocks look best on risk-adjusted terms?" or "Is the AAPL result reliable?". The assistant reads the ranking, run details, latest prices, your account and risk limits. It can fill in the order ticket for you to review, but never places orders. Its answers are analysis, not financial advice.</value></data>
+  <data name="Assistant_OpenTrading" xml:space="preserve"><value>Open Paper trading</value></data>
+  <data name="Assistant_Send" xml:space="preserve"><value>Send</value></data>
+  <data name="Assistant_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Assistant_InputHint" xml:space="preserve"><value>Type a question and press Enter.</value></data>
+  <data name="Assistant_Stopped" xml:space="preserve"><value> (stopped)</value></data>
+  <data name="Assistant_ToolGeneric" xml:space="preserve"><value>Using {0}…</value></data>
+  <data name="Assistant_Tool_get_run_ranking" xml:space="preserve"><value>Reading the backtest ranking…</value></data>
+  <data name="Assistant_Tool_get_run_details" xml:space="preserve"><value>Reading a run's details…</value></data>
+  <data name="Assistant_Tool_list_strategies" xml:space="preserve"><value>Reading the strategies…</value></data>
+  <data name="Assistant_Tool_get_market_data_coverage" xml:space="preserve"><value>Checking stored market data…</value></data>
+  <data name="Assistant_Tool_get_latest_prices" xml:space="preserve"><value>Fetching latest prices…</value></data>
+  <data name="Assistant_Tool_get_account" xml:space="preserve"><value>Reading the account and positions…</value></data>
+  <data name="Assistant_Tool_get_risk_limits" xml:space="preserve"><value>Reading the risk limits…</value></data>
+  <data name="Assistant_Tool_propose_order_ticket" xml:space="preserve"><value>Filling in the order ticket…</value></data>
+  <data name="Assistant_ProposalNote" xml:space="preserve"><value>Order ticket filled in: {0} {1} {2}. Nothing was sent; review it on the Paper trading page and decide yourself.</value></data>
+  <data name="Ticket_ProposedBy" xml:space="preserve"><value>Proposed by the assistant:</value></data>
+  <data name="Settings_Assistant" xml:space="preserve"><value>AI assistant</value></data>
+  <data name="Settings_ApiKey" xml:space="preserve"><value>Anthropic API key</value></data>
+  <data name="Settings_SaveApiKey" xml:space="preserve"><value>Save key</value></data>
+  <data name="Settings_RemoveApiKey" xml:space="preserve"><value>Remove key</value></data>
+  <data name="Settings_ApiKeyHint" xml:space="preserve"><value>Create a key at console.anthropic.com. It is stored encrypted for your Windows account on this computer and used only to talk to the assistant; usage is billed to your Anthropic account.</value></data>
+  <data name="Settings_AssistantReady" xml:space="preserve"><value>Ready, model {0}.</value></data>
+  <data name="Settings_AssistantNoKey" xml:space="preserve"><value>No API key: the assistant is off.</value></data>
+  <data name="Status_ApiKeySaved" xml:space="preserve"><value>API key saved.</value></data>
+  <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>API key removed.</value></data>
+  <data name="Status_TicketProposed" xml:space="preserve"><value>The assistant filled in the order ticket for {0}; review it before placing.</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>9. Compare many stocks</value></data>
+  <data name="Guide_Compare_Body" xml:space="preserve"><value>The Compare page tests one strategy on up to 100 symbols and ranks the results.
+• Choose a strategy, enter the symbols and the period, click 1. Download data, wait for the jobs, then 2. Run backtests.
+• The ranking table fills in as runs finish. Click a column header to sort, e.g. by Return/DD (profit per unit of drawdown) or Sharpe ratio.
+• Latest run per symbol hides older runs of the same symbol; All strategies also shows other strategies' runs.
+• Select runs (Ctrl or Shift) and click Chart selected to see their returns together, or Show results to open one.</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>10. AI assistant</value></data>
+  <data name="Guide_Assistant_Body" xml:space="preserve"><value>The assistant (Claude by Anthropic) helps you read the results and think about positions.
+• Enter your Anthropic API key in Settings → AI assistant; it is stored encrypted for your Windows account.
+• Ask in Polish or English. It looks up the ranking, run details, latest prices, your account and risk limits itself.
+• On the Compare page, Ask the assistant sends it the selected runs.
+• It can fill in the order ticket on the Paper trading page, but never places orders: you review and submit them, and the risk checks still apply.
+• Its answers are analysis based on past data, not financial advice.</value></data>
   <data name="Guide_Title" xml:space="preserve"><value>How to use EmTrading</value></data>
   <data name="Guide_Intro" xml:space="preserve"><value>The sections follow a typical path: from downloading data, through testing and tuning a strategy, to a paper trade. Each section opens its page.</value></data>
   <data name="Guide_OpenPage" xml:space="preserve"><value>Open page</value></data>

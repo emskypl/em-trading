@@ -113,4 +113,28 @@ internal sealed class BacktestHistoryReader(TradingDbContext db) : IBacktestHist
                 r.OptimizationId?.Value))
             .ToList();
     }
+
+    public async Task<IReadOnlyList<RankedRun>> ListRankedAsync(CancellationToken cancellationToken = default)
+    {
+        var rows = await db.BacktestRuns.AsNoTracking()
+            .Where(r => r.Status == BacktestStatus.Completed && r.OptimizationId == null && r.Metrics != null)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new
+            {
+                r.Id,
+                r.Symbol,
+                r.Strategy,
+                r.Period.Start,
+                r.Period.End,
+                r.InitialCapital.Amount,
+                r.CreatedAt,
+                r.Metrics
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return rows
+            .Select(r => RankedRun.Create(r.Id.Value, r.Symbol.Value, r.Strategy.Value, r.Start, r.End, r.Amount, r.CreatedAt, r.Metrics!))
+            .ToList();
+    }
 }

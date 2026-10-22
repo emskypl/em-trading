@@ -13,6 +13,72 @@
   <data name="Nav_Logs" xml:space="preserve"><value>Logi</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Ustawienia</value></data>
   <data name="Nav_Guide" xml:space="preserve"><value>Przewodnik</value></data>
+  <data name="Nav_Compare" xml:space="preserve"><value>Porównanie</value></data>
+  <data name="Nav_Assistant" xml:space="preserve"><value>Asystent AI</value></data>
+  <data name="Compare_Title" xml:space="preserve"><value>Porównanie spółek</value></data>
+  <data name="Compare_SymbolsHint" xml:space="preserve"><value>Do 100 symboli oddzielonych przecinkami; wpisz ticker lub nazwę spółki, aby zobaczyć podpowiedzi.</value></data>
+  <data name="Compare_DownloadData" xml:space="preserve"><value>1. Pobierz dane</value></data>
+  <data name="Compare_RunBacktests" xml:space="preserve"><value>2. Uruchom backtesty</value></data>
+  <data name="Compare_RunHint" xml:space="preserve"><value>Oba kroki działają jako zadania w tle (zob. Zadania). Backtesty używają domyślnych parametrów strategii; aby je zmienić, użyj strony Backtest. Wyniki pojawiają się w tabeli w miarę kończenia.</value></data>
+  <data name="Compare_Ranking" xml:space="preserve"><value>Ranking</value></data>
+  <data name="Compare_AllStrategies" xml:space="preserve"><value>Wszystkie strategie</value></data>
+  <data name="Compare_LatestOnly" xml:space="preserve"><value>Najnowszy przebieg na symbol</value></data>
+  <data name="Compare_OnlyListed" xml:space="preserve"><value>Tylko symbole z listy</value></data>
+  <data name="Compare_ChartSelected" xml:space="preserve"><value>Wykres zaznaczonych</value></data>
+  <data name="Compare_ChartHint" xml:space="preserve"><value>Skumulowany zwrot maksymalnie 8 zaznaczonych przebiegów na jednym wykresie (zaznaczanie z Ctrl lub Shift).</value></data>
+  <data name="Compare_AskAssistant" xml:space="preserve"><value>Zapytaj asystenta</value></data>
+  <data name="Compare_AskAssistantHint" xml:space="preserve"><value>Prosi asystenta AI o ocenę zaznaczonych przebiegów albo 10 najlepszych, gdy nic nie jest zaznaczone.</value></data>
+  <data name="Compare_AssistantPrompt" xml:space="preserve"><value>Porównaj najnowsze backtesty dla {0}. Które wyglądają najlepiej po uwzględnieniu ryzyka, które wyniki są mało wiarygodne i czy któraś pozycja byłaby warta otwarcia przy moim koncie i limitach ryzyka?</value></data>
+  <data name="Compare_NetProfit" xml:space="preserve"><value>Zysk netto %</value></data>
+  <data name="Compare_MaxDrawdown" xml:space="preserve"><value>Maks. obs. %</value></data>
+  <data name="Compare_ReturnOverDrawdown" xml:space="preserve"><value>Zwrot/obs.</value></data>
+  <data name="Compare_WinRate" xml:space="preserve"><value>Skuteczność %</value></data>
+  <data name="Compare_Empty" xml:space="preserve"><value>Nie ma jeszcze zakończonych backtestów do porównania. Wpisz symbole po lewej, pobierz dane, a potem uruchom backtesty.</value></data>
+  <data name="Assistant_Title" xml:space="preserve"><value>Asystent AI</value></data>
+  <data name="Assistant_Model" xml:space="preserve"><value>Model:</value></data>
+  <data name="Assistant_NewChat" xml:space="preserve"><value>Nowa rozmowa</value></data>
+  <data name="Assistant_OpenSettings" xml:space="preserve"><value>Otwórz Ustawienia</value></data>
+  <data name="Assistant_NoKey" xml:space="preserve"><value>Asystent potrzebuje klucza API Anthropic. Wpisz go w Ustawienia → Asystent AI.</value></data>
+  <data name="Assistant_Intro" xml:space="preserve"><value>Pytaj o wyniki backtestów, np. „Które z porównywanych spółek wyglądają najlepiej po uwzględnieniu ryzyka?” albo „Czy wynik AAPL jest wiarygodny?”. Asystent czyta ranking, szczegóły przebiegów, aktualne ceny, Twoje konto i limity ryzyka. Może wypełnić formularz zlecenia do Twojej oceny, ale nigdy nie składa zleceń. Jego odpowiedzi to analiza, nie porada inwestycyjna.</value></data>
+  <data name="Assistant_OpenTrading" xml:space="preserve"><value>Otwórz Handel (paper)</value></data>
+  <data name="Assistant_Send" xml:space="preserve"><value>Wyślij</value></data>
+  <data name="Assistant_Stop" xml:space="preserve"><value>Zatrzymaj</value></data>
+  <data name="Assistant_InputHint" xml:space="preserve"><value>Wpisz pytanie i naciśnij Enter.</value></data>
+  <data name="Assistant_Stopped" xml:space="preserve"><value> (zatrzymano)</value></data>
+  <data name="Assistant_ToolGeneric" xml:space="preserve"><value>Używam {0}…</value></data>
+  <data name="Assistant_Tool_get_run_ranking" xml:space="preserve"><value>Czytam ranking backtestów…</value></data>
+  <data name="Assistant_Tool_get_run_details" xml:space="preserve"><value>Czytam szczegóły przebiegu…</value></data>
+  <data name="Assistant_Tool_list_strategies" xml:space="preserve"><value>Czytam listę strategii…</value></data>
+  <data name="Assistant_Tool_get_market_data_coverage" xml:space="preserve"><value>Sprawdzam zapisane dane rynkowe…</value></data>
+  <data name="Assistant_Tool_get_latest_prices" xml:space="preserve"><value>Pobieram aktualne ceny…</value></data>
+  <data name="Assistant_Tool_get_account" xml:space="preserve"><value>Czytam konto i pozycje…</value></data>
+  <data name="Assistant_Tool_get_risk_limits" xml:space="preserve"><value>Czytam limity ryzyka…</value></data>
+  <data name="Assistant_Tool_propose_order_ticket" xml:space="preserve"><value>Wypełniam formularz zlecenia…</value></data>
+  <data name="Assistant_ProposalNote" xml:space="preserve"><value>Formularz zlecenia wypełniony: {0} {1} {2}. Nic nie zostało wysłane; sprawdź go na stronie Handel (paper) i zdecyduj sam.</value></data>
+  <data name="Ticket_ProposedBy" xml:space="preserve"><value>Propozycja asystenta:</value></data>
+  <data name="Settings_Assistant" xml:space="preserve"><value>Asystent AI</value></data>
+  <data name="Settings_ApiKey" xml:space="preserve"><value>Klucz API Anthropic</value></data>
+  <data name="Settings_SaveApiKey" xml:space="preserve"><value>Zapisz klucz</value></data>
+  <data name="Settings_RemoveApiKey" xml:space="preserve"><value>Usuń klucz</value></data>
+  <data name="Settings_ApiKeyHint" xml:space="preserve"><value>Klucz utworzysz na console.anthropic.com. Jest zapisywany w postaci zaszyfrowanej dla Twojego konta Windows na tym komputerze i służy tylko do rozmowy z asystentem; użycie jest rozliczane na Twoim koncie Anthropic.</value></data>
+  <data name="Settings_AssistantReady" xml:space="preserve"><value>Gotowy, model {0}.</value></data>
+  <data name="Settings_AssistantNoKey" xml:space="preserve"><value>Brak klucza API: asystent jest wyłączony.</value></data>
+  <data name="Status_ApiKeySaved" xml:space="preserve"><value>Zapisano klucz API.</value></data>
+  <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>Usunięto klucz API.</value></data>
+  <data name="Status_TicketProposed" xml:space="preserve"><value>Asystent wypełnił formularz zlecenia dla {0}; sprawdź go przed złożeniem.</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>9. Porównanie wielu spółek</value></data>
+  <data name="Guide_Compare_Body" xml:space="preserve"><value>Strona Porównanie testuje jedną strategię na maksymalnie 100 symbolach i układa wyniki w ranking.
+• Wybierz strategię, wpisz symbole i okres, kliknij 1. Pobierz dane, poczekaj na zadania, potem 2. Uruchom backtesty.
+• Tabela rankingu wypełnia się w miarę kończenia przebiegów. Kliknij nagłówek kolumny, aby sortować, np. po Zwrot/obs. (zysk na jednostkę obsunięcia) albo wskaźniku Sharpe'a.
+• Najnowszy przebieg na symbol ukrywa starsze przebiegi tego samego symbolu; Wszystkie strategie pokazuje też przebiegi innych strategii.
+• Zaznacz przebiegi (Ctrl lub Shift) i kliknij Wykres zaznaczonych, aby zobaczyć ich zwroty razem, albo Pokaż wyniki, aby otworzyć jeden.</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>10. Asystent AI</value></data>
+  <data name="Guide_Assistant_Body" xml:space="preserve"><value>Asystent (Claude od Anthropic) pomaga czytać wyniki i zastanowić się nad pozycjami.
+• Wpisz klucz API Anthropic w Ustawienia → Asystent AI; jest zapisywany w postaci zaszyfrowanej dla Twojego konta Windows.
+• Pytaj po polsku lub po angielsku. Sam sprawdza ranking, szczegóły przebiegów, aktualne ceny, Twoje konto i limity ryzyka.
+• Na stronie Porównanie przycisk Zapytaj asystenta wysyła mu zaznaczone przebiegi.
+• Może wypełnić formularz zlecenia na stronie Handel (paper), ale nigdy nie składa zleceń: to Ty je sprawdzasz i składasz, a kontrole ryzyka nadal działają.
+• Jego odpowiedzi to analiza oparta na danych historycznych, nie porada inwestycyjna.</value></data>
   <data name="Guide_Title" xml:space="preserve"><value>Jak korzystać z EmTrading</value></data>
   <data name="Guide_Intro" xml:space="preserve"><value>Sekcje idą typową ścieżką: od pobrania danych, przez testowanie i dostrajanie strategii, do transakcji na koncie paper. Każda sekcja otwiera swoją stronę.</value></data>
   <data name="Guide_OpenPage" xml:space="preserve"><value>Otwórz stronę</value></data>

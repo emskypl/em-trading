@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using EmTrading.Application.Abstractions.Events;
 using EmTrading.Application.Abstractions.Messaging;
+using EmTrading.Application.Assistant;
 using EmTrading.Application.Behaviors;
 using EmTrading.Application.Messaging;
 using EmTrading.Application.Trading;
@@ -24,6 +25,7 @@ public static class ApplicationDependencyInjection
         services.AddSingleton<TradingActivity>();
         services.AddSingleton<LiveTradingSession>();
         services.AddTransient<Audit>();
+        services.AddTransient<IAssistantToolbox, AssistantToolbox>();
 
         // Order matters, outermost first: logging, validation, then unit of work (commands) and caching (queries).
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));

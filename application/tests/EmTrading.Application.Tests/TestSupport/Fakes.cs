@@ -131,6 +131,19 @@ internal sealed class InMemoryDatabase :
     private IEnumerable<BacktestRun> CompletedWithoutMetrics() =>
         Runs.Where(r => r.Status == BacktestStatus.Completed && r.Metrics is null).OrderBy(r => r.CreatedAt);
 
+    public Task<IReadOnlyList<RankedRun>> ListRankedAsync(CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+        {
+            return Task.FromResult<IReadOnlyList<RankedRun>>(Runs
+                .Where(r => r.Status == BacktestStatus.Completed && r.OptimizationId is null && r.Metrics is not null)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => RankedRun.Create(r.Id.Value, r.Symbol.Value, r.Strategy.Value, r.Period.Start, r.Period.End,
+                    r.InitialCapital.Amount, r.CreatedAt, r.Metrics!))
+                .ToList());
+        }
+    }
+
     public Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, bool includeTrials = false, CancellationToken cancellationToken = default)
     {
         lock (Sync)

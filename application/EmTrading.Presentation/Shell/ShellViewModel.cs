@@ -4,7 +4,9 @@ using System.Windows.Markup;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Presentation.Analytics;
+using EmTrading.Presentation.Assistant;
 using EmTrading.Presentation.Backtesting;
+using EmTrading.Presentation.Compare;
 using EmTrading.Presentation.Guide;
 using EmTrading.Presentation.Jobs;
 using EmTrading.Presentation.Localization;
@@ -25,6 +27,8 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
     public ShellViewModel(
         BacktestViewModel backtest,
         HistoryViewModel history,
+        CompareViewModel compare,
+        AssistantViewModel assistant,
         OptimizationViewModel optimization,
         AnalysisViewModel analysis,
         TradingViewModel trading,
@@ -42,6 +46,8 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         [
             new NavigationItem("Nav_Backtest", "", backtest),
             new NavigationItem("Nav_History", "", history),
+            new NavigationItem("Nav_Compare", "", compare),
+            new NavigationItem("Nav_Assistant", "", assistant),
             new NavigationItem("Nav_Optimization", "", optimization),
             new NavigationItem("Nav_Analysis", "", analysis),
             new NavigationItem("Nav_Trading", "", trading),

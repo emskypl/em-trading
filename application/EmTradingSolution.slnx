@@ -14,6 +14,7 @@
   <Project Path="EmTrading.Domain/EmTrading.Domain.csproj" />
   <Project Path="EmTrading.EngineRunner/EmTrading.EngineRunner.csproj" />
   <Project Path="EmTrading.Infrastructure.Alpaca/EmTrading.Infrastructure.Alpaca.csproj" />
+  <Project Path="EmTrading.Infrastructure.Anthropic/EmTrading.Infrastructure.Anthropic.csproj" />
   <Project Path="EmTrading.Infrastructure.Lean/EmTrading.Infrastructure.Lean.csproj" />
   <Project Path="EmTrading.Infrastructure/EmTrading.Infrastructure.csproj" />
   <Project Path="EmTrading.Presentation/EmTrading.Presentation.csproj" />

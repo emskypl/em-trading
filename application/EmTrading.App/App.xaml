@@ -7,6 +7,8 @@
              xmlns:jobs="clr-namespace:EmTrading.Presentation.Jobs;assembly=EmTrading.Presentation"
              xmlns:logs="clr-namespace:EmTrading.Presentation.Logging;assembly=EmTrading.Presentation"
              xmlns:guide="clr-namespace:EmTrading.Presentation.Guide;assembly=EmTrading.Presentation"
+             xmlns:compare="clr-namespace:EmTrading.Presentation.Compare;assembly=EmTrading.Presentation"
+             xmlns:assistant="clr-namespace:EmTrading.Presentation.Assistant;assembly=EmTrading.Presentation"
              xmlns:settings="clr-namespace:EmTrading.Presentation.Settings;assembly=EmTrading.Presentation"
              xmlns:optimization="clr-namespace:EmTrading.Presentation.Optimization;assembly=EmTrading.Presentation"
              xmlns:analytics="clr-namespace:EmTrading.Presentation.Analytics;assembly=EmTrading.Presentation"
@@ -20,6 +22,8 @@
             <!-- View-model-first navigation: the shell shows a page view model, WPF picks its view here. -->
             <DataTemplate DataType="{x:Type backtesting:BacktestViewModel}"><views:BacktestView /></DataTemplate>
             <DataTemplate DataType="{x:Type backtesting:HistoryViewModel}"><views:HistoryView /></DataTemplate>
+            <DataTemplate DataType="{x:Type compare:CompareViewModel}"><views:CompareView /></DataTemplate>
+            <DataTemplate DataType="{x:Type assistant:AssistantViewModel}"><views:AssistantView /></DataTemplate>
             <DataTemplate DataType="{x:Type optimization:OptimizationViewModel}"><views:OptimizationView /></DataTemplate>
             <DataTemplate DataType="{x:Type analytics:AnalysisViewModel}"><views:AnalysisView /></DataTemplate>
             <DataTemplate DataType="{x:Type trading:TradingViewModel}"><views:TradingView /></DataTemplate>

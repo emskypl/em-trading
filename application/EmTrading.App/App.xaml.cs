@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using EmTrading.Application;
 using EmTrading.Infrastructure;
 using EmTrading.Infrastructure.Alpaca;
+using EmTrading.Infrastructure.Anthropic;
 using EmTrading.Infrastructure.Lean;
 using System.IO;
 using EmTrading.App.Hosting;
@@ -109,6 +110,7 @@ public partial class App : System.Windows.Application
             .AddAlpacaMarketData(builder.Configuration)
             .AddAlpacaTrading()
             .AddLeanEngine(builder.Configuration)
+            .AddAnthropicAssistant(builder.Configuration)
             .AddPresentationServices();
 
         builder.Services.AddSingleton<MainWindow>();

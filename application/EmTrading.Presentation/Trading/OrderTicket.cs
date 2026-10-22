@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using EmTrading.Application.Assistant;
 using EmTrading.Application.Trading.Orders;
 using EmTrading.Domain.Trading;
 using EmTrading.Presentation.Localization;
@@ -43,6 +44,22 @@ public sealed partial class OrderTicket : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(EstimatedValue))]
     private decimal? _livePrice;
+
+    /// <summary>Set when the assistant filled in the ticket: why it proposed the order. Cleared by the next proposal.</summary>
+    [ObservableProperty] private string? _proposalNote;
+
+    /// <summary>Fills in the ticket from the assistant's proposal. Nothing is sent: the user reviews and submits it.</summary>
+    public void Apply(OrderProposal proposal)
+    {
+        Symbol = proposal.Symbol;
+        Side = proposal.Side;
+        Type = proposal.Type;
+        Quantity = proposal.Quantity.ToString(CultureInfo.InvariantCulture);
+        LimitPrice = proposal.LimitPrice?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        StopPrice = string.Empty;
+        TimeInForce = TimeInForce.Day;
+        ProposalNote = proposal.Reason;
+    }
 
     public IReadOnlyList<OrderSide> Sides { get; } = Enum.GetValues<OrderSide>();
 

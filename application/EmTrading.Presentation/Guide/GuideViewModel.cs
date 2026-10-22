@@ -29,6 +29,8 @@ public sealed partial class GuideViewModel(IMessenger messenger, StatusViewModel
         new("Analysis", typeof(AnalysisViewModel)),
         new("Trading", typeof(TradingViewModel)),
         new("Jobs", typeof(JobsViewModel)),
+        new("Compare", typeof(Compare.CompareViewModel)),
+        new("Assistant", typeof(Assistant.AssistantViewModel)),
         new("Symbols", null)
     ];
 

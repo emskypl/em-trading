@@ -4,7 +4,9 @@ using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData;
 using EmTrading.Domain.MarketData;
 using EmTrading.Infrastructure;
+using EmTrading.Application.Assistant;
 using EmTrading.Infrastructure.Alpaca;
+using EmTrading.Infrastructure.Anthropic;
 using EmTrading.Infrastructure.Lean;
 using EmTrading.Infrastructure.MarketData;
 using EmTrading.Presentation.Shell;
@@ -24,6 +26,7 @@ public class LayerDependencyTests
     private const string InfrastructureNamespace = "EmTrading.Infrastructure";
     private const string AlpacaNamespace = "EmTrading.Infrastructure.Alpaca";
     private const string LeanNamespace = "EmTrading.Infrastructure.Lean";
+    private const string AnthropicNamespace = "EmTrading.Infrastructure.Anthropic";
     private const string StrategiesNamespace = "EmTrading.Strategies";
     private const string PresentationNamespace = "EmTrading.Presentation";
     private const string AppNamespace = "EmTrading.App";
@@ -34,6 +37,7 @@ public class LayerDependencyTests
     private static readonly Assembly InfrastructureAssembly = typeof(InfrastructureDependencyInjection).Assembly;
     private static readonly Assembly AlpacaAssembly = typeof(AlpacaDependencyInjection).Assembly;
     private static readonly Assembly LeanAssembly = typeof(LeanDependencyInjection).Assembly;
+    private static readonly Assembly AnthropicAssembly = typeof(AnthropicDependencyInjection).Assembly;
     private static readonly Assembly StrategiesAssembly = typeof(StrategyBase).Assembly;
     private static readonly Assembly PresentationAssembly = typeof(ShellViewModel).Assembly;
     private static readonly Assembly ControlsAssembly = typeof(KpiCard).Assembly;
@@ -73,16 +77,18 @@ public class LayerDependencyTests
     public void Shared_infrastructure_knows_no_adapter_or_engine()
     {
         AssertNoDependency(InfrastructureAssembly,
-            [AlpacaNamespace, LeanNamespace, StrategiesNamespace, "QuantConnect", PresentationNamespace, AppNamespace, .. UiFrameworks]);
+            [AlpacaNamespace, LeanNamespace, AnthropicNamespace, StrategiesNamespace, "QuantConnect", PresentationNamespace, AppNamespace, .. UiFrameworks]);
     }
 
     [Fact]
     public void Adapters_are_independent_of_each_other_and_of_the_ui()
     {
         AssertNoDependency(AlpacaAssembly,
-            [LeanNamespace, StrategiesNamespace, "QuantConnect", "Microsoft.EntityFrameworkCore", PresentationNamespace, AppNamespace, .. UiFrameworks]);
+            [LeanNamespace, AnthropicNamespace, StrategiesNamespace, "QuantConnect", "Microsoft.EntityFrameworkCore", PresentationNamespace, AppNamespace, .. UiFrameworks]);
         AssertNoDependency(LeanAssembly,
-            [AlpacaNamespace, "Microsoft.EntityFrameworkCore", PresentationNamespace, AppNamespace, .. UiFrameworks]);
+            [AlpacaNamespace, AnthropicNamespace, "Microsoft.EntityFrameworkCore", PresentationNamespace, AppNamespace, .. UiFrameworks]);
+        AssertNoDependency(AnthropicAssembly,
+            [AlpacaNamespace, LeanNamespace, StrategiesNamespace, "QuantConnect", "Microsoft.EntityFrameworkCore", PresentationNamespace, AppNamespace, .. UiFrameworks]);
     }
 
     [Fact]
@@ -101,10 +107,10 @@ public class LayerDependencyTests
         Type[] ports =
         [
             typeof(IBacktestEngine), typeof(IBacktestResultReader), typeof(IMarketDataDownloader), typeof(IStrategyCatalog),
-            typeof(IHistoricalBarSource), typeof(IMarketDataStore)
+            typeof(IHistoricalBarSource), typeof(IMarketDataStore), typeof(IAssistantClient), typeof(IAssistantCredentials)
         ];
 
-        foreach (var assembly in new[] { InfrastructureAssembly, AlpacaAssembly, LeanAssembly })
+        foreach (var assembly in new[] { InfrastructureAssembly, AlpacaAssembly, LeanAssembly, AnthropicAssembly })
         {
             var publicImplementations = assembly.GetTypes()
                 .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic))

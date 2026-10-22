@@ -105,6 +105,10 @@ public sealed class PersistenceTests : IAsyncLifetime
         Assert.Equal(0, await repository.CountCompletedWithoutMetricsAsync(ct));
         Assert.Equal(metrics, (await repository.GetAsync(withMetrics.Id, ct))!.Metrics);
         Assert.Equal(-3m, (await repository.GetAsync(olderRun.Id, ct))!.Metrics!.NetProfitPercent);
+
+        var ranked = await new BacktestHistoryReader(check).ListRankedAsync(ct);
+        Assert.Equal([("AAPL", 12.5m), ("MSFT", -3m)], ranked.OrderBy(r => r.Symbol).Select(r => (r.Symbol, r.NetProfitPercent)));
+        Assert.Equal(new DateOnly(2026, 1, 2), ranked[0].Start);
     }
 
     [Fact]

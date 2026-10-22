@@ -22,7 +22,7 @@ public sealed record QueueMarketDataDownloadsCommand(
     /// <summary>Lean's default benchmark; backtests compare against its daily bars.</summary>
     public const string BenchmarkSymbol = "SPY";
 
-    public const int MaxSymbols = 25;
+    public const int MaxSymbols = 100;
 }
 
 /// <param name="AlreadyQueued">Symbols skipped because a download for them is still queued or running.</param>

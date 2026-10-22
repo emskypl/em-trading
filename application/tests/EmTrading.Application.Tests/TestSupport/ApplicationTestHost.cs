@@ -1,6 +1,7 @@
 using EmTrading.Application.Abstractions.Jobs;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
+using EmTrading.Application.Assistant;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.Instruments;
@@ -56,6 +57,9 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IAuditLog>(AuditLog);
         services.AddSingleton<IInstrumentSource>(InstrumentSource);
         services.AddSingleton<IInstrumentStore>(Instruments);
+        services.AddSingleton<IAssistantCredentials>(AssistantCredentials);
+        services.AddSingleton<IAssistantClient>(new FakeAssistantClient(AssistantCredentials));
+        services.AddSingleton<IAssistantActions>(AssistantActions);
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
@@ -77,6 +81,10 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
     public InMemoryAuditLog AuditLog { get; } = new();
     public FakeInstrumentSource InstrumentSource { get; } = new();
     public InMemoryInstrumentStore Instruments { get; } = new();
+    public InMemoryAssistantCredentials AssistantCredentials { get; } = new();
+    public RecordingAssistantActions AssistantActions { get; } = new();
+
+    public IAssistantToolbox Toolbox => _provider.GetRequiredService<IAssistantToolbox>();
 
     public IDispatcher Dispatcher => _provider.GetRequiredService<IDispatcher>();
 

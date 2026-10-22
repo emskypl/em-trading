@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Trading;
@@ -22,7 +23,7 @@ namespace EmTrading.Presentation.Trading;
 /// Live data and order events arrive on background threads; they only request a refresh, which
 /// <see cref="ThrottledAction"/> runs on the UI thread at most a few times per second.
 /// </summary>
-public sealed partial class TradingViewModel : PageViewModel
+public sealed partial class TradingViewModel : PageViewModel, IRecipient<PrefillOrderTicketMessage>
 {
     private static readonly char[] SymbolSeparators = [',', ';', ' '];
     private static readonly TimeSpan LiveRefreshInterval = TimeSpan.FromMilliseconds(250);
@@ -44,11 +45,13 @@ public sealed partial class TradingViewModel : PageViewModel
         IConnectionMonitor connections,
         TradingActivity activity,
         IUserConfirmation confirmation,
+        IMessenger messenger,
         StatusViewModel status,
         UserSettings settings,
         ILogger<TradingViewModel> logger)
         : base(status, logger)
     {
+        messenger.RegisterAll(this);
         _dispatcher = dispatcher;
         _live = live;
         _quotes = quotes;
@@ -67,6 +70,14 @@ public sealed partial class TradingViewModel : PageViewModel
     }
 
     public OrderTicket Ticket { get; } = new();
+
+    /// <summary>The assistant proposed an order: fill in the ticket and show its price. Nothing is sent.</summary>
+    public void Receive(PrefillOrderTicketMessage message)
+    {
+        Ticket.Apply(message.Proposal);
+        SelectedSymbol = message.Proposal.Symbol;
+        Status.Show(Loc.Format("Status_TicketProposed", message.Proposal.Symbol));
+    }
 
     // Watchlist and chart
     [ObservableProperty] private string _watchlistText;

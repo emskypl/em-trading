@@ -94,6 +94,12 @@ public sealed record MarketDataChangedMessage;
 /// <summary>The stored instrument list was refreshed.</summary>
 public sealed record InstrumentsChangedMessage;
 
+/// <summary>Start a question to the assistant, e.g. about runs selected on the compare page.</summary>
+public sealed record AskAssistantMessage(string Question);
+
+/// <summary>The assistant proposed an order: fill in the order ticket for the user to review. Nothing is sent.</summary>
+public sealed record PrefillOrderTicketMessage(Application.Assistant.OrderProposal Proposal);
+
 /// <summary>Show the report of a finished run on the backtest page.</summary>
 public sealed record OpenBacktestRunMessage(BacktestRunSummary Run);
 
