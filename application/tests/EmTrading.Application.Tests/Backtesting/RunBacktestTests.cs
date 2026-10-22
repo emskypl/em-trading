@@ -3,6 +3,7 @@ using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.RunBacktest;
 using EmTrading.Application.Tests.TestSupport;
 using EmTrading.Domain.Backtesting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 
 namespace EmTrading.Application.Tests.Backtesting;
@@ -10,6 +11,7 @@ namespace EmTrading.Application.Tests.Backtesting;
 public class RunBacktestCommandHandlerTests
 {
     private readonly FakeBacktestEngine _engine = new();
+    private readonly CountingResultReader _results = new();
     private readonly RecordingEventPublisher _events = new();
     private readonly InMemoryDatabase _runs = new();
     private readonly InMemoryUnitOfWork _unitOfWork;
@@ -110,7 +112,39 @@ public class RunBacktestCommandHandlerTests
         Assert.Equal(BacktestStatus.Failed, Assert.Single(_runs.Runs).Status);
     }
 
-    private RunBacktestCommandHandler CreateHandler() => new(_engine, _runs, _unitOfWork, new FakeStrategyCatalog(), _clock);
+    [Fact]
+    public async Task Completed_run_stores_metrics_calculated_from_its_result()
+    {
+        _results.ReportFor = runId => new BacktestReport(
+            runId,
+            new Dictionary<string, string>(),
+            new TradeStatistics(1, 2.5m, 1, 0),
+            [new(new DateTime(2026, 1, 2), 100_000m), new(new DateTime(2026, 1, 5), 95_000m), new(new DateTime(2026, 1, 6), 110_000m)],
+            [new(1, "AAPL", Domain.Trading.TradeDirection.Long, 10, new DateTime(2026, 1, 2), 100, new DateTime(2026, 1, 6), 110, "Exit", 100, 0)]);
+
+        var result = await CreateHandler().HandleAsync(Command(), TestContext.Current.CancellationToken);
+
+        var metrics = Assert.Single(_runs.Runs).Metrics;
+        Assert.NotNull(metrics);
+        Assert.Equal((10m, 5m, 1, 100m, 2.5m), (metrics.NetProfitPercent, metrics.MaxDrawdownPercent, metrics.TotalTrades, metrics.WinRatePercent, metrics.ProfitFactor));
+        Assert.Equal(metrics, result.Value.Metrics);
+    }
+
+    [Fact]
+    public async Task Run_without_a_readable_result_completes_without_metrics()
+    {
+        _results.ReportFor = _ => null;
+        var missing = await CreateHandler().HandleAsync(Command(), TestContext.Current.CancellationToken);
+
+        _results.ReportFor = _ => throw new IOException("result file locked");
+        var unreadable = await CreateHandler().HandleAsync(Command(fast: 30), TestContext.Current.CancellationToken);
+
+        Assert.True(missing.IsSuccess && unreadable.IsSuccess);
+        Assert.All(_runs.Runs, run => Assert.Equal((BacktestStatus.Completed, (PerformanceMetrics?)null), (run.Status, run.Metrics)));
+    }
+
+    private RunBacktestCommandHandler CreateHandler() =>
+        new(_engine, _results, _runs, _unitOfWork, new FakeStrategyCatalog(), _clock, NullLogger<RunBacktestCommandHandler>.Instance);
 
     internal static RunBacktestCommand Command(int fast = 26, int slow = 130) => new(
         "SmaCrossStrategy",

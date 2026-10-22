@@ -39,7 +39,7 @@ public sealed class OptimizationTrial : Entity<int>
 
     public BacktestRunId? RunId { get; private set; }
 
-    public TrialMetrics? Metrics { get; private set; }
+    public PerformanceMetrics? Metrics { get; private set; }
 
     public string? FailureReason { get; private set; }
 
@@ -52,7 +52,7 @@ public sealed class OptimizationTrial : Entity<int>
         RunId = runId;
     }
 
-    internal void Complete(TrialMetrics metrics)
+    internal void Complete(PerformanceMetrics metrics)
     {
         EnsureStatus(TrialStatus.Running, "complete");
         Status = TrialStatus.Completed;

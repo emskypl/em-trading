@@ -137,7 +137,7 @@ public sealed class OptimizationRun : AggregateRoot<OptimizationRunId>
         Trial(index).Start(runId);
     }
 
-    public void CompleteTrial(int index, TrialMetrics metrics, DateTimeOffset at)
+    public void CompleteTrial(int index, PerformanceMetrics metrics, DateTimeOffset at)
     {
         EnsureRunning("complete a trial of");
         Trial(index).Complete(metrics);

@@ -1,4 +1,5 @@
 using EmTrading.Application.Abstractions.Messaging;
+using EmTrading.Domain.Backtesting;
 
 namespace EmTrading.Application.Backtesting.RunBacktest;
 
@@ -23,4 +24,5 @@ public sealed record OptimizationTrialReference(string OptimizationId, int Index
 /// <summary>
 /// Identifies a completed run; pass it to <c>GetBacktestReportQuery</c> to load the report.
 /// </summary>
-public sealed record BacktestRunResult(string RunId, string Symbol, string StrategyName);
+/// <param name="Metrics">The run's key figures, or <c>null</c> if its result could not be read.</param>
+public sealed record BacktestRunResult(string RunId, string Symbol, string StrategyName, PerformanceMetrics? Metrics = null);

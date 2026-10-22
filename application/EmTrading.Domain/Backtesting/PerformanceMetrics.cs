@@ -1,24 +1,16 @@
-namespace EmTrading.Domain.Optimization;
+using EmTrading.Domain.Optimization;
 
-/// <summary>What an optimization maximizes.</summary>
-public enum OptimizationObjective
-{
-    SharpeRatio,
-    NetProfit,
-
-    /// <summary>Net profit divided by maximum drawdown: rewards return earned with shallow drawdowns.</summary>
-    ReturnOverDrawdown
-}
+namespace EmTrading.Domain.Backtesting;
 
 /// <summary>
-/// Key figures of one finished trial, calculated by the app from the run's equity curve and trades so every
-/// trial is scored the same way.
+/// Key figures of one finished run, calculated by the app from the run's equity curve and trades so every run is
+/// measured the same way and runs can be ranked against each other.
 /// </summary>
 /// <param name="NetProfitPercent">e.g. 12.5 for +12.5%.</param>
 /// <param name="MaxDrawdownPercent">Deepest fall from a peak, as a positive number, e.g. 8.2.</param>
 /// <param name="SharpeRatio">Annualized, from daily returns.</param>
 /// <param name="WinRatePercent">Share of closed trades with a profit, e.g. 55.</param>
-public sealed record TrialMetrics(
+public sealed record PerformanceMetrics(
     decimal NetProfitPercent,
     decimal MaxDrawdownPercent,
     decimal SharpeRatio,

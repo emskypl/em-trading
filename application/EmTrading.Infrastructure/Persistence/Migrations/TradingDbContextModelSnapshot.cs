@@ -34,6 +34,10 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("FinishedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Metrics")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("OptimizationId")
                         .HasMaxLength(128)
                         .HasColumnType("TEXT")

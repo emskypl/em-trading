@@ -27,3 +27,14 @@ internal sealed class StrategyParametersConverter() : ValueConverter<StrategyPar
     private static StrategyParameters FromJson(string json) =>
         StrategyParameters.Create(JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? []);
 }
+
+/// <summary>
+/// Stores metrics as one JSON column. Ranking happens in memory: SQLite cannot compare decimals in SQL anyway.
+/// Metrics are an immutable record, so the default (value equality) comparer works.
+/// </summary>
+internal sealed class PerformanceMetricsConverter() : ValueConverter<PerformanceMetrics?, string?>(
+    metrics => metrics == null ? null : JsonSerializer.Serialize(metrics, JsonOptions),
+    json => json == null ? null : JsonSerializer.Deserialize<PerformanceMetrics>(json, JsonOptions))
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+}

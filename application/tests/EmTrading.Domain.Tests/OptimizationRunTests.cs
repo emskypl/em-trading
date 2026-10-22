@@ -66,7 +66,7 @@ public class ParameterGridTests
     [InlineData(OptimizationObjective.ReturnOverDrawdown, 3)]
     public void Metrics_are_scored_by_the_objective(OptimizationObjective objective, decimal expected)
     {
-        var metrics = new TrialMetrics(NetProfitPercent: 12, MaxDrawdownPercent: 4, SharpeRatio: 1.5m, TotalTrades: 10, WinRatePercent: 50, ProfitFactor: 1.2m);
+        var metrics = new PerformanceMetrics(NetProfitPercent: 12, MaxDrawdownPercent: 4, SharpeRatio: 1.5m, TotalTrades: 10, WinRatePercent: 50, ProfitFactor: 1.2m);
 
         Assert.Equal(expected, metrics.Score(objective));
     }
@@ -74,7 +74,7 @@ public class ParameterGridTests
     [Fact]
     public void Return_over_drawdown_does_not_explode_on_a_flat_curve()
     {
-        var metrics = new TrialMetrics(2, 0, 0, 1, 100, 0);
+        var metrics = new PerformanceMetrics(2, 0, 0, 1, 100, 0);
 
         Assert.Equal(2, metrics.Score(OptimizationObjective.ReturnOverDrawdown));
     }
@@ -200,7 +200,7 @@ public class OptimizationRunTests
 
     private static BacktestRunId TrialRunId(OptimizationRun run, int index) => BacktestRunId.ForTrial(run.Id, index);
 
-    private static TrialMetrics Metrics(decimal sharpe) => new(10, 5, sharpe, 12, 50, 1.3m);
+    private static PerformanceMetrics Metrics(decimal sharpe) => new(10, 5, sharpe, 12, 50, 1.3m);
 
     private static OptimizationRun Create(int trials)
     {

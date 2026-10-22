@@ -1,7 +1,6 @@
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Abstractions.Results;
-using EmTrading.Application.Analytics;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.RunBacktest;
 using EmTrading.Domain.Backtesting;
@@ -50,7 +49,6 @@ internal sealed class ExecuteOptimizationCommandHandler(
     IOptimizationRunRepository repository,
     IUnitOfWork unitOfWork,
     IDispatcher dispatcher,
-    IBacktestResultReader results,
     TimeProvider clock,
     ILogger<ExecuteOptimizationCommandHandler> logger) : ICommandHandler<ExecuteOptimizationCommand, OptimizationOutcome>
 {
@@ -131,8 +129,8 @@ internal sealed class ExecuteOptimizationCommandHandler(
                 return;
             }
 
-            var report = await results.ReadAsync(run.Symbol, runId, cancellationToken);
-            var metrics = report is null ? null : PerformanceCalculator.Calculate(report);
+            // The run computed its metrics from its result when it completed.
+            var metrics = backtest.Value.Metrics;
             await ChangeAsync(gate, () =>
             {
                 if (metrics is null)

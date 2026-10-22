@@ -7,7 +7,6 @@ using EmTrading.Application.Optimization;
 using EmTrading.Application.Trading;
 using EmTrading.Application.Trading.Safety;
 using EmTrading.Infrastructure.Configuration;
-using EmTrading.Infrastructure.Instruments;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Infrastructure.MarketData;
 using EmTrading.Infrastructure.Persistence;
@@ -100,6 +99,6 @@ public static class InfrastructureDependencyInjection
         services.AddHostedService<JobProcessor>();
 
         // Needs the database and the job queue, so it starts after both.
-        services.AddHostedService<InstrumentRefreshScheduler>();
+        services.AddHostedService<StartupJobScheduler>();
     }
 }

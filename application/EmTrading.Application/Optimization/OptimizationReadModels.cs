@@ -1,5 +1,6 @@
 using System.Globalization;
 using EmTrading.Application.Backtesting.Strategies;
+using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Application.Optimization;
@@ -35,7 +36,7 @@ public sealed record TrialResult(
     IReadOnlyDictionary<string, decimal> Point,
     TrialStatus Status,
     string? RunId,
-    TrialMetrics? Metrics,
+    PerformanceMetrics? Metrics,
     decimal? Score,
     bool IsBest,
     string? FailureReason)

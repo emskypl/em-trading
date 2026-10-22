@@ -13,4 +13,9 @@ public interface IBacktestRunRepository
 
     /// <summary>Runs that are still queued or running.</summary>
     Task<IReadOnlyList<BacktestRun>> ListUnfinishedAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Completed runs stored without metrics (by older versions of the app), oldest first.</summary>
+    Task<IReadOnlyList<BacktestRun>> ListCompletedWithoutMetricsAsync(int take, CancellationToken cancellationToken = default);
+
+    Task<int> CountCompletedWithoutMetricsAsync(CancellationToken cancellationToken = default);
 }

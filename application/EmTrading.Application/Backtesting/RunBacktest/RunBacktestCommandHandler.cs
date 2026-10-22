@@ -1,11 +1,13 @@
 using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Abstractions.Results;
+using EmTrading.Application.Analytics;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Optimization;
+using Microsoft.Extensions.Logging;
 
 namespace EmTrading.Application.Backtesting.RunBacktest;
 
@@ -15,10 +17,12 @@ namespace EmTrading.Application.Backtesting.RunBacktest;
 /// </summary>
 internal sealed class RunBacktestCommandHandler(
     IBacktestEngine engine,
+    IBacktestResultReader results,
     IBacktestRunRepository repository,
     IUnitOfWork unitOfWork,
     IStrategyCatalog strategies,
-    TimeProvider clock) : ICommandHandler<RunBacktestCommand, BacktestRunResult>
+    TimeProvider clock,
+    ILogger<RunBacktestCommandHandler> logger) : ICommandHandler<RunBacktestCommand, BacktestRunResult>
 {
     public async Task<Result<BacktestRunResult>> HandleAsync(RunBacktestCommand command, CancellationToken cancellationToken)
     {
@@ -52,7 +56,7 @@ internal sealed class RunBacktestCommandHandler(
         try
         {
             await engine.RunAsync(BacktestRequest.For(run), new RunProgress(run, command.Progress), cancellationToken);
-            run.Complete(clock.GetUtcNow());
+            run.Complete(clock.GetUtcNow(), await ReadMetricsAsync(run, cancellationToken));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -75,7 +79,25 @@ internal sealed class RunBacktestCommandHandler(
         }
 
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
-        return new BacktestRunResult(run.Id.Value, symbol.Value, strategy.Value);
+        return new BacktestRunResult(run.Id.Value, symbol.Value, strategy.Value, run.Metrics);
+    }
+
+    /// <summary>
+    /// The run's key figures, stored with it so runs can be ranked without reading every result file. A result that
+    /// cannot be read does not fail the run: the report itself is still there to look at.
+    /// </summary>
+    private async Task<PerformanceMetrics?> ReadMetricsAsync(BacktestRun run, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var report = await results.ReadAsync(run.Symbol, run.Id, cancellationToken);
+            return report is null ? null : PerformanceCalculator.Calculate(report);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not read the result of run {RunId}; it is stored without metrics", run.Id);
+            return null;
+        }
     }
 
     /// <summary>

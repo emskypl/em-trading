@@ -116,6 +116,21 @@ internal sealed class InMemoryDatabase :
             return Task.FromResult<IReadOnlyList<BacktestRun>>(Runs.Where(r => !r.IsFinished).ToList());
     }
 
+    public Task<IReadOnlyList<BacktestRun>> ListCompletedWithoutMetricsAsync(int take, CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult<IReadOnlyList<BacktestRun>>(CompletedWithoutMetrics().Take(take).ToList());
+    }
+
+    public Task<int> CountCompletedWithoutMetricsAsync(CancellationToken cancellationToken = default)
+    {
+        lock (Sync)
+            return Task.FromResult(CompletedWithoutMetrics().Count());
+    }
+
+    private IEnumerable<BacktestRun> CompletedWithoutMetrics() =>
+        Runs.Where(r => r.Status == BacktestStatus.Completed && r.Metrics is null).OrderBy(r => r.CreatedAt);
+
     public Task<IReadOnlyList<BacktestRunSummary>> ListAsync(Symbol? symbol, int take, bool includeTrials = false, CancellationToken cancellationToken = default)
     {
         lock (Sync)

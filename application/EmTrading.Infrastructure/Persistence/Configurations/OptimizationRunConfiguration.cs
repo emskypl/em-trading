@@ -78,7 +78,7 @@ internal sealed class OptimizationRunConfiguration : IEntityTypeConfiguration<Op
                 .HasConversion(id => id!.Value, value => BacktestRunId.From(value))
                 .HasMaxLength(128);
             trial.Property(t => t.Metrics)
-                .HasConversion(new MetricsConverter())
+                .HasConversion(new PerformanceMetricsConverter())
                 .HasMaxLength(1000);
             trial.Property(t => t.FailureReason).HasMaxLength(2000);
 
@@ -117,9 +117,4 @@ internal sealed class OptimizationRunConfiguration : IEntityTypeConfiguration<Op
 
         private sealed record RangeDto(string Name, decimal From, decimal To, decimal Step);
     }
-
-    /// <summary>Metrics are an immutable record, so the default (value equality) comparer works.</summary>
-    private sealed class MetricsConverter() : ValueConverter<TrialMetrics?, string?>(
-        metrics => metrics == null ? null : JsonSerializer.Serialize(metrics, JsonOptions),
-        json => json == null ? null : JsonSerializer.Deserialize<TrialMetrics>(json, JsonOptions));
 }

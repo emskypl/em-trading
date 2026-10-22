@@ -47,6 +47,19 @@ internal sealed class BacktestRunRepository(TradingDbContext db) : IBacktestRunR
             .Where(r => r.Status == BacktestStatus.Queued || r.Status == BacktestStatus.Running)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<BacktestRun>> ListCompletedWithoutMetricsAsync(int take, CancellationToken cancellationToken = default) =>
+        await CompletedWithoutMetrics()
+            .OrderBy(r => r.CreatedAt)
+            .Take(take)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+    public Task<int> CountCompletedWithoutMetricsAsync(CancellationToken cancellationToken = default) =>
+        CompletedWithoutMetrics().CountAsync(cancellationToken);
+
+    private IQueryable<BacktestRun> CompletedWithoutMetrics() =>
+        db.BacktestRuns.Where(r => r.Status == BacktestStatus.Completed && r.Metrics == null);
 }
 
 /// <summary>

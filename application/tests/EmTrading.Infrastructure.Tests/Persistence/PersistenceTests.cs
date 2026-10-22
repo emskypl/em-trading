@@ -70,8 +70,41 @@ public sealed class PersistenceTests : IAsyncLifetime
             Assert.Equal(40, loaded.Progress);
             Assert.Equal(TimeSpan.FromSeconds(30), loaded.Duration);
             Assert.Equal(TimeSpan.Zero, loaded.CreatedAt.Offset);
+            Assert.Null(loaded.Metrics);
             Assert.Empty(loaded.DomainEvents);
         }
+    }
+
+    [Fact]
+    public async Task Completed_run_metrics_round_trip_and_can_be_added_later()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var metrics = new PerformanceMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m);
+        var withMetrics = CreateRun("AAPL", T0);
+        withMetrics.Start(T0);
+        withMetrics.Complete(T0.AddSeconds(5), metrics);
+        var olderRun = CreateRun("MSFT", T0);
+        olderRun.Start(T0);
+        olderRun.Complete(T0.AddSeconds(5));
+        await SaveAsync(withMetrics);
+        await SaveAsync(olderRun);
+
+        await using (var db = CreateContext())
+        {
+            var pending = new BacktestRunRepository(db);
+            Assert.Equal(1, await pending.CountCompletedWithoutMetricsAsync(ct));
+            var loaded = Assert.Single(await pending.ListCompletedWithoutMetricsAsync(10, ct));
+            Assert.Equal(olderRun.Id, loaded.Id);
+
+            loaded.RecordMetrics(metrics with { NetProfitPercent = -3m });
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using var check = CreateContext();
+        var repository = new BacktestRunRepository(check);
+        Assert.Equal(0, await repository.CountCompletedWithoutMetricsAsync(ct));
+        Assert.Equal(metrics, (await repository.GetAsync(withMetrics.Id, ct))!.Metrics);
+        Assert.Equal(-3m, (await repository.GetAsync(olderRun.Id, ct))!.Metrics!.NetProfitPercent);
     }
 
     [Fact]
@@ -186,7 +219,7 @@ public sealed class PersistenceTests : IAsyncLifetime
         var optimization = CreateOptimization(T0);
         optimization.Start(T0);
         optimization.StartTrial(0, BacktestRunId.ForTrial(optimization.Id, 0));
-        optimization.CompleteTrial(0, new TrialMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), T0.AddMinutes(1));
+        optimization.CompleteTrial(0, new PerformanceMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), T0.AddMinutes(1));
 
         await using (var db = CreateContext())
         {
@@ -214,7 +247,7 @@ public sealed class PersistenceTests : IAsyncLifetime
             Assert.Equal(OptimizationStatus.Completed, loaded.Status);
             Assert.Equal(0, loaded.BestTrialIndex);
             Assert.Equal([TrialStatus.Completed, TrialStatus.Failed], loaded.Trials.Select(t => t.Status));
-            Assert.Equal(new TrialMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), loaded.Trials[0].Metrics);
+            Assert.Equal(new PerformanceMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), loaded.Trials[0].Metrics);
             Assert.Equal(optimization.Trials[1].Parameters, loaded.Trials[1].Parameters);
             Assert.Equal($"{optimization.Id.Value}-t001", loaded.Trials[1].RunId!.Value);
             Assert.Equal("no data", loaded.Trials[1].FailureReason);

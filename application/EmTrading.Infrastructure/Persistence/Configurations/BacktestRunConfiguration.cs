@@ -60,6 +60,9 @@ internal sealed class BacktestRunConfiguration : IEntityTypeConfiguration<Backte
         builder.Property(r => r.StartedAt);
         builder.Property(r => r.FinishedAt);
         builder.Property(r => r.FailureReason).HasMaxLength(2000);
+        builder.Property(r => r.Metrics)
+            .HasConversion(new PerformanceMetricsConverter())
+            .HasMaxLength(1000);
 
         builder.Ignore(r => r.DomainEvents);
         builder.Ignore(r => r.IsFinished);

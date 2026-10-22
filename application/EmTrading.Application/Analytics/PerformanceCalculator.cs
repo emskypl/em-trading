@@ -1,5 +1,5 @@
 using EmTrading.Application.Backtesting;
-using EmTrading.Domain.Optimization;
+using EmTrading.Domain.Backtesting;
 
 namespace EmTrading.Application.Analytics;
 
@@ -11,14 +11,14 @@ public static class PerformanceCalculator
 {
     private const double TradingDaysPerYear = 252;
 
-    public static TrialMetrics Calculate(BacktestReport report)
+    public static PerformanceMetrics Calculate(BacktestReport report)
     {
         var equity = report.Equity;
         var netProfit = equity.Count >= 2 && equity[0].Value != 0 ? (equity[^1].Value / equity[0].Value - 1) * 100 : 0;
         var trades = report.ClosedTrades;
         var winRate = trades.Count == 0 ? 0 : trades.Count(t => t.ProfitLoss > 0) * 100m / trades.Count;
 
-        return new TrialMetrics(
+        return new PerformanceMetrics(
             Math.Round(netProfit, 4),
             Math.Round(MaxDrawdownPercent(equity), 4),
             Math.Round(SharpeRatio(equity), 4),

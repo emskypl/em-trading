@@ -60,6 +60,10 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
     public DateTimeOffset? FinishedAt { get; private set; }
     public string? FailureReason { get; private set; }
 
+    /// <summary>Key figures of a completed run, or <c>null</c> while it runs, if it did not complete, or if its
+    /// result could not be read.</summary>
+    public PerformanceMetrics? Metrics { get; private set; }
+
     public bool IsFinished => Status is BacktestStatus.Completed or BacktestStatus.Failed or BacktestStatus.Cancelled;
 
     public TimeSpan? Duration => StartedAt is { } started && FinishedAt is { } finished ? finished - started : null;
@@ -98,13 +102,21 @@ public sealed class BacktestRun : AggregateRoot<BacktestRunId>
         Progress = Math.Max(Progress, Math.Clamp(percent, 0, 100));
     }
 
-    public void Complete(DateTimeOffset at)
+    public void Complete(DateTimeOffset at, PerformanceMetrics? metrics = null)
     {
         EnsureStatus(BacktestStatus.Running, "complete");
         Status = BacktestStatus.Completed;
         Progress = 100;
         FinishedAt = at;
+        Metrics = metrics;
         Raise(new BacktestRunCompleted(Id, Symbol, Strategy, at));
+    }
+
+    /// <summary>Adds the key figures to a run completed before they were stored (runs from older versions).</summary>
+    public void RecordMetrics(PerformanceMetrics metrics)
+    {
+        EnsureStatus(BacktestStatus.Completed, "record metrics of");
+        Metrics = metrics;
     }
 
     public void Fail(string reason, DateTimeOffset at)
