@@ -19,6 +19,8 @@ internal sealed class TradingDbContext(DbContextOptions<TradingDbContext> option
 
     public DbSet<AuditRecord> AuditLog => Set<AuditRecord>();
 
+    public DbSet<InstrumentRecord> Instruments => Set<InstrumentRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TradingDbContext).Assembly);
 

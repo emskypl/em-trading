@@ -1,5 +1,7 @@
+using EmTrading.Application.Instruments;
 using EmTrading.Application.Trading;
 using EmTrading.Application.Trading.Safety;
+using EmTrading.Infrastructure.Alpaca.Instruments;
 using EmTrading.Infrastructure.Alpaca.MarketData;
 using EmTrading.Infrastructure.Alpaca.Streaming;
 using EmTrading.Infrastructure.Alpaca.Trading;
@@ -35,6 +37,13 @@ public static class AlpacaDependencyInjection
             .ConfigurePrimaryHttpMessageHandler(HttpClientDefaults.CreatePrimaryHandler);
         client.AddStandardResilienceHandler(HttpClientDefaults.ConfigureResilience);
         client.AddHttpMessageHandler<AlpacaRateLimitingHandler>();
+
+        // The asset list lives on the trading API (paper or live host, same list) and uses the trading keys.
+        var assets = services.AddHttpClient<IInstrumentSource, AlpacaAssetsClient>((sp, http) =>
+                http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<AlpacaOptions>>().Value.TradingBaseUrl.TrimEnd('/') + "/"))
+            .ConfigurePrimaryHttpMessageHandler(HttpClientDefaults.CreatePrimaryHandler);
+        assets.AddStandardResilienceHandler(HttpClientDefaults.ConfigureResilience);
+        assets.AddHttpMessageHandler<AlpacaRateLimitingHandler>();
 
         return services;
     }

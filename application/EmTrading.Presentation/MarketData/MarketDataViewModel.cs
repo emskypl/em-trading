@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Application.Abstractions.Messaging;
+using EmTrading.Application.Instruments;
+using EmTrading.Application.Instruments.QueueInstrumentRefresh;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetMarketDataCoverage;
 using EmTrading.Application.MarketData.GetPriceBars;
@@ -18,7 +20,7 @@ namespace EmTrading.Presentation.MarketData;
 /// <summary>
 /// Download data for a symbol list (background jobs), see what is stored, and preview it as a candlestick chart.
 /// </summary>
-public sealed partial class MarketDataViewModel : PageViewModel, IRecipient<MarketDataChangedMessage>
+public sealed partial class MarketDataViewModel : PageViewModel, IRecipient<MarketDataChangedMessage>, IRecipient<InstrumentsChangedMessage>
 {
     private static readonly char[] SymbolSeparators = [',', ';', ' '];
 
@@ -44,12 +46,46 @@ public sealed partial class MarketDataViewModel : PageViewModel, IRecipient<Mark
     [ObservableProperty] private IReadOnlyList<PriceBar> _previewBars = [];
     [ObservableProperty] private string? _previewTitle;
 
-    protected override Task LoadAsync() => RefreshCoverageAsync(CancellationToken.None);
+    /// <summary>How many instruments the symbol pickers know and how fresh the list is.</summary>
+    [ObservableProperty] private string? _symbolsStatus;
+
+    protected override async Task LoadAsync()
+    {
+        await RefreshCoverageAsync(CancellationToken.None);
+        await LoadSymbolsStatusAsync();
+    }
 
     public async void Receive(MarketDataChangedMessage message)
     {
         await RefreshCoverageAsync(CancellationToken.None);
         await LoadPreviewAsync(SelectedCoverage);
+    }
+
+    public async void Receive(InstrumentsChangedMessage message) => await LoadSymbolsStatusAsync();
+
+    /// <summary>Downloads the instrument list in the background; the pickers reload it when the job finishes.</summary>
+    [RelayCommand]
+    private async Task RefreshSymbolsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.SendAsync(new QueueInstrumentRefreshCommand(), cancellationToken);
+        if (result.IsFailure)
+            Status.Show(result.Error);
+        else
+            Status.Show(Loc.Get(result.Value.WasQueued ? "Status_QueuedSymbolRefresh" : "Status_SymbolRefreshRunning"));
+    }
+
+    private async Task LoadSymbolsStatusAsync()
+    {
+        var status = await _dispatcher.SendAsync(new GetInstrumentCatalogStatusQuery());
+        if (status.IsFailure)
+        {
+            Status.Show(status.Error);
+            return;
+        }
+
+        SymbolsStatus = status.Value is { Count: > 0, RefreshedAt: { } refreshedAt }
+            ? Loc.Format("MarketData_SymbolsStatus", status.Value.Count, refreshedAt.LocalDateTime)
+            : Loc.Get("MarketData_SymbolsMissing");
     }
 
     /// <summary>Queues one job per symbol and returns at once; the jobs page shows their progress.</summary>

@@ -56,7 +56,8 @@ public sealed partial class SettingsViewModel : PageViewModel
     [RelayCommand(CanExecute = nameof(CanSave))]
     private void Save()
     {
-        Persist(_settings with { DefaultSymbols = DefaultSymbols.Trim(), DefaultInitialCapital = DefaultInitialCapital });
+        // The symbol picker leaves a trailing ", " ready for the next symbol; don't store it.
+        Persist(_settings with { DefaultSymbols = DefaultSymbols.Trim().TrimEnd(',', ';').Trim(), DefaultInitialCapital = DefaultInitialCapital });
         Status.Show(Loc.Get("Status_SettingsSaved"));
     }
 

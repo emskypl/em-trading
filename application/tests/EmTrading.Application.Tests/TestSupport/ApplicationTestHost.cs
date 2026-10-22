@@ -3,6 +3,7 @@ using EmTrading.Application.Abstractions.Messaging;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
+using EmTrading.Application.Instruments;
 using EmTrading.Application.MarketData;
 using EmTrading.Application.MarketData.GetPriceBars;
 using EmTrading.Application.Optimization;
@@ -53,6 +54,8 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
         services.AddSingleton<IRiskLimitsStore>(RiskLimits);
         services.AddSingleton<ITradingEnvironment>(Environment);
         services.AddSingleton<IAuditLog>(AuditLog);
+        services.AddSingleton<IInstrumentSource>(InstrumentSource);
+        services.AddSingleton<IInstrumentStore>(Instruments);
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
@@ -72,6 +75,8 @@ internal sealed class ApplicationTestHost : IAsyncDisposable
     public FakeRiskLimitsStore RiskLimits { get; } = new();
     public FakeTradingEnvironment Environment { get; } = new();
     public InMemoryAuditLog AuditLog { get; } = new();
+    public FakeInstrumentSource InstrumentSource { get; } = new();
+    public InMemoryInstrumentStore Instruments { get; } = new();
 
     public IDispatcher Dispatcher => _provider.GetRequiredService<IDispatcher>();
 

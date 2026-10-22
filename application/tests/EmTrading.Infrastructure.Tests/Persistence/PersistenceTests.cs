@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using EmTrading.Application.Abstractions.Persistence;
 using EmTrading.Application.Trading.Safety;
 using EmTrading.Application.Abstractions.Events;
+using EmTrading.Application.Instruments;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Common;
 using EmTrading.Domain.MarketData;
@@ -348,6 +349,25 @@ public sealed class PersistenceTests : IAsyncLifetime
         Assert.Equal(["Halted", "Created"], entries.Select(e => e.Action));
         Assert.Equal((TradingMode.Live, AuditCategory.Risk, 4000), (entries[0].Mode, entries[0].Category, entries[0].Details.Length));
         Assert.Equal(("emt-1", "AAPL", T0), (entries[1].ClientOrderId, entries[1].Symbol, entries[1].Time));
+    }
+
+    [Fact]
+    public async Task Instrument_list_is_replaced_as_a_whole_and_reports_its_age()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using (var db = CreateContext())
+        {
+            var store = new InstrumentStore(db);
+            Assert.Equal(new InstrumentCatalogStatus(0, null), await store.GetStatusAsync(ct));
+
+            await store.ReplaceAllAsync([new("MSFT", "Microsoft Corporation", "NASDAQ"), new("AAPL", "Apple Inc.", "NASDAQ")], T0, ct);
+            await store.ReplaceAllAsync([new("SPY", "SPDR S&P 500 ETF", "ARCA"), new("AAPL", "Apple Inc.", "NASDAQ")], T0.AddDays(1), ct);
+        }
+
+        await using var check = CreateContext();
+        var reader = new InstrumentStore(check);
+        Assert.Equal(["AAPL", "SPY"], (await reader.ListAsync(ct)).Select(i => i.Symbol));
+        Assert.Equal(new InstrumentCatalogStatus(2, T0.AddDays(1)), await reader.GetStatusAsync(ct));
     }
 
     private static OptimizationRun CreateOptimization(DateTimeOffset createdAt)

@@ -91,6 +91,9 @@ public sealed record BacktestRunsChangedMessage;
 /// <summary>Locally stored market data changed.</summary>
 public sealed record MarketDataChangedMessage;
 
+/// <summary>The stored instrument list was refreshed.</summary>
+public sealed record InstrumentsChangedMessage;
+
 /// <summary>Show the report of a finished run on the backtest page.</summary>
 public sealed record OpenBacktestRunMessage(BacktestRunSummary Run);
 

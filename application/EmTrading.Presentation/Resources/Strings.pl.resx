@@ -71,6 +71,13 @@
   <data name="MarketData_SymbolsHint" xml:space="preserve"><value>Każdy symbol to osobne zadanie w tle; pobierane są tylko brakujące dni. SPY (benchmark) jest dodawany automatycznie.</value></data>
   <data name="MarketData_Download" xml:space="preserve"><value>Pobierz</value></data>
   <data name="MarketData_DownloadHint" xml:space="preserve"><value>Postęp widać na stronie Zadania.</value></data>
+  <data name="MarketData_Symbols" xml:space="preserve"><value>Lista symboli</value></data>
+  <data name="MarketData_RefreshSymbols" xml:space="preserve"><value>Odśwież symbole</value></data>
+  <data name="MarketData_SymbolsStatus" xml:space="preserve"><value>{0:N0} symboli, aktualizacja {1:g}</value></data>
+  <data name="MarketData_SymbolsMissing" xml:space="preserve"><value>Jeszcze nie pobrana. Wymaga kluczy Alpaca.</value></data>
+  <data name="Symbol_SearchHint" xml:space="preserve"><value>Wpisz symbol lub nazwę spółki; strzałki i Enter wybierają podpowiedź.</value></data>
+  <data name="Status_QueuedSymbolRefresh" xml:space="preserve"><value>Dodano odświeżenie listy symboli do kolejki.</value></data>
+  <data name="Status_SymbolRefreshRunning" xml:space="preserve"><value>Lista symboli jest już odświeżana.</value></data>
   <data name="MarketData_Stored" xml:space="preserve"><value>Zapisane lokalnie</value></data>
   <data name="MarketData_Days" xml:space="preserve"><value>Dni</value></data>
   <data name="MarketData_LastDownload" xml:space="preserve"><value>Ostatnie pobranie</value></data>

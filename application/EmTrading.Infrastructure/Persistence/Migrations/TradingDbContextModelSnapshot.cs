@@ -350,6 +350,30 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditLog", (string)null);
                 });
 
+            modelBuilder.Entity("EmTrading.Infrastructure.Persistence.InstrumentRecord", b =>
+                {
+                    b.Property<string>("Symbol")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Exchange")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RefreshedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Symbol");
+
+                    b.ToTable("Instruments", (string)null);
+                });
+
             modelBuilder.Entity("EmTrading.Domain.Optimization.OptimizationRun", b =>
                 {
                     b.OwnsMany("EmTrading.Domain.Optimization.OptimizationTrial", "Trials", b1 =>

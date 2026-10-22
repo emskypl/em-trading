@@ -45,8 +45,6 @@ public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBa
     }
 
     // Inputs
-    public IReadOnlyList<string> SuggestedSymbols { get; } = ["AAPL", "AMZN", "MMM", "MSFT", "SPY"];
-
     [ObservableProperty]
     [NotifyDataErrorInfo]
     [Required(ErrorMessage = " ")]

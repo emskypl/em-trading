@@ -125,7 +125,8 @@
                             </Grid.RowDefinitions>
                             <StackPanel Margin="0,0,3,0">
                                 <TextBlock Text="{loc:Tr Field_Symbol}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}" />
+                                <controls:SymbolBox Text="{Binding Symbol}" SuggestionProvider="{StaticResource SymbolSuggestions}"
+                                                    ToolTip="{loc:Tr Symbol_SearchHint}" AutomationProperties.Name="{loc:Tr Field_Symbol}" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="3,0,0,0">
                                 <TextBlock Text="{loc:Tr Ticket_Side}" Style="{StaticResource FieldLabel}" />

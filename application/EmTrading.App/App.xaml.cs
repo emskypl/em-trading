@@ -10,6 +10,7 @@ using EmTrading.Infrastructure.Configuration;
 using EmTrading.Infrastructure.Jobs;
 using EmTrading.Presentation;
 using EmTrading.Presentation.Common;
+using EmTrading.Presentation.Instruments;
 using EmTrading.Presentation.Localization;
 using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.Settings;
@@ -27,6 +28,9 @@ namespace EmTrading.App;
 /// </summary>
 public partial class App : System.Windows.Application
 {
+    /// <summary>Resource key of the <see cref="InstrumentCatalog"/> used by symbol pickers.</summary>
+    public const string SymbolSuggestionsKey = "SymbolSuggestions";
+
     private IHost? _host;
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -38,6 +42,11 @@ public partial class App : System.Windows.Application
         {
             _host = CreateHost(e.Args);
             await _host.StartAsync();
+
+            // Every SymbolBox finds its suggestions through this resource; views are created after this point.
+            var instruments = _host.Services.GetRequiredService<InstrumentCatalog>();
+            await instruments.LoadAsync();
+            Resources[SymbolSuggestionsKey] = instruments;
 
             MainWindow = _host.Services.GetRequiredService<MainWindow>();
             MainWindow.Show();

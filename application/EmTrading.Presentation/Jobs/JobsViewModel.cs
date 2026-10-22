@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using EmTrading.Application.Abstractions.Jobs;
+using EmTrading.Application.Instruments;
 using EmTrading.Presentation.Common;
 using EmTrading.Presentation.Shell;
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,9 @@ public sealed partial class JobsViewModel : PageViewModel
         var newlyFinished = Jobs.Where(j => !j.IsActive && _seenFinished.Add(j.Id)).ToList();
         if (newlyFinished.Any(j => IsBacktest(j) || IsOptimization(j)))
             _messenger.Send(new BacktestRunsChangedMessage());
-        if (newlyFinished.Any(j => !IsBacktest(j) && !IsOptimization(j) && j.Status == JobStatus.Succeeded))
+        if (newlyFinished.Any(j => IsInstrumentRefresh(j) && j.Status == JobStatus.Succeeded))
+            _messenger.Send(new InstrumentsChangedMessage());
+        if (newlyFinished.Any(j => !IsBacktest(j) && !IsOptimization(j) && !IsInstrumentRefresh(j) && j.Status == JobStatus.Succeeded))
             _messenger.Send(new MarketDataChangedMessage());
 
         // Optimizations save after every trial: tell their page when a job's progress moves, not on every refresh.
@@ -69,4 +72,6 @@ public sealed partial class JobsViewModel : PageViewModel
     private static bool IsBacktest(JobSnapshot job) => job.Key?.StartsWith("backtest:", StringComparison.Ordinal) == true;
 
     private static bool IsOptimization(JobSnapshot job) => job.Key?.StartsWith("optimization:", StringComparison.Ordinal) == true;
+
+    private static bool IsInstrumentRefresh(JobSnapshot job) => job.Key == InstrumentCacheKeys.RefreshJobKey;
 }

@@ -71,6 +71,13 @@
   <data name="MarketData_SymbolsHint" xml:space="preserve"><value>Each symbol becomes a background job; only missing days are downloaded. SPY (benchmark) is added automatically.</value></data>
   <data name="MarketData_Download" xml:space="preserve"><value>Download</value></data>
   <data name="MarketData_DownloadHint" xml:space="preserve"><value>Progress is shown on the Jobs page.</value></data>
+  <data name="MarketData_Symbols" xml:space="preserve"><value>Symbol list</value></data>
+  <data name="MarketData_RefreshSymbols" xml:space="preserve"><value>Refresh symbols</value></data>
+  <data name="MarketData_SymbolsStatus" xml:space="preserve"><value>{0:N0} symbols, updated {1:g}</value></data>
+  <data name="MarketData_SymbolsMissing" xml:space="preserve"><value>Not downloaded yet. Needs Alpaca keys.</value></data>
+  <data name="Symbol_SearchHint" xml:space="preserve"><value>Type a symbol or company name; Up/Down and Enter pick a suggestion.</value></data>
+  <data name="Status_QueuedSymbolRefresh" xml:space="preserve"><value>Symbol list refresh queued.</value></data>
+  <data name="Status_SymbolRefreshRunning" xml:space="preserve"><value>The symbol list is already being refreshed.</value></data>
   <data name="MarketData_Stored" xml:space="preserve"><value>Stored locally</value></data>
   <data name="MarketData_Days" xml:space="preserve"><value>Days</value></data>
   <data name="MarketData_LastDownload" xml:space="preserve"><value>Last download</value></data>

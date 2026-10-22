@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:EmTrading.Presentation.Localization;assembly=EmTrading.Presentation"
-             xmlns:charts="clr-namespace:EmTrading.Wpf.Controls.Charts;assembly=EmTrading.Wpf.Controls">
+             xmlns:charts="clr-namespace:EmTrading.Wpf.Controls.Charts;assembly=EmTrading.Wpf.Controls"
+             xmlns:controls="clr-namespace:EmTrading.Wpf.Controls;assembly=EmTrading.Wpf.Controls">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="280" />
@@ -13,7 +14,9 @@
             <StackPanel>
                 <TextBlock Text="{loc:Tr MarketData_Title}" Style="{StaticResource PageTitle}" />
                 <TextBlock Text="{loc:Tr Field_SymbolList}" Style="{StaticResource FieldLabel}" />
-                <TextBox Text="{Binding SymbolList, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:Tr MarketData_SymbolsHint}" />
+                <controls:SymbolBox Text="{Binding SymbolList}" AllowMultiple="True"
+                                    SuggestionProvider="{StaticResource SymbolSuggestions}" ToolTip="{loc:Tr MarketData_SymbolsHint}"
+                                    AutomationProperties.Name="{loc:Tr Field_SymbolList}" />
                 <TextBlock Text="{loc:Tr Field_Timeframe}" Style="{StaticResource FieldLabel}" />
                 <ComboBox ItemsSource="{Binding Timeframes}" SelectedItem="{Binding SelectedTimeframe}">
                     <ComboBox.ItemTemplate>
@@ -28,6 +31,11 @@
                 <DatePicker SelectedDate="{Binding EndDate}" />
                 <Button Content="{loc:Tr MarketData_Download}" Command="{Binding DownloadCommand}" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0" />
                 <TextBlock Text="{loc:Tr MarketData_DownloadHint}" TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+
+                <Separator Margin="0,16,0,4" />
+                <TextBlock Text="{loc:Tr MarketData_Symbols}" Style="{StaticResource SectionTitle}" />
+                <TextBlock Text="{Binding SymbolsStatus}" TextWrapping="Wrap" Foreground="Gray" FontSize="11" />
+                <Button Content="{loc:Tr MarketData_RefreshSymbols}" Command="{Binding RefreshSymbolsCommand}" Margin="0,8,0,0" />
             </StackPanel>
         </Border>
 
