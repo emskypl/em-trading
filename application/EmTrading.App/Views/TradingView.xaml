@@ -99,7 +99,9 @@
                         <TextBlock Text="{loc:Tr Trading_Watchlist}" Style="{StaticResource SectionTitle}" />
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="{loc:Tr Trading_ApplyWatchlist}" Command="{Binding ApplyWatchlistCommand}" Margin="4,0,0,0" />
-                            <TextBox Text="{Binding WatchlistText, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:Tr Trading_WatchlistHint}" />
+                            <controls:SymbolBox Text="{Binding WatchlistText}" AllowMultiple="True"
+                                                SuggestionProvider="{StaticResource SymbolSuggestions}" ToolTip="{loc:Tr Trading_WatchlistHint}"
+                                                AutomationProperties.Name="{loc:Tr Trading_Watchlist}" />
                         </DockPanel>
                         <DataGrid ItemsSource="{Binding Watchlist}" SelectedValue="{Binding SelectedSymbol}" SelectedValuePath="Symbol"
                                   SelectionMode="Single" Height="190" Margin="0,6,0,0" HeadersVisibility="Column">

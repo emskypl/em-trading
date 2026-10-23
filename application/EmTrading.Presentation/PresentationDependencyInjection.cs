@@ -29,6 +29,7 @@ public static class PresentationDependencyInjection
         services.AddSingleton<StatusViewModel>();
         services.AddSingleton<LogFeed>();
         services.AddSingleton<InstrumentCatalog>();
+        services.AddSingleton<DownloadedSymbolCatalog>();
 
         services.AddSingleton<BacktestViewModel>();
         services.AddSingleton<HistoryViewModel>();

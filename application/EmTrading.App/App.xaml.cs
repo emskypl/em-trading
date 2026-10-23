@@ -29,8 +29,11 @@ namespace EmTrading.App;
 /// </summary>
 public partial class App : System.Windows.Application
 {
-    /// <summary>Resource key of the <see cref="InstrumentCatalog"/> used by symbol pickers.</summary>
+    /// <summary>Resource key of the <see cref="InstrumentCatalog"/>: every instrument, for fields that download or trade.</summary>
     public const string SymbolSuggestionsKey = "SymbolSuggestions";
+
+    /// <summary>Resource key of the <see cref="DownloadedSymbolCatalog"/>: symbols with stored data, for fields that run on it.</summary>
+    public const string DownloadedSymbolSuggestionsKey = "DownloadedSymbolSuggestions";
 
     private IHost? _host;
 
@@ -44,10 +47,14 @@ public partial class App : System.Windows.Application
             _host = CreateHost(e.Args);
             await _host.StartAsync();
 
-            // Every SymbolBox finds its suggestions through this resource; views are created after this point.
+            // Every SymbolBox finds its suggestions through one of these resources; views are created after this point.
+            // Names of downloaded symbols come from the instrument list, so it loads first.
             var instruments = _host.Services.GetRequiredService<InstrumentCatalog>();
             await instruments.LoadAsync();
             Resources[SymbolSuggestionsKey] = instruments;
+            var downloaded = _host.Services.GetRequiredService<DownloadedSymbolCatalog>();
+            await downloaded.LoadAsync();
+            Resources[DownloadedSymbolSuggestionsKey] = downloaded;
 
             MainWindow = _host.Services.GetRequiredService<MainWindow>();
             MainWindow.Show();

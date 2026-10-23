@@ -18,7 +18,7 @@
 
                     <TextBlock Text="{loc:Tr Field_Symbol}" Style="{StaticResource FieldLabel}" />
                     <controls:SymbolBox Text="{Binding Symbol, ValidatesOnNotifyDataErrors=True}"
-                                        SuggestionProvider="{StaticResource SymbolSuggestions}" ToolTip="{loc:Tr Symbol_SearchHint}"
+                                        SuggestionProvider="{StaticResource DownloadedSymbolSuggestions}" ToolTip="{loc:Tr Symbol_SearchHint}"
                                         AutomationProperties.Name="{loc:Tr Field_Symbol}" />
 
                     <TextBlock Text="{loc:Tr Field_StartDate}" Style="{StaticResource FieldLabel}" />
@@ -73,7 +73,7 @@
                     <TextBlock Text="{loc:Tr Backtest_BatchTitle}" Style="{StaticResource SectionTitle}" />
                     <TextBlock Text="{loc:Tr Field_SymbolList}" Style="{StaticResource FieldLabel}" />
                     <controls:SymbolBox Text="{Binding SymbolList}" AllowMultiple="True"
-                                        SuggestionProvider="{StaticResource SymbolSuggestions}" ToolTip="{loc:Tr Backtest_BatchHint}"
+                                        SuggestionProvider="{StaticResource DownloadedSymbolSuggestions}" ToolTip="{loc:Tr Backtest_BatchHint}"
                                         AutomationProperties.Name="{loc:Tr Field_SymbolList}" />
                     <Button Content="{loc:Tr Backtest_RunBatch}" Command="{Binding RunBacktestBatchCommand}" Margin="0,6,0,0" />
                 </StackPanel>

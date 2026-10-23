@@ -66,13 +66,13 @@
   <data name="Status_ApiKeySaved" xml:space="preserve"><value>API key saved.</value></data>
   <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>API key removed.</value></data>
   <data name="Status_TicketProposed" xml:space="preserve"><value>The assistant filled in the order ticket for {0}; review it before placing.</value></data>
-  <data name="Guide_Compare_Title" xml:space="preserve"><value>9. Compare many stocks</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>5. Compare many stocks</value></data>
   <data name="Guide_Compare_Body" xml:space="preserve"><value>The Compare page tests one strategy on up to 100 symbols and ranks the results.
 • Choose a strategy, enter the symbols and the period, click 1. Download data, wait for the jobs, then 2. Run backtests.
 • The ranking table fills in as runs finish. Click a column header to sort, e.g. by Return/DD (profit per unit of drawdown) or Sharpe ratio.
 • Latest run per symbol hides older runs of the same symbol; All strategies also shows other strategies' runs.
 • Select runs (Ctrl or Shift) and click Chart selected to see their returns together, or Show results to open one.</value></data>
-  <data name="Guide_Assistant_Title" xml:space="preserve"><value>10. AI assistant</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>8. AI assistant</value></data>
   <data name="Guide_Assistant_Body" xml:space="preserve"><value>The assistant (Claude by Anthropic) helps you read the results and think about positions.
 • Enter your Anthropic API key in Settings → AI assistant; it is stored encrypted for your Windows account.
 • Ask in Polish or English. It looks up the ranking, run details, latest prices, your account and risk limits itself.
@@ -105,25 +105,25 @@
 • Show results opens a run's report on the Backtest page (double-click works too).
 • Select 2 to 8 completed runs with Ctrl or Shift and click Compare selected to see their key figures side by side and their returns on one chart.
 • Analyze risk opens the selected run on the Risk analysis page.</value></data>
-  <data name="Guide_Optimization_Title" xml:space="preserve"><value>5. Optimize parameters</value></data>
+  <data name="Guide_Optimization_Title" xml:space="preserve"><value>6. Optimize parameters</value></data>
   <data name="Guide_Optimization_Body" xml:space="preserve"><value>Optimization runs one backtest for every combination of the parameters you vary and finds the best one.
 • Tick vary for the parameters to test and set from, to and step; the form shows how many combinations that gives.
 • Choose the Objective (Sharpe ratio, net profit, or return divided by maximum drawdown) and how many engine processes run in parallel.
 • The heatmap shows the score of every combination, with the best one outlined.
 • Use best parameters copies them to the backtest form. Keep in mind that the best result on past data is often partly luck: check it on another period before trusting it.</value></data>
-  <data name="Guide_Analysis_Title" xml:space="preserve"><value>6. Risk analysis (Monte Carlo)</value></data>
+  <data name="Guide_Analysis_Title" xml:space="preserve"><value>7. Risk analysis (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>One backtest is one possible history. The risk analysis replays the same trades thousands of times to show how much worse it could have gone.
 • Shuffle trade order keeps every trade and changes only their order: the final result stays the same, the drawdowns vary.
 • Bootstrap draws trades with replacement, so the final result varies too.
 • Read the probability of loss and the percentiles: a 95th percentile drawdown of 15% means 1 simulation in 20 was worse than that.</value></data>
-  <data name="Guide_Trading_Title" xml:space="preserve"><value>7. Paper trading</value></data>
+  <data name="Guide_Trading_Title" xml:space="preserve"><value>9. Paper trading</value></data>
   <data name="Guide_Trading_Body" xml:space="preserve"><value>Orders go to your Alpaca paper account: real market prices, no real money.
 • Watchlist: enter symbols and click Apply to stream their prices.
 • Order ticket: choose side, type, quantity and validity. Place order checks the risk limits and asks for confirmation before anything is sent.
 • Positions and Orders show what you hold and what is working; Close and Close all positions exit with market orders.
 • Trading enabled is the kill switch: when off, only orders that reduce a position are accepted. It switches off automatically when the day's loss limit is reached.
 • Audit log records every step, including refused orders.</value></data>
-  <data name="Guide_Jobs_Title" xml:space="preserve"><value>8. Background jobs and logs</value></data>
+  <data name="Guide_Jobs_Title" xml:space="preserve"><value>10. Background jobs and logs</value></data>
   <data name="Guide_Jobs_Body" xml:space="preserve"><value>Downloads, background backtests, optimizations and symbol list refreshes run as jobs, so the app stays responsive.
 • Jobs shows their progress; a job can be cancelled there.
 • The number of active jobs is always visible in the status bar.

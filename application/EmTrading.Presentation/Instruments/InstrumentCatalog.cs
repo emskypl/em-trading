@@ -16,6 +16,7 @@ public sealed class InstrumentCatalog : ISymbolSuggestionProvider, IRecipient<In
     private readonly IDispatcher _dispatcher;
     private readonly ILogger<InstrumentCatalog> _logger;
     private volatile IReadOnlyList<InstrumentInfo> _instruments = [];
+    private volatile IReadOnlyDictionary<string, InstrumentInfo> _bySymbol = new Dictionary<string, InstrumentInfo>();
 
     public InstrumentCatalog(IDispatcher dispatcher, IMessenger messenger, ILogger<InstrumentCatalog> logger)
     {
@@ -30,15 +31,22 @@ public sealed class InstrumentCatalog : ISymbolSuggestionProvider, IRecipient<In
     {
         var result = await _dispatcher.SendAsync(new GetInstrumentsQuery(), cancellationToken);
         if (result.IsSuccess)
+        {
             _instruments = result.Value;
+            _bySymbol = result.Value.ToDictionary(i => i.Symbol, StringComparer.OrdinalIgnoreCase);
+        }
         else
             _logger.LogWarning("Could not load the instrument list: {Error}", result.Error.Message);
     }
 
     public async void Receive(InstrumentsChangedMessage message) => await LoadAsync();
 
+    /// <summary>The instrument with this symbol, e.g. to show its company name; <c>null</c> if not in the list.</summary>
+    public InstrumentInfo? Find(string symbol) => _bySymbol.GetValueOrDefault(symbol);
+
+    /// <summary>Matches for the text, or with empty text every instrument in symbol order (the list is stored that way).</summary>
     public IReadOnlyList<SymbolSuggestion> Suggest(string text, int maxResults) =>
-        Search(_instruments, text, maxResults)
+        (string.IsNullOrWhiteSpace(text) ? _instruments.Take(maxResults) : Search(_instruments, text, maxResults))
             .Select(i => new SymbolSuggestion(i.Symbol, i.Name, i.Exchange))
             .ToList();
 

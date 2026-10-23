@@ -66,13 +66,13 @@
   <data name="Status_ApiKeySaved" xml:space="preserve"><value>Zapisano klucz API.</value></data>
   <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>Usunięto klucz API.</value></data>
   <data name="Status_TicketProposed" xml:space="preserve"><value>Asystent wypełnił formularz zlecenia dla {0}; sprawdź go przed złożeniem.</value></data>
-  <data name="Guide_Compare_Title" xml:space="preserve"><value>9. Porównanie wielu spółek</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>5. Porównanie wielu spółek</value></data>
   <data name="Guide_Compare_Body" xml:space="preserve"><value>Strona Porównanie testuje jedną strategię na maksymalnie 100 symbolach i układa wyniki w ranking.
 • Wybierz strategię, wpisz symbole i okres, kliknij 1. Pobierz dane, poczekaj na zadania, potem 2. Uruchom backtesty.
 • Tabela rankingu wypełnia się w miarę kończenia przebiegów. Kliknij nagłówek kolumny, aby sortować, np. po Zwrot/obs. (zysk na jednostkę obsunięcia) albo wskaźniku Sharpe'a.
 • Najnowszy przebieg na symbol ukrywa starsze przebiegi tego samego symbolu; Wszystkie strategie pokazuje też przebiegi innych strategii.
 • Zaznacz przebiegi (Ctrl lub Shift) i kliknij Wykres zaznaczonych, aby zobaczyć ich zwroty razem, albo Pokaż wyniki, aby otworzyć jeden.</value></data>
-  <data name="Guide_Assistant_Title" xml:space="preserve"><value>10. Asystent AI</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>8. Asystent AI</value></data>
   <data name="Guide_Assistant_Body" xml:space="preserve"><value>Asystent (Claude od Anthropic) pomaga czytać wyniki i zastanowić się nad pozycjami.
 • Wpisz klucz API Anthropic w Ustawienia → Asystent AI; jest zapisywany w postaci zaszyfrowanej dla Twojego konta Windows.
 • Pytaj po polsku lub po angielsku. Sam sprawdza ranking, szczegóły przebiegów, aktualne ceny, Twoje konto i limity ryzyka.
@@ -105,25 +105,25 @@
 • Pokaż wyniki otwiera raport przebiegu na stronie Backtest (działa też dwuklik).
 • Zaznacz od 2 do 8 zakończonych przebiegów z Ctrl lub Shift i kliknij Porównaj zaznaczone, aby zobaczyć ich wskaźniki obok siebie i zwroty na jednym wykresie.
 • Analizuj ryzyko otwiera zaznaczony przebieg na stronie Analiza ryzyka.</value></data>
-  <data name="Guide_Optimization_Title" xml:space="preserve"><value>5. Optymalizacja parametrów</value></data>
+  <data name="Guide_Optimization_Title" xml:space="preserve"><value>6. Optymalizacja parametrów</value></data>
   <data name="Guide_Optimization_Body" xml:space="preserve"><value>Optymalizacja uruchamia backtest dla każdej kombinacji zmienianych parametrów i wskazuje najlepszą.
 • Zaznacz zmieniaj przy parametrach do sprawdzenia i ustaw od, do i krok; formularz pokazuje, ile to daje kombinacji.
 • Wybierz Cel (wskaźnik Sharpe'a, zysk netto albo zwrot podzielony przez maksymalne obsunięcie) i liczbę równoległych procesów silnika.
 • Mapa cieplna pokazuje wynik każdej kombinacji, najlepsza jest obramowana.
 • Użyj najlepszych parametrów kopiuje je do formularza backtestu. Pamiętaj, że najlepszy wynik na danych historycznych to często częściowo szczęście: sprawdź go na innym okresie, zanim mu zaufasz.</value></data>
-  <data name="Guide_Analysis_Title" xml:space="preserve"><value>6. Analiza ryzyka (Monte Carlo)</value></data>
+  <data name="Guide_Analysis_Title" xml:space="preserve"><value>7. Analiza ryzyka (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>Jeden backtest to jedna możliwa historia. Analiza ryzyka odtwarza te same transakcje tysiące razy, aby pokazać, o ile gorzej mogło pójść.
 • Losowa kolejność zachowuje wszystkie transakcje i zmienia tylko ich kolejność: wynik końcowy jest stały, zmieniają się obsunięcia.
 • Bootstrap losuje transakcje ze zwracaniem, więc zmienia się też wynik końcowy.
 • Czytaj prawdopodobieństwo straty i percentyle: obsunięcie 15% na 95. percentylu znaczy, że 1 symulacja na 20 wypadła gorzej.</value></data>
-  <data name="Guide_Trading_Title" xml:space="preserve"><value>7. Handel na koncie paper</value></data>
+  <data name="Guide_Trading_Title" xml:space="preserve"><value>9. Handel na koncie paper</value></data>
   <data name="Guide_Trading_Body" xml:space="preserve"><value>Zlecenia trafiają na Twoje konto paper w Alpaca: prawdziwe ceny rynkowe, bez prawdziwych pieniędzy.
 • Obserwowane: wpisz symbole i kliknij Zastosuj, aby śledzić ich ceny na żywo.
 • Zlecenie: wybierz stronę, typ, ilość i ważność. Złóż zlecenie sprawdza limity ryzyka i prosi o potwierdzenie, zanim cokolwiek zostanie wysłane.
 • Pozycje i Zlecenia pokazują, co masz i co czeka na realizację; Zamknij i Zamknij wszystkie pozycje wychodzą zleceniami rynkowymi.
 • Handel włączony to wyłącznik awaryjny: gdy wyłączony, przyjmowane są tylko zlecenia zmniejszające pozycję. Wyłącza się sam po osiągnięciu dziennego limitu straty.
 • Dziennik audytu zapisuje każdy krok, także odrzucone zlecenia.</value></data>
-  <data name="Guide_Jobs_Title" xml:space="preserve"><value>8. Zadania w tle i logi</value></data>
+  <data name="Guide_Jobs_Title" xml:space="preserve"><value>10. Zadania w tle i logi</value></data>
   <data name="Guide_Jobs_Body" xml:space="preserve"><value>Pobierania, backtesty w tle, optymalizacje i odświeżanie listy symboli działają jako zadania, więc aplikacja nie zamarza.
 • Zadania pokazują ich postęp; tam też można zadanie anulować.
 • Liczba aktywnych zadań jest zawsze widoczna na pasku stanu.

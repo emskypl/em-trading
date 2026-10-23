@@ -8,6 +8,7 @@ namespace EmTrading.Wpf.Controls;
 /// <summary>Finds instruments matching what the user typed, e.g. by symbol prefix or company name.</summary>
 public interface ISymbolSuggestionProvider
 {
+    /// <param name="text">What was typed; empty to browse every symbol the provider offers, in symbol order.</param>
     IReadOnlyList<SymbolSuggestion> Suggest(string text, int maxResults);
 }
 
@@ -15,7 +16,8 @@ public interface ISymbolSuggestionProvider
 public sealed record SymbolSuggestion(string Symbol, string Name, string? Detail = null);
 
 /// <summary>
-/// A text box that suggests symbols while typing. Up/Down pick a suggestion, Enter or Tab accepts it, Escape closes
+/// An editable combo box for symbols. Typing suggests matching symbols; the arrow button (or Alt+Down, F4) opens the
+/// whole list to browse, filtered by what was typed. Up/Down pick a suggestion, Enter or Tab accepts it, Escape closes
 /// the list. With <see cref="AllowMultiple"/> it edits a list such as "AAPL, MSFT": suggestions are for the last entry,
 /// and accepting one appends a separator so the next symbol can be typed straight away. Without a
 /// <see cref="SuggestionProvider"/> (or before the instrument list is downloaded) it is a plain text box.
@@ -24,11 +26,16 @@ public sealed record SymbolSuggestion(string Symbol, string Name, string? Detail
 [TemplatePart(Name = TextBoxPart, Type = typeof(TextBox))]
 [TemplatePart(Name = PopupPart, Type = typeof(Popup))]
 [TemplatePart(Name = ListPart, Type = typeof(ListBox))]
+[TemplatePart(Name = DropDownButtonPart, Type = typeof(ButtonBase))]
 public sealed class SymbolBox : Control
 {
     private const string TextBoxPart = "PART_TextBox";
     private const string PopupPart = "PART_Popup";
     private const string ListPart = "PART_List";
+    private const string DropDownButtonPart = "PART_DropDownButton";
+
+    /// <summary>Browsing shows everything; the list is virtualized, so even thousands of rows open at once.</summary>
+    private const int MaxBrowseResults = 100_000;
 
     private static readonly char[] Separators = [',', ';', ' '];
 
@@ -51,12 +58,30 @@ public sealed class SymbolBox : Control
     private TextBox? _textBox;
     private Popup? _popup;
     private ListBox? _list;
+    private ButtonBase? _dropDownButton;
     private bool _accepting;
 
     static SymbolBox()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolBox), new FrameworkPropertyMetadata(typeof(SymbolBox)));
         FocusableProperty.OverrideMetadata(typeof(SymbolBox), new FrameworkPropertyMetadata(false));
+    }
+
+    public SymbolBox()
+    {
+        // A popup is its own window: close it when the page goes away, or it would float over the next page.
+        Unloaded += (_, _) => ClosePopup();
+        IsVisibleChanged += (_, e) =>
+        {
+            if (e.NewValue is false)
+                ClosePopup();
+        };
+    }
+
+    private void ClosePopup()
+    {
+        if (_popup is not null)
+            _popup.IsOpen = false;
     }
 
     public string Text
@@ -95,11 +120,15 @@ public sealed class SymbolBox : Control
         if (_list is not null)
             _list.PreviewMouseLeftButtonUp -= OnListMouseUp;
 
+        if (_dropDownButton is not null)
+            _dropDownButton.Click -= OnDropDownClick;
+
         base.OnApplyTemplate();
 
         _textBox = GetTemplateChild(TextBoxPart) as TextBox;
         _popup = GetTemplateChild(PopupPart) as Popup;
         _list = GetTemplateChild(ListPart) as ListBox;
+        _dropDownButton = GetTemplateChild(DropDownButtonPart) as ButtonBase;
 
         if (_textBox is not null)
         {
@@ -110,6 +139,42 @@ public sealed class SymbolBox : Control
 
         if (_list is not null)
             _list.PreviewMouseLeftButtonUp += OnListMouseUp;
+
+        if (_dropDownButton is not null)
+            _dropDownButton.Click += OnDropDownClick;
+    }
+
+    private void OnDropDownClick(object sender, RoutedEventArgs e)
+    {
+        if (_popup is { IsOpen: true })
+        {
+            _popup.IsOpen = false;
+            return;
+        }
+
+        // Focus first: the list closes when the text box loses focus.
+        _textBox?.Focus();
+        Browse();
+    }
+
+    /// <summary>Opens the whole list, filtered by the current entry, with the matching symbol selected.</summary>
+    private void Browse()
+    {
+        if (_popup is null || _list is null || _textBox is null || SuggestionProvider is null)
+            return;
+
+        var term = CurrentTerm(_textBox.Text);
+        var all = SuggestionProvider.Suggest(string.Empty, MaxBrowseResults);
+        var match = all.FirstOrDefault(s => string.Equals(s.Symbol, term, StringComparison.OrdinalIgnoreCase));
+
+        // A complete symbol shows the whole list around it; a partial entry narrows the list.
+        var items = term.Length == 0 || match is not null ? all : SuggestionProvider.Suggest(term, MaxBrowseResults);
+
+        _list.ItemsSource = items;
+        _list.SelectedItem = match ?? items.FirstOrDefault();
+        _popup.IsOpen = items.Count > 0;
+        if (_list.SelectedItem is { } selected)
+            _list.ScrollIntoView(selected);
     }
 
     /// <summary>Only typing opens suggestions; text set from the view model (or by accepting one) does not.</summary>
@@ -141,6 +206,15 @@ public sealed class SymbolBox : Control
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // Like a ComboBox: Alt+Down or F4 opens the list.
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        if (_popup is { IsOpen: false } && (key == Key.F4 || key == Key.Down && Keyboard.Modifiers == ModifierKeys.Alt))
+        {
+            Browse();
+            e.Handled = true;
+            return;
+        }
+
         if (_popup is not { IsOpen: true } || _list is null)
             return;
 

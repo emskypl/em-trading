@@ -44,14 +44,14 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         Jobs = jobs;
         Pages =
         [
+            new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Backtest", "", backtest),
             new NavigationItem("Nav_History", "", history),
             new NavigationItem("Nav_Compare", "", compare),
-            new NavigationItem("Nav_Assistant", "", assistant),
             new NavigationItem("Nav_Optimization", "", optimization),
             new NavigationItem("Nav_Analysis", "", analysis),
+            new NavigationItem("Nav_Assistant", "", assistant),
             new NavigationItem("Nav_Trading", "", trading),
-            new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Jobs", "", jobs),
             new NavigationItem("Nav_Logs", "", logs),
             new NavigationItem("Nav_Guide", "", guide),

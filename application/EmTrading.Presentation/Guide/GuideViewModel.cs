@@ -25,12 +25,12 @@ public sealed partial class GuideViewModel(IMessenger messenger, StatusViewModel
         new("MarketData", typeof(MarketDataViewModel)),
         new("Backtest", typeof(BacktestViewModel)),
         new("History", typeof(HistoryViewModel)),
+        new("Compare", typeof(Compare.CompareViewModel)),
         new("Optimization", typeof(OptimizationViewModel)),
         new("Analysis", typeof(AnalysisViewModel)),
+        new("Assistant", typeof(Assistant.AssistantViewModel)),
         new("Trading", typeof(TradingViewModel)),
         new("Jobs", typeof(JobsViewModel)),
-        new("Compare", typeof(Compare.CompareViewModel)),
-        new("Assistant", typeof(Assistant.AssistantViewModel)),
         new("Symbols", null)
     ];
 

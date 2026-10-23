@@ -23,7 +23,7 @@
                     <TextBlock Text="{loc:Tr Optimization_Title}" Style="{StaticResource PageTitle}" />
 
                     <TextBlock Text="{loc:Tr Field_Symbol}" Style="{StaticResource FieldLabel}" />
-                    <controls:SymbolBox Text="{Binding Symbol}" SuggestionProvider="{StaticResource SymbolSuggestions}"
+                    <controls:SymbolBox Text="{Binding Symbol}" SuggestionProvider="{StaticResource DownloadedSymbolSuggestions}"
                                         ToolTip="{loc:Tr Symbol_SearchHint}" AutomationProperties.Name="{loc:Tr Field_Symbol}" />
 
                     <UniformGrid Columns="2">
