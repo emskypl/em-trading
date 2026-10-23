@@ -12,6 +12,7 @@ using EmTrading.Presentation.MarketData;
 using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
 using EmTrading.Presentation.Shell;
+using EmTrading.Presentation.Strategies;
 using EmTrading.Presentation.Trading;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +33,7 @@ public static class PresentationDependencyInjection
         services.AddSingleton<DownloadedSymbolCatalog>();
 
         services.AddSingleton<BacktestViewModel>();
+        services.AddSingleton<StrategiesViewModel>();
         services.AddSingleton<HistoryViewModel>();
         services.AddSingleton<CompareViewModel>();
         services.AddSingleton<AssistantViewModel>();

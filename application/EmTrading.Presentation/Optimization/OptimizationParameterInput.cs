@@ -19,12 +19,22 @@ public sealed partial class OptimizationParameterInput : ObservableObject
     public OptimizationParameterInput(StrategyParameterDescriptor descriptor)
     {
         _descriptor = descriptor;
+        _value = descriptor.FormatValue(descriptor.DefaultValue);
+
+        // The strategy's own suggestion when it has one; otherwise a neighbourhood of the default.
+        if (descriptor.Suggested is { } suggested)
+        {
+            _from = descriptor.FormatValue(suggested.From);
+            _to = descriptor.FormatValue(suggested.To);
+            _step = descriptor.FormatValue(suggested.Step);
+            return;
+        }
+
         var step = DefaultStep(descriptor);
         var to = descriptor.DefaultValue + step * (DefaultValues - 1);
         if (descriptor.Maximum is { } max && to > max)
             to = max;
 
-        _value = descriptor.FormatValue(descriptor.DefaultValue);
         _from = descriptor.FormatValue(descriptor.DefaultValue);
         _to = descriptor.FormatValue(to);
         _step = descriptor.FormatValue(step);

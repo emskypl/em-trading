@@ -44,4 +44,14 @@ public sealed class StrategyParameterAttribute(string name, string displayName, 
     public string? MustExceed { get; set; }
 
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Start of the range worth testing in an optimization; with <see cref="SuggestedTo"/> and <see cref="SuggestedStep"/>
+    /// it pre-fills the optimization form. <see cref="double.NaN"/> when there is no suggestion.
+    /// </summary>
+    public double SuggestedFrom { get; set; } = double.NaN;
+
+    public double SuggestedTo { get; set; } = double.NaN;
+
+    public double SuggestedStep { get; set; } = double.NaN;
 }

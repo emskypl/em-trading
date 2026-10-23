@@ -94,6 +94,12 @@ public sealed record MarketDataChangedMessage;
 /// <summary>The stored instrument list was refreshed.</summary>
 public sealed record InstrumentsChangedMessage;
 
+/// <summary>Select a strategy, with its default parameters, on the backtest page.</summary>
+public sealed record SelectBacktestStrategyMessage(string StrategyName);
+
+/// <summary>Select a strategy on the optimization page.</summary>
+public sealed record OptimizeStrategyMessage(string StrategyName);
+
 /// <summary>Start a question to the assistant, e.g. about runs selected on the compare page.</summary>
 public sealed record AskAssistantMessage(string Question);
 

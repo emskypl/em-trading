@@ -39,5 +39,8 @@ internal sealed class LeanStrategyCatalog : IStrategyCatalog
         double.IsNaN(parameter.Minimum) ? null : (decimal)parameter.Minimum,
         double.IsNaN(parameter.Maximum) ? null : (decimal)parameter.Maximum,
         parameter.MustExceed,
-        parameter.Description);
+        parameter.Description,
+        double.IsNaN(parameter.SuggestedFrom) || double.IsNaN(parameter.SuggestedTo) || double.IsNaN(parameter.SuggestedStep)
+            ? null
+            : new SuggestedRange((decimal)parameter.SuggestedFrom, (decimal)parameter.SuggestedTo, (decimal)parameter.SuggestedStep));
 }

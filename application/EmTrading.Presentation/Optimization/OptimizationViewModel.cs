@@ -25,7 +25,7 @@ namespace EmTrading.Presentation.Optimization;
 /// Grid-search optimization: choose which parameters to vary, start it as a background job, watch the trials
 /// complete, and inspect the results as a table and a heatmap of scores over two parameters.
 /// </summary>
-public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<OptimizationsChangedMessage>
+public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<OptimizationsChangedMessage>, IRecipient<OptimizeStrategyMessage>
 {
     private readonly IDispatcher _dispatcher;
     private readonly IMessenger _messenger;
@@ -118,8 +118,20 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
         }
 
         Strategies = strategies.Value;
-        SelectedStrategy ??= Strategies.FirstOrDefault();
+        SelectedStrategy ??= Strategies.FirstOrDefault(s => s.Name == _requestedStrategy) ?? Strategies.FirstOrDefault();
         await RefreshAsync(CancellationToken.None);
+    }
+
+    /// <summary>Name asked for by another page before the strategies were loaded.</summary>
+    private string? _requestedStrategy;
+
+    /// <summary>Another page (e.g. Strategies) asks to optimize a strategy: select it, with its suggested ranges.</summary>
+    public void Receive(OptimizeStrategyMessage message)
+    {
+        if (Strategies.FirstOrDefault(s => s.Name == message.StrategyName) is { } strategy)
+            SelectedStrategy = strategy;
+        else
+            _requestedStrategy = message.StrategyName;
     }
 
     partial void OnSelectedStrategyChanged(StrategyDescriptor? value)

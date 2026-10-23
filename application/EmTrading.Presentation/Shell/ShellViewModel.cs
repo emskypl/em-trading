@@ -14,6 +14,7 @@ using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.MarketData;
 using EmTrading.Presentation.Optimization;
 using EmTrading.Presentation.Settings;
+using EmTrading.Presentation.Strategies;
 using EmTrading.Presentation.Trading;
 
 namespace EmTrading.Presentation.Shell;
@@ -26,6 +27,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
 {
     public ShellViewModel(
         BacktestViewModel backtest,
+        StrategiesViewModel strategies,
         HistoryViewModel history,
         CompareViewModel compare,
         AssistantViewModel assistant,
@@ -46,6 +48,7 @@ public sealed partial class ShellViewModel : ObservableObject, IRecipient<Naviga
         [
             new NavigationItem("Nav_MarketData", "", marketData),
             new NavigationItem("Nav_Backtest", "", backtest),
+            new NavigationItem("Nav_Strategies", "", strategies),
             new NavigationItem("Nav_History", "", history),
             new NavigationItem("Nav_Compare", "", compare),
             new NavigationItem("Nav_Optimization", "", optimization),

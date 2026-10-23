@@ -25,6 +25,14 @@ public abstract class StrategyBase : QCAlgorithm
         return AddEquity(ticker, resolution).Symbol;
     }
 
+    /// <summary>
+    /// Warms up indicators built from daily bars with the minute data the strategy subscribes to. The app stores minute
+    /// data, so <c>SetWarmUp(n, Resolution.Daily)</c> would ask for daily files that do not exist and warm up nothing.
+    /// Trading days are converted to calendar days with room for weekends and holidays.
+    /// </summary>
+    protected void SetWarmUpTradingDays(int tradingDays) =>
+        SetWarmUp(TimeSpan.FromDays(Math.Ceiling(tradingDays * 7 / 5.0 * 1.05) + 7));
+
     protected int IntegerParameter(string name) => GetParameter(name, (int)Describe(name).DefaultValue);
 
     protected decimal DecimalParameter(string name) => GetParameter(name, (decimal)Describe(name).DefaultValue);

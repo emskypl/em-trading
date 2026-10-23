@@ -12,12 +12,13 @@ namespace EmTrading.Strategies;
 /// </summary>
 [Strategy("RSI mean reversion", Description = "Hourly RSI: buy oversold, sell overbought or on a fixed stop loss. Long only.")]
 [StrategyParameter(RsiPeriod, "RSI period", StrategyParameterType.Integer, 14, Minimum = 2, Maximum = 100,
-    Description = "In hourly bars.")]
-[StrategyParameter(Oversold, "Oversold level", StrategyParameterType.Decimal, 30, Minimum = 1, Maximum = 50)]
+    Description = "In hourly bars.", SuggestedFrom = 7, SuggestedTo = 21, SuggestedStep = 7)]
+[StrategyParameter(Oversold, "Oversold level", StrategyParameterType.Decimal, 30, Minimum = 1, Maximum = 50,
+    SuggestedFrom = 20, SuggestedTo = 35, SuggestedStep = 5)]
 [StrategyParameter(Overbought, "Overbought level", StrategyParameterType.Decimal, 70, Minimum = 50, Maximum = 99,
-    MustExceed = Oversold)]
+    MustExceed = Oversold, SuggestedFrom = 65, SuggestedTo = 80, SuggestedStep = 5)]
 [StrategyParameter(StopLossPercent, "Stop loss (%)", StrategyParameterType.Decimal, 5, Minimum = 0.5, Maximum = 50,
-    Description = "Exit when the price falls this far below the entry.")]
+    Description = "Exit when the price falls this far below the entry.", SuggestedFrom = 2, SuggestedTo = 8, SuggestedStep = 2)]
 [StrategyParameter(AllocationPercent, "Allocation (%)", StrategyParameterType.Decimal, 90, Minimum = 1, Maximum = 100,
     Description = "Share of equity invested per position.")]
 public class RsiMeanReversionStrategy : StrategyBase

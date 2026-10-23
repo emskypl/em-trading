@@ -49,6 +49,7 @@
   <data name="Assistant_Tool_get_run_ranking" xml:space="preserve"><value>Czytam ranking backtestów…</value></data>
   <data name="Assistant_Tool_get_run_details" xml:space="preserve"><value>Czytam szczegóły przebiegu…</value></data>
   <data name="Assistant_Tool_list_strategies" xml:space="preserve"><value>Czytam listę strategii…</value></data>
+  <data name="Assistant_Tool_get_best_parameters" xml:space="preserve"><value>Czytam wyniki Twoich optymalizacji…</value></data>
   <data name="Assistant_Tool_get_market_data_coverage" xml:space="preserve"><value>Sprawdzam zapisane dane rynkowe…</value></data>
   <data name="Assistant_Tool_get_latest_prices" xml:space="preserve"><value>Pobieram aktualne ceny…</value></data>
   <data name="Assistant_Tool_get_account" xml:space="preserve"><value>Czytam konto i pozycje…</value></data>
@@ -66,13 +67,13 @@
   <data name="Status_ApiKeySaved" xml:space="preserve"><value>Zapisano klucz API.</value></data>
   <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>Usunięto klucz API.</value></data>
   <data name="Status_TicketProposed" xml:space="preserve"><value>Asystent wypełnił formularz zlecenia dla {0}; sprawdź go przed złożeniem.</value></data>
-  <data name="Guide_Compare_Title" xml:space="preserve"><value>5. Porównanie wielu spółek</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>6. Porównanie wielu spółek</value></data>
   <data name="Guide_Compare_Body" xml:space="preserve"><value>Strona Porównanie testuje jedną strategię na maksymalnie 100 symbolach i układa wyniki w ranking.
 • Wybierz strategię, wpisz symbole i okres, kliknij 1. Pobierz dane, poczekaj na zadania, potem 2. Uruchom backtesty.
 • Tabela rankingu wypełnia się w miarę kończenia przebiegów. Kliknij nagłówek kolumny, aby sortować, np. po Zwrot/obs. (zysk na jednostkę obsunięcia) albo wskaźniku Sharpe'a.
 • Najnowszy przebieg na symbol ukrywa starsze przebiegi tego samego symbolu; Wszystkie strategie pokazuje też przebiegi innych strategii.
 • Zaznacz przebiegi (Ctrl lub Shift) i kliknij Wykres zaznaczonych, aby zobaczyć ich zwroty razem, albo Pokaż wyniki, aby otworzyć jeden.</value></data>
-  <data name="Guide_Assistant_Title" xml:space="preserve"><value>8. Asystent AI</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>9. Asystent AI</value></data>
   <data name="Guide_Assistant_Body" xml:space="preserve"><value>Asystent (Claude od Anthropic) pomaga czytać wyniki i zastanowić się nad pozycjami.
 • Wpisz klucz API Anthropic w Ustawienia → Asystent AI; jest zapisywany w postaci zaszyfrowanej dla Twojego konta Windows.
 • Pytaj po polsku lub po angielsku. Sam sprawdza ranking, szczegóły przebiegów, aktualne ceny, Twoje konto i limity ryzyka.
@@ -100,30 +101,30 @@
 • Uruchom backtest startuje silnik; pasek stanu pokazuje postęp, a Anuluj go przerywa.
 • Raport: kluczowe wskaźniki na górze, dalej Kapitał i obsunięcie, Cena i transakcje (wejścia i wyjścia na wykresie), Dziennik transakcji i Analiza.
 • Uruchomienia w tle: wpisz listę symboli i kliknij Uruchom dla listy w tle, aby sprawdzić ten sam układ na wszystkich. Naraz działają maksymalnie trzy; wyniki trafiają do Historii.</value></data>
-  <data name="Guide_History_Title" xml:space="preserve"><value>4. Historia i porównywanie przebiegów</value></data>
+  <data name="Guide_History_Title" xml:space="preserve"><value>5. Historia i porównywanie przebiegów</value></data>
   <data name="Guide_History_Body" xml:space="preserve"><value>Każdy przebieg jest zapisywany, także nieudane i anulowane.
 • Pokaż wyniki otwiera raport przebiegu na stronie Backtest (działa też dwuklik).
 • Zaznacz od 2 do 8 zakończonych przebiegów z Ctrl lub Shift i kliknij Porównaj zaznaczone, aby zobaczyć ich wskaźniki obok siebie i zwroty na jednym wykresie.
 • Analizuj ryzyko otwiera zaznaczony przebieg na stronie Analiza ryzyka.</value></data>
-  <data name="Guide_Optimization_Title" xml:space="preserve"><value>6. Optymalizacja parametrów</value></data>
+  <data name="Guide_Optimization_Title" xml:space="preserve"><value>7. Optymalizacja parametrów</value></data>
   <data name="Guide_Optimization_Body" xml:space="preserve"><value>Optymalizacja uruchamia backtest dla każdej kombinacji zmienianych parametrów i wskazuje najlepszą.
 • Zaznacz zmieniaj przy parametrach do sprawdzenia i ustaw od, do i krok; formularz pokazuje, ile to daje kombinacji.
 • Wybierz Cel (wskaźnik Sharpe'a, zysk netto albo zwrot podzielony przez maksymalne obsunięcie) i liczbę równoległych procesów silnika.
 • Mapa cieplna pokazuje wynik każdej kombinacji, najlepsza jest obramowana.
 • Użyj najlepszych parametrów kopiuje je do formularza backtestu. Pamiętaj, że najlepszy wynik na danych historycznych to często częściowo szczęście: sprawdź go na innym okresie, zanim mu zaufasz.</value></data>
-  <data name="Guide_Analysis_Title" xml:space="preserve"><value>7. Analiza ryzyka (Monte Carlo)</value></data>
+  <data name="Guide_Analysis_Title" xml:space="preserve"><value>8. Analiza ryzyka (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>Jeden backtest to jedna możliwa historia. Analiza ryzyka odtwarza te same transakcje tysiące razy, aby pokazać, o ile gorzej mogło pójść.
 • Losowa kolejność zachowuje wszystkie transakcje i zmienia tylko ich kolejność: wynik końcowy jest stały, zmieniają się obsunięcia.
 • Bootstrap losuje transakcje ze zwracaniem, więc zmienia się też wynik końcowy.
 • Czytaj prawdopodobieństwo straty i percentyle: obsunięcie 15% na 95. percentylu znaczy, że 1 symulacja na 20 wypadła gorzej.</value></data>
-  <data name="Guide_Trading_Title" xml:space="preserve"><value>9. Handel na koncie paper</value></data>
+  <data name="Guide_Trading_Title" xml:space="preserve"><value>10. Handel na koncie paper</value></data>
   <data name="Guide_Trading_Body" xml:space="preserve"><value>Zlecenia trafiają na Twoje konto paper w Alpaca: prawdziwe ceny rynkowe, bez prawdziwych pieniędzy.
 • Obserwowane: wpisz symbole i kliknij Zastosuj, aby śledzić ich ceny na żywo.
 • Zlecenie: wybierz stronę, typ, ilość i ważność. Złóż zlecenie sprawdza limity ryzyka i prosi o potwierdzenie, zanim cokolwiek zostanie wysłane.
 • Pozycje i Zlecenia pokazują, co masz i co czeka na realizację; Zamknij i Zamknij wszystkie pozycje wychodzą zleceniami rynkowymi.
 • Handel włączony to wyłącznik awaryjny: gdy wyłączony, przyjmowane są tylko zlecenia zmniejszające pozycję. Wyłącza się sam po osiągnięciu dziennego limitu straty.
 • Dziennik audytu zapisuje każdy krok, także odrzucone zlecenia.</value></data>
-  <data name="Guide_Jobs_Title" xml:space="preserve"><value>10. Zadania w tle i logi</value></data>
+  <data name="Guide_Jobs_Title" xml:space="preserve"><value>11. Zadania w tle i logi</value></data>
   <data name="Guide_Jobs_Body" xml:space="preserve"><value>Pobierania, backtesty w tle, optymalizacje i odświeżanie listy symboli działają jako zadania, więc aplikacja nie zamarza.
 • Zadania pokazują ich postęp; tam też można zadanie anulować.
 • Liczba aktywnych zadań jest zawsze widoczna na pasku stanu.
@@ -454,4 +455,85 @@ Szacowana wartość: {6} USD.</value></data>
   <data name="AuditCategory_Session" xml:space="preserve"><value>Sesja</value></data>
   <data name="Status_LiveArmed" xml:space="preserve"><value>Handel na żywo uzbrojony na tę sesję.</value></data>
   <data name="Status_LiveDisarmed" xml:space="preserve"><value>Handel na żywo rozbrojony.</value></data>
+  <data name="Nav_Strategies" xml:space="preserve"><value>Strategie</value></data>
+  <data name="Strategies_Title" xml:space="preserve"><value>Strategie</value></data>
+  <data name="Strategies_TryInBacktest" xml:space="preserve"><value>Wypróbuj w backteście</value></data>
+  <data name="Strategies_Optimize" xml:space="preserve"><value>Optymalizuj</value></data>
+  <data name="Strategies_Section_Summary" xml:space="preserve"><value>Co robi</value></data>
+  <data name="Strategies_Section_HowItWorks" xml:space="preserve"><value>Jak działa</value></data>
+  <data name="Strategies_Section_WhenItWorks" xml:space="preserve"><value>Kiedy działa, a kiedy zawodzi</value></data>
+  <data name="Strategies_Section_HowToUse" xml:space="preserve"><value>Jak jej używać</value></data>
+  <data name="Strategies_Parameters" xml:space="preserve"><value>Parametry</value></data>
+  <data name="Strategies_SuggestedHint" xml:space="preserve"><value>„Do przetestowania” to zakres, od którego warto zacząć optymalizację (od – do / krok). Przycisk Optymalizuj wpisuje go za Ciebie.</value></data>
+  <data name="Strategies_Parameter" xml:space="preserve"><value>Parametr</value></data>
+  <data name="Strategies_Meaning" xml:space="preserve"><value>Znaczenie</value></data>
+  <data name="Strategies_Default" xml:space="preserve"><value>Domyślnie</value></data>
+  <data name="Strategies_Allowed" xml:space="preserve"><value>Dozwolone</value></data>
+  <data name="Strategies_Suggested" xml:space="preserve"><value>Do przetestowania</value></data>
+  <data name="Strategies_BestResults" xml:space="preserve"><value>Twoje najlepsze wyniki</value></data>
+  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>Najlepsza próba z każdej Twojej optymalizacji tej strategii, od najnowszej. Najlepszy wynik na danych historycznych częściowo dopasowuje się do szumu: zanim zaufasz parametrom, sprawdź je na innym okresie lub symbolu.</value></data>
+  <data name="Strategies_NoResults" xml:space="preserve"><value>Nie ma jeszcze optymalizacji tej strategii. Kliknij Optymalizuj, aby znaleźć najlepsze parametry dla symbolu; wyniki pojawią się tutaj.</value></data>
+  <data name="Strategies_Values" xml:space="preserve"><value>Wartości parametrów</value></data>
+  <data name="Strategies_UseInBacktest" xml:space="preserve"><value>Użyj w backteście</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_Summary" xml:space="preserve"><value>Podążanie za trendem na 15-minutowych świecach. Wchodzi w kierunku trendu, gdy szybka EMA jest nad (lub pod) wolną EMA, trend jest silny (ADX), a cena jest po tej samej stronie co zamknięcia sprzed 100 i 200 dni sesyjnych. Gra na wzrosty i spadki.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_HowItWorks" xml:space="preserve"><value>• Wejście long: szybka EMA nad wolną, ADX powyżej progu, cena powyżej zamknięć sprzed 100 i 200 dni sesyjnych. Short jest lustrzanym odbiciem.
+• Wielkość: pozycja jest tak dobrana, by trafienie początkowego stopu (ATR × mnożnik) kosztowało wybrany % kapitału.
+• Wyjście: kroczący stop ATR, który podąża za ceną.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_WhenItWorks" xml:space="preserve"><value>Działa na rynkach z długimi, równymi trendami, np. spółka w wyraźnym wielomiesięcznym wzroście. Zawodzi w trendzie bocznym i szarpanym: średnie przecinają się tam i z powrotem, stop jest często trafiany i sumują się małe straty. Handluje często, więc koszty mają znaczenie.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe o mniej więcej rok dłuższe niż okres testu: dzienny filtr potrzebuje 200 dni sesyjnych przed startem.
+• Najpierw optymalizuj okresy EMA (szybką i wolną), potem próg ADX i mnożnik ATR.
+• Na koncie paper trzymaj ryzyko na transakcję na poziomie 0,5–1%.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_Summary" xml:space="preserve"><value>Powrót do średniej na godzinowych świecach: kupuje, gdy godzinowy RSI pokazuje wyprzedanie, i sprzedaje, gdy pojawia się wykupienie. Tylko long.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_HowItWorks" xml:space="preserve"><value>• Wejście: RSI poniżej poziomu wyprzedania.
+• Wyjście: RSI powyżej poziomu wykupienia albo spadek ceny o % stop loss poniżej wejścia.
+• Wielkość: stały udział kapitału (alokacja).</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_WhenItWorks" xml:space="preserve"><value>Działa na spółkach poruszających się w przedziale, które odbijają po krótkich spadkach. Zawodzi w silnych spadkach: RSI pozostaje wyprzedany, a cena dalej spada, dlatego ważny jest stop loss. W silnych wzrostach często sprzedaje za wcześnie.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe za okres testu; rozgrzewka potrzebuje tylko kilku dni.
+• Najpierw optymalizuj poziomy wyprzedania i wykupienia, potem okres RSI i stop loss.
+• Porównaj ją ze strategią RSI(2) pullback, która kupuje tylko w trendzie wzrostowym.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_Summary" xml:space="preserve"><value>Klasyczne wybicie z kanału (reguła „żółwi”) na dziennych świecach: kupuje, gdy cena ustanawia nowe N-dniowe maksimum, i trzyma trend, aż spadnie do nowego M-dniowego minimum. Tylko long.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_HowItWorks" xml:space="preserve"><value>• Wejście: dzienne zamknięcie powyżej najwyższego maksimum z poprzednich N dni (kanał wejścia).
+• Wyjście: zamknięcie poniżej najniższego minimum z poprzednich M dni (kanał wyjścia) albo poniżej początkowego stopu ATR.
+• Wielkość: pozycja tak dobrana, by początkowy stop (20-dniowy ATR × mnożnik) kosztował wybrany % kapitału, nigdy więcej niż pozwala gotówka.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_WhenItWorks" xml:space="preserve"><value>Działa, gdy spółka zaczyna duży, trwały ruch: mało transakcji, duże zyski. Zawodzi w konsolidacji: wiele fałszywych wybić szybko się odwraca, więc skuteczność jest niska, a zysk pochodzi z kilku dużych trendów. Oceniaj ją na kilku latach, nie miesiącach.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe z około dwoma miesiącami zapasu przed okresem testu, na rozgrzewkę.
+• Typowe ustawienia: 20/10 (szybsze) albo 55/20 (wolniejsze, mniej transakcji).
+• Najpierw optymalizuj kanał wejścia, potem wyjścia; kanał wyjścia trzymaj krótszy niż wejścia.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_Summary" xml:space="preserve"><value>Momentum szeregu czasowego: trzyma spółkę, dopóki rosła w ostatnich miesiącach i jest powyżej długiej średniej; w przeciwnym razie czeka w gotówce. Bardzo mało transakcji. Tylko long.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_HowItWorks" xml:space="preserve"><value>• Co K dni sesyjnych sprawdza: czy zwrot z okresu lookback jest dodatni i czy zamknięcie jest powyżej średniej trendu?
+• Jeśli oba warunki są spełnione, inwestuje alokację; jeśli nie, sprzedaje i czeka w gotówce.
+• Między sprawdzeniami nic nie robi, co ogranicza koszty.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_WhenItWorks" xml:space="preserve"><value>Łapie długie wzrosty i schodzi z rynku w długich spadkach, co może ograniczyć głębokie obsunięcia. Zawodzi przy gwałtownych odwróceniach w kształcie V (sprzedaje i odkupuje za późno) oraz w trendzie bocznym, gdzie sygnał przeskakuje tam i z powrotem.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe z mniej więcej rokiem zapasu przed okresem testu: 200-dniowa średnia i 126-dniowy lookback potrzebują rozgrzewki.
+• Optymalizuj lookback (63–252 dni) i odstęp między sprawdzeniami; średnia trendu ma mniejsze znaczenie.
+• Porównaj jej obsunięcie z samym trzymaniem spółki albo SPY.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_Summary" xml:space="preserve"><value>Kupuje krótkie, ostre spadki w długoterminowym trendzie wzrostowym (metoda RSI(2) Larry'ego Connorsa) i sprzedaje, gdy tylko cena odbije. Dzienne świece, tylko long.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_HowItWorks" xml:space="preserve"><value>• Filtr: zamknięcie powyżej średniej trendu (domyślnie 200 dni), więc kupuje tylko w trendzie wzrostowym.
+• Wejście: bardzo krótki RSI (2 dni) poniżej poziomu wejścia (10), czyli po kilku silnych dniach spadków.
+• Wyjście: zamknięcie powyżej krótkiej średniej wyjścia (5 dni) albo po maksymalnym czasie trzymania.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_WhenItWorks" xml:space="preserve"><value>Dobrze działa na płynnych spółkach i ETF-ach indeksowych w rosnącym rynku: wysoka skuteczność, krótkie transakcje. Zawodzi, gdy trend wzrostowy się łamie: spadek trwa dalej, a bez stop lossa strata może rosnąć, aż maksymalny czas trzymania zamknie pozycję.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe z mniej więcej rokiem zapasu przed okresem testu (rozgrzewka 200-dniowej średniej).
+• Zacznij od SPY albo dużych spółek.
+• Optymalizuj poziom wejścia (5–25) i średnią wyjścia; okres RSI trzymaj krótki (2–3).</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_Summary" xml:space="preserve"><value>Powrót do średniej na godzinowych świecach: kupuje, gdy cena spada pod dolną wstęgę Bollingera, i sprzedaje, gdy wraca do środkowej. Tylko long.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_HowItWorks" xml:space="preserve"><value>• Wstęgi: średnia z N godzinowych zamknięć plus/minus σ odchyleń standardowych.
+• Wejście: zamknięcie poniżej dolnej wstęgi (nietypowo duży spadek).
+• Wyjście: powrót do środkowej wstęgi albo stały stop loss poniżej wejścia.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_WhenItWorks" xml:space="preserve"><value>Działa na spółkach poruszających się w przedziale, które często reagują przesadnie. Zawodzi w trendach: w spadkach cena może zjeżdżać wzdłuż dolnej wstęgi, a we wzrostach rzadko do niej dochodzi. Szkody ogranicza stop loss.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe za okres testu; rozgrzewka trwa około dwóch tygodni.
+• Najpierw optymalizuj szerokość wstęgi (1,5–3σ), potem okres i stop loss.
+• Szersza wstęga daje mniej, ale silniejszych sygnałów.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_Summary" xml:space="preserve"><value>Wybicie w ciągu dnia: zapisuje maksimum i minimum pierwszych minut po otwarciu, kupuje, jeśli cena wybije się ponad ten zakres, i zawsze sprzedaje przed zamknięciem. Bez pozycji na noc. Tylko long.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_HowItWorks" xml:space="preserve"><value>• Zakres: maksimum i minimum między 9:30 a 9:30 + minuty zakresu (czas nowojorski).
+• Wejście: najwyżej raz dziennie, gdy minuta zamyka się powyżej maksimum zakresu, a zakres ma co najmniej minimalną szerokość %.
+• Wyjście: zamknięcie poniżej minimum zakresu (stop) albo wybraną liczbę minut przed 16:00.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_WhenItWorks" xml:space="preserve"><value>Działa w dni z wyraźnym kierunkiem po otwarciu (wiadomości, wyniki, silne ruchy rynku) i na zmiennych spółkach. Zawodzi w dni spokojne lub szarpane: wybicie się odwraca i stop zostaje trafiony. Handluje prawie codziennie, więc spready i prowizje mocno ważą, a wyniki na darmowym kanale IEX mogą różnić się od pełnego rynku.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_HowToUse" xml:space="preserve"><value>• Pobierz dane minutowe za okres testu; rozgrzewka nie jest potrzebna.
+• Najpierw optymalizuj długość zakresu (15–60 minut) i minimalną szerokość.
+• Oglądaj wyniki miesiąc po miesiącu: strategie dzienne mogą dobrze wyglądać średnio, a opierać się na kilku dużych dniach.</value></data>
+  <data name="Guide_Strategies_Title" xml:space="preserve"><value>4. Wybór strategii</value></data>
+  <data name="Guide_Strategies_Body" xml:space="preserve"><value>Strona Strategie opisuje każdą strategię: co robi, kiedy działa, a kiedy zawodzi, jakich danych potrzebuje i które parametry warto testować.
+• Wypróbuj w backteście otwiera stronę Backtest z wybraną strategią i jej wartościami domyślnymi.
+• Optymalizuj otwiera stronę Optymalizacja z wpisanymi już proponowanymi zakresami.
+• Twoje najlepsze wyniki pokazuje najlepsze parametry znalezione przez Twoje optymalizacje, dla symbolu i okresu; Użyj w backteście kopiuje je do formularza.</value></data>
 </root>

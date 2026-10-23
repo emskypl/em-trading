@@ -27,7 +27,7 @@ namespace EmTrading.Presentation.Backtesting;
 /// Run a strategy (interactively or as background jobs for a symbol list) and inspect one report:
 /// key figures, equity with drawdown, price chart with trades, and the trade list.
 /// </summary>
-public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBacktestRunMessage>, IRecipient<ApplyBacktestSetupMessage>
+public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBacktestRunMessage>, IRecipient<ApplyBacktestSetupMessage>, IRecipient<SelectBacktestStrategyMessage>
 {
     private static readonly char[] SymbolSeparators = [',', ';', ' '];
 
@@ -210,6 +210,15 @@ public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBa
     }
 
     /// <summary>From the optimization page: fill the form with a strategy setup, e.g. the best parameters found.</summary>
+    /// <summary>Another page (e.g. Strategies) asks to try a strategy: select it with its default parameters.</summary>
+    public async void Receive(SelectBacktestStrategyMessage message)
+    {
+        if (Strategies.Count == 0)
+            await LoadAsync();
+
+        SelectedStrategy = Strategies.FirstOrDefault(s => s.Name == message.StrategyName) ?? SelectedStrategy;
+    }
+
     public async void Receive(ApplyBacktestSetupMessage message)
     {
         if (Strategies.Count == 0)

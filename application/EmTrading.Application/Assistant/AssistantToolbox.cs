@@ -6,6 +6,7 @@ using EmTrading.Application.Backtesting.GetBacktestReport;
 using EmTrading.Application.Backtesting.GetRunRanking;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.MarketData.GetMarketDataCoverage;
+using EmTrading.Application.Optimization.GetBestStrategyParameters;
 using EmTrading.Application.Trading;
 using EmTrading.Domain.MarketData;
 using EmTrading.Domain.Trading;
@@ -43,9 +44,13 @@ internal sealed class AssistantToolbox(IDispatcher dispatcher, IAssistantActions
             Schema(("symbol", Prop("string", "The run's symbol.")), ("run_id", Prop("string", "The run id."))),
             ["symbol", "run_id"]),
         Tool("list_strategies",
-            "The strategies the app can backtest, with their parameters and defaults.",
+            "The strategies the app can backtest: what each does, its parameters with defaults, allowed ranges and the range worth testing in an optimization.",
             Schema(),
             []),
+        Tool("get_best_parameters",
+            "The best parameters the user's own optimizations found for a strategy: one row per optimization with symbol, period, objective, score, metrics and parameter values, newest first.",
+            Schema(("strategy", Prop("string", "The strategy name from list_strategies."))),
+            ["strategy"]),
         Tool("get_market_data_coverage",
             "Which symbols have market data stored locally, at which interval, and for which days.",
             Schema(),
@@ -83,6 +88,13 @@ internal sealed class AssistantToolbox(IDispatcher dispatcher, IAssistantActions
                 "get_run_ranking" => await RankingAsync(input, cancellationToken),
                 "get_run_details" => await DetailsAsync(input, cancellationToken),
                 "list_strategies" => Json(await dispatcher.SendAsync(new GetStrategiesQuery(), cancellationToken), StrategiesView),
+                "get_best_parameters" => Json(
+                    await dispatcher.SendAsync(new GetBestStrategyParametersQuery(RequiredString(input, "strategy"), Take: 20), cancellationToken),
+                    best => best.Select(b => new
+                    {
+                        b.Symbol, Period = $"{b.Start:yyyy-MM-dd}..{b.End:yyyy-MM-dd}", Objective = b.Objective.ToString(), b.Score,
+                        b.Metrics.NetProfitPercent, b.Metrics.MaxDrawdownPercent, b.Metrics.SharpeRatio, b.Metrics.TotalTrades, b.Parameters
+                    })),
                 "get_market_data_coverage" => Json(await dispatcher.SendAsync(new GetMarketDataCoverageQuery(), cancellationToken), CoverageView),
                 "get_latest_prices" => Json(await dispatcher.SendAsync(new GetLatestPricesQuery(StringArray(input, "symbols")), cancellationToken), p => p),
                 "get_account" => await AccountAsync(cancellationToken),
@@ -194,7 +206,11 @@ internal sealed class AssistantToolbox(IDispatcher dispatcher, IAssistantActions
         strategies.Select(s => new
         {
             s.Name, s.DisplayName, s.Description,
-            Parameters = s.Parameters.Select(p => new { p.Name, p.DisplayName, Default = p.DefaultValue, p.Minimum, p.Maximum })
+            Parameters = s.Parameters.Select(p => new
+            {
+                p.Name, p.DisplayName, p.Description, Default = p.DefaultValue, p.Minimum, p.Maximum,
+                SuggestedToTest = p.Suggested is { } r ? $"{r.From}..{r.To} step {r.Step}" : null
+            })
         });
 
     private static object CoverageView(IReadOnlyList<Application.MarketData.MarketDataCoverage> coverage) =>

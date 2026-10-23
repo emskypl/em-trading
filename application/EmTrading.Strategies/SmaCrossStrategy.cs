@@ -14,15 +14,15 @@ namespace EmTrading.Strategies;
 /// <remarks>The daily filter needs 200 trading days of data before the start date for warm-up.</remarks>
 [Strategy("EMA Cross + ADX trend", Description = "15-minute EMA cross filtered by ADX and the 100/200-day closes; ATR trailing stop.")]
 [StrategyParameter(FastPeriod, "Fast EMA period", StrategyParameterType.Integer, 26, Minimum = 2, Maximum = 500,
-    Description = "In 15-minute bars.")]
+    Description = "In 15-minute bars.", SuggestedFrom = 16, SuggestedTo = 46, SuggestedStep = 5)]
 [StrategyParameter(SlowPeriod, "Slow EMA period", StrategyParameterType.Integer, 130, Minimum = 3, Maximum = 2000,
-    MustExceed = FastPeriod, Description = "In 15-minute bars.")]
+    MustExceed = FastPeriod, Description = "In 15-minute bars.", SuggestedFrom = 78, SuggestedTo = 234, SuggestedStep = 26)]
 [StrategyParameter(AdxThreshold, "ADX threshold", StrategyParameterType.Decimal, 24, Minimum = 0, Maximum = 100,
-    Description = "Trades only when the trend is at least this strong.")]
+    Description = "Trades only when the trend is at least this strong.", SuggestedFrom = 18, SuggestedTo = 30, SuggestedStep = 4)]
 [StrategyParameter(AtrStopMultiplier, "ATR stop multiplier", StrategyParameterType.Decimal, 1.5, Minimum = 0.1, Maximum = 10,
-    Description = "Stop distance as a multiple of the 14-bar ATR.")]
+    Description = "Stop distance as a multiple of the 14-bar ATR.", SuggestedFrom = 1, SuggestedTo = 3, SuggestedStep = 0.5)]
 [StrategyParameter(RiskPercent, "Risk per trade (%)", StrategyParameterType.Decimal, 1, Minimum = 0.1, Maximum = 10,
-    Description = "Equity lost if the initial stop is hit.")]
+    Description = "Equity lost if the initial stop is hit.", SuggestedFrom = 0.5, SuggestedTo = 2, SuggestedStep = 0.5)]
 public class SmaCrossStrategy : StrategyBase
 {
     public const string FastPeriod = "fast-period";
@@ -77,7 +77,7 @@ public class SmaCrossStrategy : StrategyBase
         consolidator15M.DataConsolidated += On15MinuteBar;
         SubscriptionManager.AddConsolidator(_symbol, consolidator15M);
 
-        SetWarmUp(DailyLookback + 1, Resolution.Daily);
+        SetWarmUpTradingDays(DailyLookback + 1);
     }
 
     private void On15MinuteBar(object? sender, TradeBar bar)

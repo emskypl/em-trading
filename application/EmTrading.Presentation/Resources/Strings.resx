@@ -49,6 +49,7 @@
   <data name="Assistant_Tool_get_run_ranking" xml:space="preserve"><value>Reading the backtest ranking…</value></data>
   <data name="Assistant_Tool_get_run_details" xml:space="preserve"><value>Reading a run's details…</value></data>
   <data name="Assistant_Tool_list_strategies" xml:space="preserve"><value>Reading the strategies…</value></data>
+  <data name="Assistant_Tool_get_best_parameters" xml:space="preserve"><value>Reading your optimization results…</value></data>
   <data name="Assistant_Tool_get_market_data_coverage" xml:space="preserve"><value>Checking stored market data…</value></data>
   <data name="Assistant_Tool_get_latest_prices" xml:space="preserve"><value>Fetching latest prices…</value></data>
   <data name="Assistant_Tool_get_account" xml:space="preserve"><value>Reading the account and positions…</value></data>
@@ -66,13 +67,13 @@
   <data name="Status_ApiKeySaved" xml:space="preserve"><value>API key saved.</value></data>
   <data name="Status_ApiKeyRemoved" xml:space="preserve"><value>API key removed.</value></data>
   <data name="Status_TicketProposed" xml:space="preserve"><value>The assistant filled in the order ticket for {0}; review it before placing.</value></data>
-  <data name="Guide_Compare_Title" xml:space="preserve"><value>5. Compare many stocks</value></data>
+  <data name="Guide_Compare_Title" xml:space="preserve"><value>6. Compare many stocks</value></data>
   <data name="Guide_Compare_Body" xml:space="preserve"><value>The Compare page tests one strategy on up to 100 symbols and ranks the results.
 • Choose a strategy, enter the symbols and the period, click 1. Download data, wait for the jobs, then 2. Run backtests.
 • The ranking table fills in as runs finish. Click a column header to sort, e.g. by Return/DD (profit per unit of drawdown) or Sharpe ratio.
 • Latest run per symbol hides older runs of the same symbol; All strategies also shows other strategies' runs.
 • Select runs (Ctrl or Shift) and click Chart selected to see their returns together, or Show results to open one.</value></data>
-  <data name="Guide_Assistant_Title" xml:space="preserve"><value>8. AI assistant</value></data>
+  <data name="Guide_Assistant_Title" xml:space="preserve"><value>9. AI assistant</value></data>
   <data name="Guide_Assistant_Body" xml:space="preserve"><value>The assistant (Claude by Anthropic) helps you read the results and think about positions.
 • Enter your Anthropic API key in Settings → AI assistant; it is stored encrypted for your Windows account.
 • Ask in Polish or English. It looks up the ranking, run details, latest prices, your account and risk limits itself.
@@ -100,30 +101,30 @@
 • Run backtest starts the engine; the status bar shows its progress and Cancel stops it.
 • The report: key figures at the top, then Equity &amp; drawdown, Price &amp; trades (entries and exits on the chart), Trade log and Analysis.
 • Background runs: enter a list of symbols and click Run for the list in background to test the same setup on all of them. Up to three run at once; results appear in History.</value></data>
-  <data name="Guide_History_Title" xml:space="preserve"><value>4. History and comparing runs</value></data>
+  <data name="Guide_History_Title" xml:space="preserve"><value>5. History and comparing runs</value></data>
   <data name="Guide_History_Body" xml:space="preserve"><value>Every run is stored, including failed and cancelled ones.
 • Show results opens a run's report on the Backtest page (double-click works too).
 • Select 2 to 8 completed runs with Ctrl or Shift and click Compare selected to see their key figures side by side and their returns on one chart.
 • Analyze risk opens the selected run on the Risk analysis page.</value></data>
-  <data name="Guide_Optimization_Title" xml:space="preserve"><value>6. Optimize parameters</value></data>
+  <data name="Guide_Optimization_Title" xml:space="preserve"><value>7. Optimize parameters</value></data>
   <data name="Guide_Optimization_Body" xml:space="preserve"><value>Optimization runs one backtest for every combination of the parameters you vary and finds the best one.
 • Tick vary for the parameters to test and set from, to and step; the form shows how many combinations that gives.
 • Choose the Objective (Sharpe ratio, net profit, or return divided by maximum drawdown) and how many engine processes run in parallel.
 • The heatmap shows the score of every combination, with the best one outlined.
 • Use best parameters copies them to the backtest form. Keep in mind that the best result on past data is often partly luck: check it on another period before trusting it.</value></data>
-  <data name="Guide_Analysis_Title" xml:space="preserve"><value>7. Risk analysis (Monte Carlo)</value></data>
+  <data name="Guide_Analysis_Title" xml:space="preserve"><value>8. Risk analysis (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>One backtest is one possible history. The risk analysis replays the same trades thousands of times to show how much worse it could have gone.
 • Shuffle trade order keeps every trade and changes only their order: the final result stays the same, the drawdowns vary.
 • Bootstrap draws trades with replacement, so the final result varies too.
 • Read the probability of loss and the percentiles: a 95th percentile drawdown of 15% means 1 simulation in 20 was worse than that.</value></data>
-  <data name="Guide_Trading_Title" xml:space="preserve"><value>9. Paper trading</value></data>
+  <data name="Guide_Trading_Title" xml:space="preserve"><value>10. Paper trading</value></data>
   <data name="Guide_Trading_Body" xml:space="preserve"><value>Orders go to your Alpaca paper account: real market prices, no real money.
 • Watchlist: enter symbols and click Apply to stream their prices.
 • Order ticket: choose side, type, quantity and validity. Place order checks the risk limits and asks for confirmation before anything is sent.
 • Positions and Orders show what you hold and what is working; Close and Close all positions exit with market orders.
 • Trading enabled is the kill switch: when off, only orders that reduce a position are accepted. It switches off automatically when the day's loss limit is reached.
 • Audit log records every step, including refused orders.</value></data>
-  <data name="Guide_Jobs_Title" xml:space="preserve"><value>10. Background jobs and logs</value></data>
+  <data name="Guide_Jobs_Title" xml:space="preserve"><value>11. Background jobs and logs</value></data>
   <data name="Guide_Jobs_Body" xml:space="preserve"><value>Downloads, background backtests, optimizations and symbol list refreshes run as jobs, so the app stays responsive.
 • Jobs shows their progress; a job can be cancelled there.
 • The number of active jobs is always visible in the status bar.
@@ -454,4 +455,85 @@ Estimated value: {6} USD.</value></data>
   <data name="AuditCategory_Session" xml:space="preserve"><value>Session</value></data>
   <data name="Status_LiveArmed" xml:space="preserve"><value>Live trading armed for this session.</value></data>
   <data name="Status_LiveDisarmed" xml:space="preserve"><value>Live trading disarmed.</value></data>
+  <data name="Nav_Strategies" xml:space="preserve"><value>Strategies</value></data>
+  <data name="Strategies_Title" xml:space="preserve"><value>Strategies</value></data>
+  <data name="Strategies_TryInBacktest" xml:space="preserve"><value>Try in backtest</value></data>
+  <data name="Strategies_Optimize" xml:space="preserve"><value>Optimize</value></data>
+  <data name="Strategies_Section_Summary" xml:space="preserve"><value>What it does</value></data>
+  <data name="Strategies_Section_HowItWorks" xml:space="preserve"><value>How it works</value></data>
+  <data name="Strategies_Section_WhenItWorks" xml:space="preserve"><value>When it works and when it fails</value></data>
+  <data name="Strategies_Section_HowToUse" xml:space="preserve"><value>How to use it</value></data>
+  <data name="Strategies_Parameters" xml:space="preserve"><value>Parameters</value></data>
+  <data name="Strategies_SuggestedHint" xml:space="preserve"><value>"Suggested to test" is the range worth trying first in an optimization (from – to / step). The Optimize button fills it in for you.</value></data>
+  <data name="Strategies_Parameter" xml:space="preserve"><value>Parameter</value></data>
+  <data name="Strategies_Meaning" xml:space="preserve"><value>Meaning</value></data>
+  <data name="Strategies_Default" xml:space="preserve"><value>Default</value></data>
+  <data name="Strategies_Allowed" xml:space="preserve"><value>Allowed</value></data>
+  <data name="Strategies_Suggested" xml:space="preserve"><value>Suggested to test</value></data>
+  <data name="Strategies_BestResults" xml:space="preserve"><value>Your best results</value></data>
+  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>The best trial of each of your optimizations of this strategy, newest first. The best result on past data partly fits noise: before you trust parameters, run them on another period or symbol and check that the result holds.</value></data>
+  <data name="Strategies_NoResults" xml:space="preserve"><value>No optimization of this strategy yet. Click Optimize to find the best parameters for a symbol; the results appear here.</value></data>
+  <data name="Strategies_Values" xml:space="preserve"><value>Parameter values</value></data>
+  <data name="Strategies_UseInBacktest" xml:space="preserve"><value>Use in backtest</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_Summary" xml:space="preserve"><value>Trend following on 15-minute bars. It trades in the direction of the trend when a fast EMA is above (or below) a slow EMA, the trend is strong (ADX) and the price is on the same side of its closes from 100 and 200 trading days ago. It goes long and short.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_HowItWorks" xml:space="preserve"><value>• Long entry: fast EMA above slow EMA, ADX above the threshold, price above the closes of 100 and 200 trading days ago. Short is the mirror image.
+• Size: the position is sized so that hitting the initial stop (ATR × multiplier) costs the chosen % of equity.
+• Exit: an ATR trailing stop that follows the price.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_WhenItWorks" xml:space="preserve"><value>Works in markets with long, steady trends, e.g. a stock in a clear rise lasting months. Fails in sideways, choppy markets: the EMAs cross back and forth, the trailing stop is hit often and many small losses add up. It trades a lot, so costs matter.</value></data>
+  <data name="StrategyDoc_SmaCrossStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data for about a year more than the test period: the daily filter needs 200 trading days before the start.
+• Optimize the EMA periods first (fast and slow), then the ADX threshold and the ATR multiplier.
+• Keep the risk per trade at 0.5–1% when you try it on a paper account.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_Summary" xml:space="preserve"><value>Mean reversion on hourly bars: buys when the hourly RSI shows the stock is oversold and sells when it becomes overbought. Long only.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_HowItWorks" xml:space="preserve"><value>• Entry: RSI below the oversold level.
+• Exit: RSI above the overbought level, or the price falls by the stop loss % below the entry.
+• Size: a fixed share of equity (allocation).</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_WhenItWorks" xml:space="preserve"><value>Works on stocks that move in a range and bounce back after short drops. Fails in strong downtrends: the RSI stays oversold while the price keeps falling, so the stop loss matters. In strong uptrends it often sells too early.</value></data>
+  <data name="StrategyDoc_RsiMeanReversionStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data for the test period; the warm-up needs only a few days.
+• Optimize the oversold and overbought levels first, then the RSI period and the stop loss.
+• Compare it with the RSI(2) pullback, which buys only in uptrends.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_Summary" xml:space="preserve"><value>Classic breakout trend following (the Turtle traders' rule) on daily bars: buys when the price makes a new N-day high and rides the trend until it makes a new M-day low. Long only.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_HowItWorks" xml:space="preserve"><value>• Entry: daily close above the highest high of the previous N days (entry channel).
+• Exit: close below the lowest low of the previous M days (exit channel), or below the initial ATR stop.
+• Size: the position is sized so that the initial stop (20-day ATR × multiplier) costs the chosen % of equity, and never more than the cash allows.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_WhenItWorks" xml:space="preserve"><value>Works when a stock starts a big, lasting move: few trades, large winners. Fails in ranges: many false breakouts reverse quickly, so expect a low win rate; the profit comes from a few big trends. Judge it over several years, not months.</value></data>
+  <data name="StrategyDoc_DonchianBreakoutStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data with about two months extra before the test period, for the warm-up.
+• Common settings: 20/10 (faster) or 55/20 (slower, fewer trades).
+• Optimize the entry channel first, then the exit channel; keep the exit shorter than the entry.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_Summary" xml:space="preserve"><value>Time-series momentum: holds the stock while it has risen over the past months and trades above its long-term average; otherwise it waits in cash. Very few trades. Long only.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_HowItWorks" xml:space="preserve"><value>• Every K trading days it checks: is the return over the lookback above zero, and is the close above the trend SMA?
+• If both are true it invests the allocation; if not, it sells and waits in cash.
+• Between checks it does nothing, which keeps costs low.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_WhenItWorks" xml:space="preserve"><value>Rides long rises and steps aside during long declines, which can cut deep drawdowns. Fails in sharp V-shaped reversals (it sells late and buys back late) and in sideways markets where the signal flips back and forth.</value></data>
+  <data name="StrategyDoc_MomentumTrendStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data with about a year extra before the test period: the 200-day SMA and the 126-day lookback need warm-up.
+• Optimize the lookback (63–252 days) and the re-check interval; the trend SMA matters less.
+• Compare its drawdown with simply holding the stock or SPY.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_Summary" xml:space="preserve"><value>Buys short, sharp dips in a long-term uptrend (after Larry Connors' RSI(2) method) and sells as soon as the price recovers. Daily bars, long only.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_HowItWorks" xml:space="preserve"><value>• Filter: close above the trend SMA (200 days by default), so it buys only in uptrends.
+• Entry: a very short RSI (2 days) below the entry level (10), i.e. after a few strong down days.
+• Exit: close above the short exit SMA (5 days), or after the maximum holding time.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_WhenItWorks" xml:space="preserve"><value>Works well on liquid stocks and index ETFs in rising markets: high win rate, short trades. Fails when the uptrend breaks: the dip keeps going and, with no stop loss, a loss can grow until the maximum holding time ends the trade.</value></data>
+  <data name="StrategyDoc_RsiPullbackStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data with about a year extra before the test period (200-day SMA warm-up).
+• Try it on SPY or large stocks first.
+• Optimize the entry level (5–25) and the exit SMA; keep the RSI period short (2–3).</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_Summary" xml:space="preserve"><value>Mean reversion on hourly bars: buys when the price falls below the lower Bollinger band and sells when it returns to the middle band. Long only.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_HowItWorks" xml:space="preserve"><value>• Bands: a moving average of N hourly closes, plus and minus σ standard deviations.
+• Entry: close below the lower band (an unusually large drop).
+• Exit: close back at the middle band, or a fixed stop loss below the entry.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_WhenItWorks" xml:space="preserve"><value>Works on stocks that move in a range with frequent overreactions. Fails in trends: in a downtrend the price can slide along the lower band; in an uptrend it rarely reaches it. The stop loss is what limits the damage.</value></data>
+  <data name="StrategyDoc_BollingerReversionStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data for the test period; the warm-up is about two weeks.
+• Optimize the band width (1.5–3σ) first, then the period and the stop loss.
+• A wider band gives fewer but stronger signals.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_Summary" xml:space="preserve"><value>Intraday breakout: records the high and low of the first minutes after the open, buys if the price breaks above that range, and always sells before the close. No positions overnight. Long only.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_HowItWorks" xml:space="preserve"><value>• Range: the high and low between 9:30 and 9:30 + range minutes (New York time).
+• Entry: at most once a day, when a minute closes above the range high and the range is at least the minimum % wide.
+• Exit: close below the range low (stop), or the chosen number of minutes before 16:00.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_WhenItWorks" xml:space="preserve"><value>Works on days with a clear direction after the open (news, earnings, strong market moves) and on volatile stocks. Fails on quiet or choppy days: the breakout reverses and the stop is hit. It trades almost daily, so spreads and commissions weigh heavily, and results on the free IEX feed can differ from the full market.</value></data>
+  <data name="StrategyDoc_OpeningRangeBreakoutStrategy_HowToUse" xml:space="preserve"><value>• Download Minute data for the test period; no warm-up is needed.
+• Optimize the range length (15–60 minutes) and the minimum range first.
+• Look at the results month by month: intraday strategies can look good on average but depend on a few big days.</value></data>
+  <data name="Guide_Strategies_Title" xml:space="preserve"><value>4. Choose a strategy</value></data>
+  <data name="Guide_Strategies_Body" xml:space="preserve"><value>The Strategies page describes every strategy: what it does, when it works and when it fails, which data it needs, and which parameters are worth testing.
+• Try in backtest opens the Backtest page with the strategy selected and its defaults.
+• Optimize opens the Optimization page with the suggested ranges already filled in.
+• Your best results lists the best parameters your optimizations found, per symbol and period; Use in backtest copies them to the backtest form.</value></data>
 </root>

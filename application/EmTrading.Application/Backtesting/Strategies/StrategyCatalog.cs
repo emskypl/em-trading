@@ -76,6 +76,7 @@ public enum StrategyParameterKind
     Decimal
 }
 
+/// <param name="Suggested">The range worth testing in an optimization, if the strategy suggests one.</param>
 [ImmutableObject(true)]
 public sealed record StrategyParameterDescriptor(
     string Name,
@@ -85,7 +86,8 @@ public sealed record StrategyParameterDescriptor(
     decimal? Minimum,
     decimal? Maximum,
     string? MustExceed,
-    string? Description)
+    string? Description,
+    SuggestedRange? Suggested = null)
 {
     public string FormatValue(decimal value) => value.ToString(Kind == StrategyParameterKind.Integer ? "0" : "0.####", CultureInfo.InvariantCulture);
 
@@ -109,6 +111,9 @@ public sealed record StrategyParameterDescriptor(
         return error.Length == 0;
     }
 }
+
+/// <summary>From, to and step of the values worth testing for one parameter, e.g. 10 to 55 by 5.</summary>
+public sealed record SuggestedRange(decimal From, decimal To, decimal Step);
 
 /// <summary>Cached: the catalog cannot change while the app runs.</summary>
 public sealed record GetStrategiesQuery : IQuery<IReadOnlyList<StrategyDescriptor>>, ICacheableQuery
