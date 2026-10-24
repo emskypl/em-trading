@@ -128,6 +128,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="170" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -173,7 +174,39 @@
 
             <TextBlock Grid.Row="3" Text="{Binding BestText}" FontWeight="SemiBold" Margin="3,8,0,6" TextWrapping="Wrap" />
 
-            <TabControl Grid.Row="4" Background="White" Visibility="{Binding HasDetails, Converter={StaticResource BooleanToVisibility}}">
+            <!-- Check on another period: the best trials backtested again on days the optimization did not see. -->
+            <Border Grid.Row="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="White" Padding="8,6" Margin="0,0,0,8"
+                    Visibility="{Binding HasDetails, Converter={StaticResource BooleanToVisibility}}">
+                <StackPanel>
+                    <WrapPanel>
+                        <TextBlock Text="{loc:Tr Optimization_CheckTitle}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="{loc:Tr Field_StartDate}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <DatePicker SelectedDate="{Binding CheckStartDate}" Width="130" Margin="0,0,10,0"
+                                    AutomationProperties.Name="{loc:Tr Optimization_CheckStart}" />
+                        <TextBlock Text="{loc:Tr Field_EndDate}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <DatePicker SelectedDate="{Binding CheckEndDate}" Width="130" Margin="0,0,10,0"
+                                    AutomationProperties.Name="{loc:Tr Optimization_CheckEnd}" />
+                        <TextBlock Text="{loc:Tr Optimization_CheckTop}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <ComboBox ItemsSource="{Binding CheckTopOptions}" SelectedItem="{Binding CheckTop}" Width="60" Margin="0,0,10,0"
+                                  AutomationProperties.Name="{loc:Tr Optimization_CheckTop}" />
+                        <Button Content="{loc:Tr Optimization_Check}" Command="{Binding CheckCommand}" ToolTip="{loc:Tr Optimization_CheckHint}" />
+                    </WrapPanel>
+                    <TextBlock Text="{loc:Tr Optimization_CheckHint}" Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="{Binding CheckText}" TextWrapping="Wrap" Margin="0,2,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckText}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <TabControl Grid.Row="5" Background="White" Visibility="{Binding HasDetails, Converter={StaticResource BooleanToVisibility}}">
                 <TabItem Header="{loc:Tr Optimization_TabHeatmap}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,6,4,4">
@@ -198,6 +231,9 @@
                             <DataGridTextColumn Header="{loc:Tr Optimization_Point}" Binding="{Binding PointText}" Width="220" />
                             <DataGridTextColumn Header="{loc:Tr History_Status}" Binding="{Binding Status, Converter={StaticResource LocalizedEnum}}" Width="85" />
                             <DataGridTextColumn Header="{loc:Tr Optimization_Score}" Binding="{Binding Score, StringFormat=N3}" Width="70" />
+                            <DataGridTextColumn Header="{loc:Tr Optimization_CheckScore}" Binding="{Binding CheckScore, StringFormat=N3}" Width="80" />
+                            <DataGridTextColumn Header="{loc:Tr Optimization_CheckProfit}" Binding="{Binding CheckMetrics.NetProfitPercent, StringFormat=\{0:N2\}%}" Width="85" />
+                            <DataGridTextColumn Header="{loc:Tr Optimization_CheckStatus}" Binding="{Binding CheckStatus, Converter={StaticResource LocalizedEnum}}" Width="85" />
                             <DataGridTextColumn Header="{loc:Tr Kpi_NetProfit}" Binding="{Binding Metrics.NetProfitPercent, StringFormat=\{0:N2\}%}" Width="85" />
                             <DataGridTextColumn Header="{loc:Tr Kpi_MaxDrawdown}" Binding="{Binding Metrics.MaxDrawdownPercent, StringFormat=\{0:N2\}%}" Width="85" />
                             <DataGridTextColumn Header="{loc:Tr Kpi_Sharpe}" Binding="{Binding Metrics.SharpeRatio, StringFormat=N2}" Width="60" />

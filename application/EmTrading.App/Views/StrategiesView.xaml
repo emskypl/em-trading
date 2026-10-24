@@ -135,6 +135,10 @@
                                 <DataGridTextColumn Header="{loc:Tr Compare_NetProfit}" Binding="{Binding Metrics.NetProfitPercent, StringFormat=N2}" Width="Auto" />
                                 <DataGridTextColumn Header="{loc:Tr Compare_MaxDrawdown}" Binding="{Binding Metrics.MaxDrawdownPercent, StringFormat=N2}" Width="Auto" />
                                 <DataGridTextColumn Header="{loc:Tr Kpi_Sharpe}" Binding="{Binding Metrics.SharpeRatio, StringFormat=N2}" Width="Auto" />
+                                <!-- The same parameters on the check period, next to the optimization's own figures. -->
+                                <DataGridTextColumn Header="{loc:Tr Optimization_CheckProfit}" Binding="{Binding CheckMetrics.NetProfitPercent, StringFormat=N2}" Width="Auto" />
+                                <DataGridTextColumn Header="{loc:Tr Strategies_CheckSharpe}" Binding="{Binding CheckMetrics.SharpeRatio, StringFormat=N2}" Width="Auto" />
+                                <DataGridTextColumn Header="{loc:Tr Strategies_CheckPeriod}" Binding="{Binding CheckPeriodText}" Width="Auto" />
                                 <DataGridTextColumn Header="{loc:Tr Kpi_Trades}" Binding="{Binding Metrics.TotalTrades}" Width="Auto" />
                                 <DataGridTextColumn Header="{loc:Tr Optimization_Objective}" Binding="{Binding Objective, Converter={StaticResource LocalizedEnum}}" Width="Auto" />
                                 <DataGridTextColumn Header="{loc:Tr Strategies_Values}" Binding="{Binding ParametersText}" Width="*" MinWidth="220">

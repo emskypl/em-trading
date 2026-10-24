@@ -9,6 +9,7 @@ using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.Optimization;
+using EmTrading.Application.Optimization.CheckOptimization;
 using EmTrading.Application.Optimization.StartOptimization;
 using EmTrading.Domain.Backtesting;
 using EmTrading.Domain.Optimization;
@@ -92,7 +93,7 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
     private OptimizationSummary? _selectedOptimization;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ApplyBestCommand), nameof(OpenTrialCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ApplyBestCommand), nameof(OpenTrialCommand), nameof(CheckCommand))]
     private OptimizationDetails? _details;
 
     [ObservableProperty] private IReadOnlyList<TrialResult> _trials = [];
@@ -108,6 +109,14 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
     [ObservableProperty] private string? _bestText;
 
     public bool HasDetails => Details is not null;
+
+    // Check on another period
+    [ObservableProperty] private DateTime? _checkStartDate;
+    [ObservableProperty] private DateTime? _checkEndDate;
+    [ObservableProperty] private int _checkTop = QueueOptimizationCheckCommand.DefaultTop;
+    [ObservableProperty] private string? _checkText;
+
+    public IReadOnlyList<int> CheckTopOptions { get; } = [1, 3, 5, 10, OptimizationRun.MaxCheckedTrials];
 
     protected override async Task LoadAsync()
     {
@@ -225,9 +234,13 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
             return;
         }
 
-        var selectedId = SelectedOptimization?.Id;
+        var previous = SelectedOptimization;
         Optimizations = list.Value;
-        SelectedOptimization = Optimizations.FirstOrDefault(o => o.Id == selectedId) ?? Optimizations.FirstOrDefault();
+        SelectedOptimization = Optimizations.FirstOrDefault(o => o.Id == previous?.Id) ?? Optimizations.FirstOrDefault();
+
+        // An unchanged summary raises no change, but its details may have (e.g. a finished check): reload them.
+        if (Equals(previous, SelectedOptimization))
+            await LoadDetailsAsync(SelectedOptimization);
     }
 
     partial void OnSelectedOptimizationChanged(OptimizationSummary? value) => _ = LoadDetailsAsync(value);
@@ -274,6 +287,59 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
             ? Loc.Format("Optimization_BestTrial", best.Index, best.PointText, best.Score!.Value.ToString("0.####", Loc.Instance.Culture))
             : null;
         UpdateHeatmap();
+        UpdateCheck(value);
+    }
+
+    /// <summary>Shortest period after the optimization worth suggesting for a check; a few days say little.</summary>
+    private const int MinCheckDays = 30;
+
+    /// <summary>
+    /// Shows the latest check, and suggests a period for a new one when another optimization is selected: from the
+    /// day after the optimization's period to yesterday, or, when that is under a month, an equally long period
+    /// before it.
+    /// </summary>
+    private void UpdateCheck(OptimizationDetails? details)
+    {
+        CheckText = details is { CheckStart: { } checkStart, CheckEnd: { } checkEnd }
+            ? Loc.Format("Optimization_CheckDone", checkStart.ToString("d", Loc.Instance.Culture), checkEnd.ToString("d", Loc.Instance.Culture))
+            : null;
+
+        if (details is null || details.Summary.Id == _checkSuggestedFor)
+            return;
+
+        _checkSuggestedFor = details.Summary.Id;
+        var summary = details.Summary;
+        var yesterday = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+        var (start, end) = details is { CheckStart: { } s, CheckEnd: { } e }
+            ? (s, e)
+            : yesterday.DayNumber - summary.End.DayNumber >= MinCheckDays
+                ? (summary.End.AddDays(1), yesterday)
+                : (summary.Start.AddDays(-(summary.End.DayNumber - summary.Start.DayNumber + 1)), summary.Start.AddDays(-1));
+
+        CheckStartDate = start.ToDateTime(TimeOnly.MinValue);
+        CheckEndDate = end.ToDateTime(TimeOnly.MinValue);
+    }
+
+    /// <summary>Optimization the check period was last suggested for, so a refresh keeps the user's dates.</summary>
+    private string? _checkSuggestedFor;
+
+    private bool CanCheck() => Details is { Best: not null, Summary.IsActive: false };
+
+    /// <summary>Backtests the best trials again on the check period, as one background job.</summary>
+    [RelayCommand(CanExecute = nameof(CanCheck))]
+    private async Task CheckAsync(CancellationToken cancellationToken)
+    {
+        if (CheckStartDate is not { } start || CheckEndDate is not { } end)
+        {
+            Status.Show(Loc.Get("Status_FixInputs"));
+            return;
+        }
+
+        var queued = await _dispatcher.SendAsync(
+            new QueueOptimizationCheckCommand(Details!.Summary.Id, DateOnly.FromDateTime(start), DateOnly.FromDateTime(end), CheckTop),
+            cancellationToken);
+
+        Status.Show(queued.IsSuccess ? Loc.Format("Status_CheckStarted", queued.Value.Trials) : Describe(queued.Error));
     }
 
     partial void OnXAxisChanged(OptimizationAxis? value) => UpdateHeatmap();

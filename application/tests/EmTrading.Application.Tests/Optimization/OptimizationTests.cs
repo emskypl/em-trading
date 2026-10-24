@@ -3,10 +3,13 @@ using EmTrading.Application.Abstractions.Results;
 using EmTrading.Application.Backtesting;
 using EmTrading.Application.Backtesting.GetBacktestHistory;
 using EmTrading.Application.Optimization;
+using EmTrading.Application.Optimization.CheckOptimization;
 using EmTrading.Application.Optimization.ExecuteOptimization;
+using EmTrading.Application.Optimization.GetBestStrategyParameters;
 using EmTrading.Application.Optimization.StartOptimization;
 using EmTrading.Application.Tests.TestSupport;
 using EmTrading.Domain.Backtesting;
+using EmTrading.Domain.Common;
 using EmTrading.Domain.Optimization;
 
 namespace EmTrading.Application.Tests.Optimization;
@@ -247,6 +250,73 @@ public class ExecuteOptimizationTests
 
         Assert.Equal(1, recovered.Value);
         Assert.Equal(OptimizationStatus.Failed, host.Database.Optimizations[0].Status);
+    }
+
+    [Fact]
+    public async Task Check_backtests_the_best_trials_again_on_the_new_period()
+    {
+        await using var host = new ApplicationTestHost();
+        host.Reader.ReportFor = OptimizationCommands.ReportWithNetProfitOfTrialIndex;
+        var started = await host.Dispatcher.SendAsync(OptimizationCommands.FastSlowGrid(OptimizationObjective.NetProfit), Ct);
+        await host.Jobs.RunAllAsync(host.Dispatcher);
+        var trialRequests = host.Engine.Requests.Count;
+
+        // Check runs are normal backtests with timestamp ids: give each its own millisecond.
+        host.Reader.ReportFor = TestData.Report;
+        host.Clock.AutoAdvanceAmount = TimeSpan.FromMilliseconds(1);
+        var queued = await host.Dispatcher.SendAsync(
+            new QueueOptimizationCheckCommand(started.Value.OptimizationId, new DateOnly(2025, 1, 2), new DateOnly(2025, 12, 31), Top: 3), Ct);
+        var outcome = Assert.Single(await host.Jobs.RunAllAsync(host.Dispatcher));
+
+        Assert.Equal(3, queued.Value.Trials);
+        Assert.True(outcome.IsSuccess, outcome.Message);
+
+        var run = host.Database.Optimizations[0];
+        Assert.Equal(DateRange.Create(new DateOnly(2025, 1, 2), new DateOnly(2025, 12, 31)), run.CheckPeriod);
+        Assert.Equal([5, 4, 3], run.Trials.Where(t => t.CheckStatus == TrialStatus.Completed).Select(t => t.Index).OrderDescending());
+        Assert.All(run.Trials.Take(3), t => Assert.Null(t.CheckStatus));
+
+        // Best first, with each trial's parameters, on the check period, and visible in the history.
+        var checks = host.Engine.Requests.Skip(trialRequests).ToList();
+        Assert.Equal(run.Trials[5].Parameters, checks[0].Parameters);
+        Assert.All(checks, r => Assert.Equal(new DateOnly(2025, 1, 2), r.Period.Start));
+        Assert.Equal(3, (await host.Dispatcher.SendAsync(new GetBacktestHistoryQuery(), Ct)).Value.Count);
+
+        var details = (await host.Dispatcher.SendAsync(new GetOptimizationQuery(run.Id.Value), Ct)).Value;
+        Assert.Equal(new DateOnly(2025, 1, 2), details.CheckStart);
+        Assert.NotNull(details.Trials.Single(t => t.Index == 5).CheckScore);
+
+        var best = Assert.Single((await host.Dispatcher.SendAsync(new GetBestStrategyParametersQuery("SmaCrossStrategy"), Ct)).Value);
+        Assert.NotNull(best.CheckMetrics);
+        Assert.Equal("2025-01-02 – 2025-12-31", best.CheckPeriodText);
+    }
+
+    [Fact]
+    public async Task Check_on_days_the_optimization_saw_is_rejected()
+    {
+        await using var host = new ApplicationTestHost();
+        var started = await host.Dispatcher.SendAsync(OptimizationCommands.FastSlowGrid(), Ct);
+        await host.Jobs.RunAllAsync(host.Dispatcher);
+
+        var result = await host.Dispatcher.SendAsync(
+            new QueueOptimizationCheckCommand(started.Value.OptimizationId, new DateOnly(2026, 9, 1), new DateOnly(2026, 10, 14)), Ct);
+
+        Assert.Equal(ErrorType.Validation, result.Error?.Type);
+        Assert.Contains("overlaps", result.Error!.Message);
+        Assert.Empty(host.Jobs.Pending);
+    }
+
+    [Fact]
+    public async Task An_unfinished_optimization_cannot_be_checked()
+    {
+        await using var host = new ApplicationTestHost();
+        var started = await host.Dispatcher.SendAsync(OptimizationCommands.FastSlowGrid(), Ct);
+
+        var result = await host.Dispatcher.SendAsync(
+            new QueueOptimizationCheckCommand(started.Value.OptimizationId, new DateOnly(2025, 1, 2), new DateOnly(2025, 12, 31)), Ct);
+
+        Assert.Equal(ErrorType.Validation, result.Error?.Type);
+        Assert.Single(host.Jobs.Pending);  // only the optimization itself
     }
 
     private static void InterlockedMax(ref int target, int value)

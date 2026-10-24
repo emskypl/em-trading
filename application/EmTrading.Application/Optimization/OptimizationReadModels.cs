@@ -39,7 +39,11 @@ public sealed record TrialResult(
     PerformanceMetrics? Metrics,
     decimal? Score,
     bool IsBest,
-    string? FailureReason)
+    string? FailureReason,
+    TrialStatus? CheckStatus = null,
+    PerformanceMetrics? CheckMetrics = null,
+    decimal? CheckScore = null,
+    string? CheckRunId = null)
 {
     public string PointText => string.Join(", ", Point.Select(p => $"{p.Key}={p.Value.ToString("0.####", CultureInfo.InvariantCulture)}"));
 }
@@ -54,8 +58,12 @@ public sealed record OptimizationDetails(
     decimal InitialCapital,
     int MaxParallelTrials,
     IReadOnlyList<OptimizationAxis> Axes,
-    IReadOnlyList<TrialResult> Trials)
+    IReadOnlyList<TrialResult> Trials,
+    DateOnly? CheckStart = null,
+    DateOnly? CheckEnd = null)
 {
+    public bool HasCheck => CheckStart is not null;
+
     public TrialResult? Best => Trials.FirstOrDefault(t => t.IsBest);
 
     /// <param name="xAxis">Name of the varied parameter on the horizontal axis.</param>
@@ -136,9 +144,14 @@ internal static class OptimizationReadModels
                 trial.Metrics,
                 trial.Metrics?.Score(run.Objective),
                 trial.Index == run.BestTrialIndex,
-                trial.FailureReason))
+                trial.FailureReason,
+                trial.CheckStatus,
+                trial.CheckMetrics,
+                trial.CheckMetrics?.Score(run.Objective),
+                trial.CheckRunId?.Value))
             .ToList();
 
-        return new OptimizationDetails(Summary(run), run.InitialCapital.Amount, run.MaxParallelTrials, axes, trials);
+        return new OptimizationDetails(
+            Summary(run), run.InitialCapital.Amount, run.MaxParallelTrials, axes, trials, run.CheckPeriod?.Start, run.CheckPeriod?.End);
     }
 }

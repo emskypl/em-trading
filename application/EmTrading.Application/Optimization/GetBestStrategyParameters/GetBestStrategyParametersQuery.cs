@@ -17,6 +17,8 @@ public sealed record GetBestStrategyParametersQuery(string StrategyName, int Tak
 }
 
 /// <param name="Parameters">Every parameter of the best trial, as the strategy reads them.</param>
+/// <param name="CheckMetrics">How the same parameters did on the check period (days the optimization did not see),
+/// if the optimization was checked and this trial was part of it.</param>
 public sealed record BestParameters(
     string OptimizationId,
     string Symbol,
@@ -27,9 +29,15 @@ public sealed record BestParameters(
     decimal Score,
     PerformanceMetrics Metrics,
     IReadOnlyDictionary<string, string> Parameters,
-    DateTimeOffset CreatedAt)
+    DateTimeOffset CreatedAt,
+    DateOnly? CheckStart = null,
+    DateOnly? CheckEnd = null,
+    PerformanceMetrics? CheckMetrics = null,
+    decimal? CheckScore = null)
 {
     public string ParametersText => string.Join(", ", Parameters.Select(p => $"{p.Key}={p.Value}"));
+
+    public string? CheckPeriodText => CheckStart is { } start && CheckEnd is { } end ? $"{start:yyyy-MM-dd} – {end:yyyy-MM-dd}" : null;
 }
 
 internal sealed class GetBestStrategyParametersQueryValidator : AbstractValidator<GetBestStrategyParametersQuery>
@@ -64,7 +72,11 @@ internal sealed class GetBestStrategyParametersQueryHandler(IOptimizationReader 
                     best.Metrics!.Score(run.Objective),
                     best.Metrics,
                     best.Parameters.Values,
-                    run.CreatedAt);
+                    run.CreatedAt,
+                    run.CheckPeriod?.Start,
+                    run.CheckPeriod?.End,
+                    best.CheckMetrics,
+                    best.CheckMetrics?.Score(run.Objective));
             })
             .ToList();
     }

@@ -28,6 +28,9 @@ public sealed class OptimizationRun : AggregateRoot<OptimizationRunId>
 {
     public const int MaxParallelTrialsLimit = 8;
 
+    /// <summary>Most trials a check on another period backtests again.</summary>
+    public const int MaxCheckedTrials = 20;
+
     private readonly List<OptimizationTrial> _trials = [];
 
     private OptimizationRun(
@@ -85,6 +88,58 @@ public sealed class OptimizationRun : AggregateRoot<OptimizationRunId>
     public bool IsFinished => Status is OptimizationStatus.Completed or OptimizationStatus.Failed or OptimizationStatus.Cancelled;
 
     public TimeSpan? Duration => StartedAt is { } started && FinishedAt is { } finished ? finished - started : null;
+
+    private DateOnly? _checkStart;
+    private DateOnly? _checkEnd;
+
+    /// <summary>
+    /// The period of the latest check: the best trials backtested again on days the optimization did not see.
+    /// Parameters that only fit the noise of the optimization period usually do much worse here.
+    /// </summary>
+    public DateRange? CheckPeriod => _checkStart is { } start && _checkEnd is { } end ? DateRange.Create(start, end) : null;
+
+    /// <summary>
+    /// Begins a check of the <paramref name="top"/> best completed trials on <paramref name="period"/>, replacing any
+    /// earlier check.
+    /// </summary>
+    /// <returns>Indexes of the trials to backtest, best first.</returns>
+    public IReadOnlyList<int> StartCheck(DateRange period, int top)
+    {
+        if (!IsFinished || BestTrial is null)
+            throw new DomainException($"Optimization {Id} has no finished trials to check yet.");
+        if (top is < 1 or > MaxCheckedTrials)
+            throw new DomainException($"Between 1 and {MaxCheckedTrials} trials can be checked.");
+        if (period.Start <= Period.End && period.End >= Period.Start)
+            throw new DomainException($"The check period {period} overlaps the optimization period {Period}; use days the optimization did not see.");
+
+        var checkedTrials = _trials
+            .Where(t => t.Metrics is not null)
+            .OrderByDescending(t => t.Metrics!.Score(Objective))
+            .ThenBy(t => t.Index)
+            .Take(top)
+            .Select(t => t.Index)
+            .ToList();
+
+        foreach (var trial in _trials)
+            trial.ResetCheck(checkedTrials.Contains(trial.Index));
+
+        _checkStart = period.Start;
+        _checkEnd = period.End;
+        return checkedTrials;
+    }
+
+    public void StartTrialCheck(int index) => Trial(index).StartCheck();
+
+    public void CompleteTrialCheck(int index, BacktestRunId runId, PerformanceMetrics metrics) => Trial(index).CompleteCheck(runId, metrics);
+
+    public void FailTrialCheck(int index, string reason) => Trial(index).FailCheck(reason);
+
+    /// <summary>Marks the trials the check has not reached as cancelled; finished ones keep their results.</summary>
+    public void CancelCheck()
+    {
+        foreach (var trial in _trials)
+            trial.CancelCheck();
+    }
 
     /// <param name="trialParameters">The full parameters of each trial, in grid order. Combinations the strategy
     /// rejects (e.g. a slow period not above the fast one) are left out by the caller.</param>

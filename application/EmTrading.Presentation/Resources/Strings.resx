@@ -111,7 +111,8 @@
 • Tick vary for the parameters to test and set from, to and step; the form shows how many combinations that gives.
 • Choose the Objective (Sharpe ratio, net profit, or return divided by maximum drawdown) and how many engine processes run in parallel.
 • The heatmap shows the score of every combination, with the best one outlined.
-• Use best parameters copies them to the backtest form. Keep in mind that the best result on past data is often partly luck: check it on another period before trusting it.</value></data>
+• Use best parameters copies them to the backtest form. Keep in mind that the best result on past data is often partly luck: check it on another period before trusting it.
+• Check on another period runs the best trials again on days the optimization did not see, e.g. the year after it. The "check" columns of the Trials tab show how each held up; parameters that stay good there are the ones worth using.</value></data>
   <data name="Guide_Analysis_Title" xml:space="preserve"><value>8. Risk analysis (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>One backtest is one possible history. The risk analysis replays the same trades thousands of times to show how much worse it could have gone.
 • Shuffle trade order keeps every trade and changes only their order: the final result stays the same, the drawdowns vary.
@@ -302,6 +303,17 @@
   <data name="Optimization_Trial" xml:space="preserve"><value>Trial</value></data>
   <data name="Optimization_Point" xml:space="preserve"><value>Parameters</value></data>
   <data name="Optimization_Score" xml:space="preserve"><value>Score</value></data>
+  <data name="Optimization_CheckTitle" xml:space="preserve"><value>Check on another period</value></data>
+  <data name="Optimization_CheckStart" xml:space="preserve"><value>Check period start</value></data>
+  <data name="Optimization_CheckEnd" xml:space="preserve"><value>Check period end</value></data>
+  <data name="Optimization_CheckTop" xml:space="preserve"><value>Best trials</value></data>
+  <data name="Optimization_Check" xml:space="preserve"><value>Check</value></data>
+  <data name="Optimization_CheckHint" xml:space="preserve"><value>Runs the best trials again as backtests on a period the optimization did not see. Parameters that only fit the noise of the optimization period usually do much worse there; trust the ones that hold up.</value></data>
+  <data name="Optimization_CheckDone" xml:space="preserve"><value>Last check: {0} – {1}. Its results are in the "check" columns of the Trials tab and on the Strategies page.</value></data>
+  <data name="Optimization_CheckScore" xml:space="preserve"><value>Score (check)</value></data>
+  <data name="Optimization_CheckProfit" xml:space="preserve"><value>Profit (check)</value></data>
+  <data name="Optimization_CheckStatus" xml:space="preserve"><value>Check</value></data>
+  <data name="Status_CheckStarted" xml:space="preserve"><value>Check started: {0} trials run as backtests in the background.</value></data>
   <data name="Optimization_Trials" xml:space="preserve"><value>Trials</value></data>
   <data name="Optimization_BestScore" xml:space="preserve"><value>Best score</value></data>
   <data name="OptimizationObjective_SharpeRatio" xml:space="preserve"><value>Sharpe ratio</value></data>
@@ -471,7 +483,9 @@ Estimated value: {6} USD.</value></data>
   <data name="Strategies_Allowed" xml:space="preserve"><value>Allowed</value></data>
   <data name="Strategies_Suggested" xml:space="preserve"><value>Suggested to test</value></data>
   <data name="Strategies_BestResults" xml:space="preserve"><value>Your best results</value></data>
-  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>The best trial of each of your optimizations of this strategy, newest first. The best result on past data partly fits noise: before you trust parameters, run them on another period or symbol and check that the result holds.</value></data>
+  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>The best trial of each of your optimizations of this strategy, newest first. The best result on past data partly fits noise: before you trust parameters, use Check on another period on the Optimization page. The "check" columns show how they did there; a result that holds up is more trustworthy.</value></data>
+  <data name="Strategies_CheckPeriod" xml:space="preserve"><value>Check period</value></data>
+  <data name="Strategies_CheckSharpe" xml:space="preserve"><value>Sharpe (check)</value></data>
   <data name="Strategies_NoResults" xml:space="preserve"><value>No optimization of this strategy yet. Click Optimize to find the best parameters for a symbol; the results appear here.</value></data>
   <data name="Strategies_Values" xml:space="preserve"><value>Parameter values</value></data>
   <data name="Strategies_UseInBacktest" xml:space="preserve"><value>Use in backtest</value></data>

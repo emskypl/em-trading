@@ -62,6 +62,11 @@ internal sealed class OptimizationRunConfiguration : IEntityTypeConfiguration<Op
         builder.Property(r => r.FailureReason).HasMaxLength(2000);
         builder.Property(r => r.BestTrialIndex);
 
+        // DateRange cannot be empty, so the optional check period is stored as two nullable columns.
+        builder.Property<DateOnly?>("_checkStart").HasColumnName("CheckStart");
+        builder.Property<DateOnly?>("_checkEnd").HasColumnName("CheckEnd");
+        builder.Ignore(r => r.CheckPeriod);
+
         builder.OwnsMany(r => r.Trials, trial =>
         {
             trial.ToTable("OptimizationTrials");
@@ -81,6 +86,15 @@ internal sealed class OptimizationRunConfiguration : IEntityTypeConfiguration<Op
                 .HasConversion(new PerformanceMetricsConverter())
                 .HasMaxLength(1000);
             trial.Property(t => t.FailureReason).HasMaxLength(2000);
+
+            trial.Property(t => t.CheckStatus).HasConversion<string>().HasMaxLength(16);
+            trial.Property(t => t.CheckRunId)
+                .HasConversion(id => id!.Value, value => BacktestRunId.From(value))
+                .HasMaxLength(128);
+            trial.Property(t => t.CheckMetrics)
+                .HasConversion(new PerformanceMetricsConverter())
+                .HasMaxLength(1000);
+            trial.Property(t => t.CheckFailureReason).HasMaxLength(2000);
 
             trial.Ignore(t => t.Index);
             trial.Ignore(t => t.IsFinished);

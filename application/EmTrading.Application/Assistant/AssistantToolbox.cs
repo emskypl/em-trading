@@ -48,7 +48,7 @@ internal sealed class AssistantToolbox(IDispatcher dispatcher, IAssistantActions
             Schema(),
             []),
         Tool("get_best_parameters",
-            "The best parameters the user's own optimizations found for a strategy: one row per optimization with symbol, period, objective, score, metrics and parameter values, newest first.",
+            "The best parameters the user's own optimizations found for a strategy: one row per optimization with symbol, period, objective, score, metrics and parameter values, newest first. 'check' holds the same parameters' results on a later period the optimization did not see, when the user ran that check: trust parameters that hold up there more than the best in-sample score.",
             Schema(("strategy", Prop("string", "The strategy name from list_strategies."))),
             ["strategy"]),
         Tool("get_market_data_coverage",
@@ -93,7 +93,15 @@ internal sealed class AssistantToolbox(IDispatcher dispatcher, IAssistantActions
                     best => best.Select(b => new
                     {
                         b.Symbol, Period = $"{b.Start:yyyy-MM-dd}..{b.End:yyyy-MM-dd}", Objective = b.Objective.ToString(), b.Score,
-                        b.Metrics.NetProfitPercent, b.Metrics.MaxDrawdownPercent, b.Metrics.SharpeRatio, b.Metrics.TotalTrades, b.Parameters
+                        b.Metrics.NetProfitPercent, b.Metrics.MaxDrawdownPercent, b.Metrics.SharpeRatio, b.Metrics.TotalTrades, b.Parameters,
+                        // The same parameters on days the optimization did not see, when the user ran that check.
+                        Check = b.CheckMetrics is { } check
+                            ? new
+                            {
+                                Period = $"{b.CheckStart:yyyy-MM-dd}..{b.CheckEnd:yyyy-MM-dd}", Score = b.CheckScore,
+                                check.NetProfitPercent, check.MaxDrawdownPercent, check.SharpeRatio, check.TotalTrades
+                            }
+                            : null
                     })),
                 "get_market_data_coverage" => Json(await dispatcher.SendAsync(new GetMarketDataCoverageQuery(), cancellationToken), CoverageView),
                 "get_latest_prices" => Json(await dispatcher.SendAsync(new GetLatestPricesQuery(StringArray(input, "symbols")), cancellationToken), p => p),

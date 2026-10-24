@@ -262,6 +262,48 @@ public sealed class PersistenceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Optimization_check_round_trips_its_period_and_trial_results()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var optimization = CreateOptimization(T0);
+        optimization.Start(T0);
+        foreach (var index in new[] { 0, 1 })
+            optimization.StartTrial(index, BacktestRunId.ForTrial(optimization.Id, index));
+        optimization.CompleteTrial(0, new PerformanceMetrics(12.5m, 4.25m, 1.3m, 17, 52.94m, 1.8m), T0);
+        optimization.CompleteTrial(1, new PerformanceMetrics(2m, 3m, 0.4m, 9, 44m, 1.1m), T0);
+
+        await using (var db = CreateContext())
+        {
+            new OptimizationRunRepository(db).Add(optimization);
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        var checkRun = BacktestRunId.From("20261015-120000000_AAPL_SmaCrossStrategy");
+        var period = DateRange.Create(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 14));
+        await using (var db = CreateContext())
+        {
+            var loaded = (await new OptimizationRunRepository(db).GetAsync(optimization.Id, ct))!;
+            loaded.StartCheck(period, 2);
+            loaded.StartTrialCheck(0);
+            loaded.CompleteTrialCheck(0, checkRun, new PerformanceMetrics(-1m, 6m, -0.2m, 5, 40m, 0.8m));
+            loaded.StartTrialCheck(1);
+            loaded.FailTrialCheck(1, "no data");
+            await new UnitOfWork(db, _publisher).SaveChangesAsync(ct);
+        }
+
+        await using (var db = CreateContext())
+        {
+            var loaded = (await new OptimizationReader(db).FindAsync(optimization.Id, ct))!;
+
+            Assert.Equal(period, loaded.CheckPeriod);
+            Assert.Equal([TrialStatus.Completed, TrialStatus.Failed], loaded.Trials.Select(t => t.CheckStatus!.Value));
+            Assert.Equal(checkRun, loaded.Trials[0].CheckRunId);
+            Assert.Equal(new PerformanceMetrics(-1m, 6m, -0.2m, 5, 40m, 0.8m), loaded.Trials[0].CheckMetrics);
+            Assert.Equal("no data", loaded.Trials[1].CheckFailureReason);
+        }
+    }
+
+    [Fact]
     public async Task Unfinished_optimizations_are_listed_and_the_newest_comes_first()
     {
         var ct = TestContext.Current.CancellationToken;

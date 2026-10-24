@@ -57,7 +57,8 @@ public sealed partial class JobsViewModel : PageViewModel
             _messenger.Send(new MarketDataChangedMessage());
 
         // Optimizations save after every trial: tell their page when a job's progress moves, not on every refresh.
-        var optimizationsChanged = false;
+        // A check of an optimization on another period runs under its backtest key, so finished backtests count too.
+        var optimizationsChanged = newlyFinished.Any(IsBacktest);
         foreach (var job in Jobs.Where(IsOptimization))
         {
             if (!_optimizationProgress.TryGetValue(job.Id, out var seen) || seen != job.Progress || newlyFinished.Contains(job))

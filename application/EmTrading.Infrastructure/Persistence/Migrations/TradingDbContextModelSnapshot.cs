@@ -192,6 +192,14 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateOnly?>("_checkEnd")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CheckEnd");
+
+                    b.Property<DateOnly?>("_checkStart")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CheckStart");
+
                     b.ComplexProperty(typeof(Dictionary<string, object>), "InitialCapital", "EmTrading.Domain.Optimization.OptimizationRun.InitialCapital#Money", b1 =>
                         {
                             b1.IsRequired();
@@ -389,6 +397,22 @@ namespace EmTrading.Infrastructure.Persistence.Migrations
                             b1.Property<int>("Id")
                                 .HasColumnType("INTEGER")
                                 .HasColumnName("Index");
+
+                            b1.Property<string>("CheckFailureReason")
+                                .HasMaxLength(2000)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("CheckMetrics")
+                                .HasMaxLength(1000)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("CheckRunId")
+                                .HasMaxLength(128)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("CheckStatus")
+                                .HasMaxLength(16)
+                                .HasColumnType("TEXT");
 
                             b1.Property<string>("FailureReason")
                                 .HasMaxLength(2000)

@@ -45,6 +45,16 @@ public sealed class OptimizationTrial : Entity<int>
 
     public bool IsFinished => Status is TrialStatus.Completed or TrialStatus.Failed or TrialStatus.Cancelled;
 
+    /// <summary>The trial's state in the latest check on another period, or <c>null</c> if it is not part of it.</summary>
+    public TrialStatus? CheckStatus { get; private set; }
+
+    /// <summary>The backtest with these parameters on the check period.</summary>
+    public BacktestRunId? CheckRunId { get; private set; }
+
+    public PerformanceMetrics? CheckMetrics { get; private set; }
+
+    public string? CheckFailureReason { get; private set; }
+
     internal void Start(BacktestRunId runId)
     {
         EnsureStatus(TrialStatus.Pending, "start");
@@ -70,6 +80,48 @@ public sealed class OptimizationTrial : Entity<int>
     {
         if (!IsFinished)
             Status = TrialStatus.Cancelled;
+    }
+
+    /// <param name="include">Whether the trial takes part in the new check.</param>
+    internal void ResetCheck(bool include)
+    {
+        CheckStatus = include ? TrialStatus.Pending : null;
+        CheckRunId = null;
+        CheckMetrics = null;
+        CheckFailureReason = null;
+    }
+
+    internal void StartCheck()
+    {
+        EnsureCheckStatus(TrialStatus.Pending, "start the check of");
+        CheckStatus = TrialStatus.Running;
+    }
+
+    internal void CompleteCheck(BacktestRunId runId, PerformanceMetrics metrics)
+    {
+        EnsureCheckStatus(TrialStatus.Running, "complete the check of");
+        CheckStatus = TrialStatus.Completed;
+        CheckRunId = runId;
+        CheckMetrics = metrics;
+    }
+
+    internal void FailCheck(string reason)
+    {
+        EnsureCheckStatus(TrialStatus.Running, "fail the check of");
+        CheckStatus = TrialStatus.Failed;
+        CheckFailureReason = string.IsNullOrWhiteSpace(reason) ? "Unknown error" : reason.Trim();
+    }
+
+    internal void CancelCheck()
+    {
+        if (CheckStatus is TrialStatus.Pending or TrialStatus.Running)
+            CheckStatus = TrialStatus.Cancelled;
+    }
+
+    private void EnsureCheckStatus(TrialStatus expected, string action)
+    {
+        if (CheckStatus != expected)
+            throw new DomainException($"Cannot {action} trial {Index}: its check is {CheckStatus?.ToString() ?? "not started"}.");
     }
 
     private void EnsureStatus(TrialStatus expected, string action)

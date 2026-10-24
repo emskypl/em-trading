@@ -192,6 +192,78 @@ public class OptimizationRunTests
         Assert.Throws<DomainException>(() => Create(grid, [P("10")], maxParallel: OptimizationRun.MaxParallelTrialsLimit + 1));
     }
 
+    private static readonly DateRange LaterPeriod = DateRange.Create(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 14));
+
+    [Fact]
+    public void Check_needs_a_finished_optimization_and_days_it_did_not_see()
+    {
+        var run = Create(2);
+        Assert.Throws<DomainException>(() => run.StartCheck(LaterPeriod, 1));
+
+        run.Start(T0);
+        StartAll(run);
+        run.CompleteTrial(0, Metrics(sharpe: 1), T0);
+        run.CompleteTrial(1, Metrics(sharpe: 2), T0);
+
+        Assert.Throws<DomainException>(() => run.StartCheck(DateRange.Create(new DateOnly(2026, 9, 30), new DateOnly(2026, 10, 14)), 1));
+        Assert.Throws<DomainException>(() => run.StartCheck(LaterPeriod, 0));
+        Assert.Throws<DomainException>(() => run.StartCheck(LaterPeriod, OptimizationRun.MaxCheckedTrials + 1));
+        Assert.Null(run.CheckPeriod);
+    }
+
+    [Fact]
+    public void Check_takes_the_best_completed_trials_and_records_their_results()
+    {
+        var run = Create(3);
+        run.Start(T0);
+        StartAll(run);
+        run.CompleteTrial(0, Metrics(sharpe: 0.8m), T0);
+        run.FailTrial(1, "no data", T0);
+        run.CompleteTrial(2, Metrics(sharpe: 1.4m), T0);
+
+        var checkedTrials = run.StartCheck(LaterPeriod, top: 5);
+
+        Assert.Equal([2, 0], checkedTrials);
+        Assert.Equal(LaterPeriod, run.CheckPeriod);
+        Assert.Equal([TrialStatus.Pending, null, TrialStatus.Pending], run.Trials.Select(t => t.CheckStatus));
+        Assert.Throws<DomainException>(() => run.CompleteTrialCheck(2, CheckRunId, Metrics(0.3m)));
+
+        run.StartTrialCheck(2);
+        run.CompleteTrialCheck(2, CheckRunId, Metrics(sharpe: 0.3m));
+        run.StartTrialCheck(0);
+        run.FailTrialCheck(0, "engine crashed");
+
+        Assert.Equal((TrialStatus.Completed, 0.3m, CheckRunId), (run.Trials[2].CheckStatus!.Value, run.Trials[2].CheckMetrics!.SharpeRatio, run.Trials[2].CheckRunId!));
+        Assert.Equal((TrialStatus.Failed, "engine crashed"), (run.Trials[0].CheckStatus!.Value, run.Trials[0].CheckFailureReason));
+        Assert.Throws<DomainException>(() => run.StartTrialCheck(1));
+        // The optimization's own results are untouched.
+        Assert.Equal((OptimizationStatus.Completed, 2), (run.Status, run.BestTrialIndex));
+    }
+
+    [Fact]
+    public void A_new_check_replaces_the_previous_one_and_cancelling_stops_the_rest()
+    {
+        var run = Create(2);
+        run.Start(T0);
+        StartAll(run);
+        run.CompleteTrial(0, Metrics(sharpe: 1), T0);
+        run.CompleteTrial(1, Metrics(sharpe: 2), T0);
+        run.StartCheck(LaterPeriod, 2);
+        run.StartTrialCheck(1);
+        run.CompleteTrialCheck(1, CheckRunId, Metrics(sharpe: 1));
+
+        var earlier = DateRange.Create(new DateOnly(2025, 1, 2), new DateOnly(2025, 12, 31));
+        run.StartCheck(earlier, 2);
+        run.StartTrialCheck(1);
+        run.CancelCheck();
+
+        Assert.Equal(earlier, run.CheckPeriod);
+        Assert.Equal([TrialStatus.Cancelled, TrialStatus.Cancelled], run.Trials.Select(t => t.CheckStatus));
+        Assert.All(run.Trials, t => Assert.Null(t.CheckMetrics));
+    }
+
+    private static readonly BacktestRunId CheckRunId = BacktestRunId.From("20261015-120000000_AAPL_SmaCrossStrategy");
+
     private static void StartAll(OptimizationRun run)
     {
         foreach (var trial in run.Trials)

@@ -111,7 +111,8 @@
 • Zaznacz zmieniaj przy parametrach do sprawdzenia i ustaw od, do i krok; formularz pokazuje, ile to daje kombinacji.
 • Wybierz Cel (wskaźnik Sharpe'a, zysk netto albo zwrot podzielony przez maksymalne obsunięcie) i liczbę równoległych procesów silnika.
 • Mapa cieplna pokazuje wynik każdej kombinacji, najlepsza jest obramowana.
-• Użyj najlepszych parametrów kopiuje je do formularza backtestu. Pamiętaj, że najlepszy wynik na danych historycznych to często częściowo szczęście: sprawdź go na innym okresie, zanim mu zaufasz.</value></data>
+• Użyj najlepszych parametrów kopiuje je do formularza backtestu. Pamiętaj, że najlepszy wynik na danych historycznych to często częściowo szczęście: sprawdź go na innym okresie, zanim mu zaufasz.
+• Sprawdź na innym okresie uruchamia najlepsze próby ponownie na dniach, których optymalizacja nie widziała, np. na roku po niej. Kolumny „spr.” na karcie Próby pokazują, jak każda się utrzymała; warto używać parametrów, które tam nadal są dobre.</value></data>
   <data name="Guide_Analysis_Title" xml:space="preserve"><value>8. Analiza ryzyka (Monte Carlo)</value></data>
   <data name="Guide_Analysis_Body" xml:space="preserve"><value>Jeden backtest to jedna możliwa historia. Analiza ryzyka odtwarza te same transakcje tysiące razy, aby pokazać, o ile gorzej mogło pójść.
 • Losowa kolejność zachowuje wszystkie transakcje i zmienia tylko ich kolejność: wynik końcowy jest stały, zmieniają się obsunięcia.
@@ -302,6 +303,17 @@
   <data name="Optimization_Trial" xml:space="preserve"><value>Próba</value></data>
   <data name="Optimization_Point" xml:space="preserve"><value>Parametry</value></data>
   <data name="Optimization_Score" xml:space="preserve"><value>Wynik</value></data>
+  <data name="Optimization_CheckTitle" xml:space="preserve"><value>Sprawdź na innym okresie</value></data>
+  <data name="Optimization_CheckStart" xml:space="preserve"><value>Początek okresu sprawdzenia</value></data>
+  <data name="Optimization_CheckEnd" xml:space="preserve"><value>Koniec okresu sprawdzenia</value></data>
+  <data name="Optimization_CheckTop" xml:space="preserve"><value>Najlepsze próby</value></data>
+  <data name="Optimization_Check" xml:space="preserve"><value>Sprawdź</value></data>
+  <data name="Optimization_CheckHint" xml:space="preserve"><value>Uruchamia najlepsze próby ponownie jako backtesty na okresie, którego optymalizacja nie widziała. Parametry dopasowane tylko do szumu okresu optymalizacji zwykle wypadają tam dużo gorzej; ufaj tym, które się utrzymują.</value></data>
+  <data name="Optimization_CheckDone" xml:space="preserve"><value>Ostatnie sprawdzenie: {0} – {1}. Wyniki są w kolumnach „spr.” na karcie Próby i na stronie Strategie.</value></data>
+  <data name="Optimization_CheckScore" xml:space="preserve"><value>Wynik (spr.)</value></data>
+  <data name="Optimization_CheckProfit" xml:space="preserve"><value>Zysk (spr.)</value></data>
+  <data name="Optimization_CheckStatus" xml:space="preserve"><value>Sprawdzenie</value></data>
+  <data name="Status_CheckStarted" xml:space="preserve"><value>Rozpoczęto sprawdzenie: {0} prób działa w tle jako backtesty.</value></data>
   <data name="Optimization_Trials" xml:space="preserve"><value>Próby</value></data>
   <data name="Optimization_BestScore" xml:space="preserve"><value>Najlepszy wynik</value></data>
   <data name="OptimizationObjective_SharpeRatio" xml:space="preserve"><value>Wskaźnik Sharpe'a</value></data>
@@ -471,7 +483,9 @@ Szacowana wartość: {6} USD.</value></data>
   <data name="Strategies_Allowed" xml:space="preserve"><value>Dozwolone</value></data>
   <data name="Strategies_Suggested" xml:space="preserve"><value>Do przetestowania</value></data>
   <data name="Strategies_BestResults" xml:space="preserve"><value>Twoje najlepsze wyniki</value></data>
-  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>Najlepsza próba z każdej Twojej optymalizacji tej strategii, od najnowszej. Najlepszy wynik na danych historycznych częściowo dopasowuje się do szumu: zanim zaufasz parametrom, sprawdź je na innym okresie lub symbolu.</value></data>
+  <data name="Strategies_BestResultsHint" xml:space="preserve"><value>Najlepsza próba z każdej Twojej optymalizacji tej strategii, od najnowszej. Najlepszy wynik na danych historycznych częściowo dopasowuje się do szumu: zanim zaufasz parametrom, użyj Sprawdź na innym okresie na stronie Optymalizacja. Kolumny „spr.” pokazują, jak wypadły na tym okresie; wynik, który się utrzymał, jest bardziej wiarygodny.</value></data>
+  <data name="Strategies_CheckPeriod" xml:space="preserve"><value>Okres sprawdzenia</value></data>
+  <data name="Strategies_CheckSharpe" xml:space="preserve"><value>Sharpe (spr.)</value></data>
   <data name="Strategies_NoResults" xml:space="preserve"><value>Nie ma jeszcze optymalizacji tej strategii. Kliknij Optymalizuj, aby znaleźć najlepsze parametry dla symbolu; wyniki pojawią się tutaj.</value></data>
   <data name="Strategies_Values" xml:space="preserve"><value>Wartości parametrów</value></data>
   <data name="Strategies_UseInBacktest" xml:space="preserve"><value>Użyj w backteście</value></data>
