@@ -41,13 +41,9 @@
                     <TextBox Text="{Binding InitialCapital, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Text="{loc:Tr Field_Strategy}" Style="{StaticResource FieldLabel}" />
-                    <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}" DisplayMemberPath="DisplayName">
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding DisplayName}" />
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
+                    <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}"
+                              ItemTemplate="{StaticResource StrategyNameItem}" ItemContainerStyle="{StaticResource StrategyComboItem}"
+                              ToolTip="{Binding SelectedStrategy, Converter={StaticResource StrategyText}, ConverterParameter=Description}" />
 
                     <UniformGrid Columns="2">
                         <StackPanel Margin="0,0,3,0">
@@ -70,7 +66,7 @@
                                 <StackPanel Margin="0,4,0,4" ToolTip="{Binding Description}">
                                     <DockPanel>
                                         <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsVaried}" Content="{loc:Tr Optimization_Vary}"
-                                                  VerticalAlignment="Center" AutomationProperties.Name="{Binding DisplayName}" />
+                                                  VerticalAlignment="Center" AutomationProperties.Name="{Binding AutomationName}" />
                                         <TextBlock Text="{Binding DisplayName}" Style="{StaticResource FieldLabel}" />
                                     </DockPanel>
 
@@ -149,7 +145,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="{loc:Tr History_Created}" Binding="{Binding CreatedAt.LocalDateTime, StringFormat=g}" Width="125" />
                     <DataGridTextColumn Header="{loc:Tr Field_Symbol}" Binding="{Binding Symbol}" Width="60" />
-                    <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName}" Width="150" />
+                    <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName, Converter={StaticResource StrategyText}}" Width="150" />
                     <DataGridTextColumn Header="{loc:Tr Optimization_Objective}" Binding="{Binding Objective, Converter={StaticResource LocalizedEnum}}" Width="130" />
                     <DataGridTextColumn Header="{loc:Tr History_Status}" Binding="{Binding Status, Converter={StaticResource LocalizedEnum}}" Width="90" />
                     <DataGridTemplateColumn Header="{loc:Tr Optimization_Trials}" Width="110">

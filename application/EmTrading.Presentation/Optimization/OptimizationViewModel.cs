@@ -16,6 +16,7 @@ using EmTrading.Presentation.Backtesting;
 using EmTrading.Presentation.Localization;
 using EmTrading.Presentation.Settings;
 using EmTrading.Presentation.Shell;
+using EmTrading.Presentation.Strategies;
 using EmTrading.Wpf.Controls.Charts;
 using Microsoft.Extensions.Logging;
 
@@ -142,7 +143,7 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
 
         foreach (var parameter in value?.Parameters ?? [])
         {
-            var input = new OptimizationParameterInput(parameter);
+            var input = new OptimizationParameterInput(value!.Name, parameter);
             input.PropertyChanged += OnParameterChanged;
             Parameters.Add(input);
         }
@@ -265,7 +266,7 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
         // Keep the chosen axes while the same optimization refreshes.
         var x = XAxis?.Name;
         var y = YAxis?.Name;
-        Axes = value?.Axes ?? [];
+        Axes = value?.Axes.Select(a => a with { DisplayName = StrategyTexts.ParameterName(value.Summary.StrategyName, a.Name, a.DisplayName) }).ToList() ?? [];
         XAxis = Axes.FirstOrDefault(a => a.Name == x) ?? Axes.FirstOrDefault();
         YAxis = Axes.FirstOrDefault(a => a.Name == y && a.Name != XAxis?.Name) ?? Axes.FirstOrDefault(a => a != XAxis);
 
@@ -289,8 +290,8 @@ public sealed partial class OptimizationViewModel : PageViewModel, IRecipient<Op
 
         var map = details.Heatmap(XAxis.Name, YAxis?.Name);
         Heatmap = new HeatmapData(
-            map.X.DisplayName,
-            map.Y?.DisplayName ?? string.Empty,
+            XAxis.DisplayName,
+            YAxis?.DisplayName ?? string.Empty,
             map.X.Labels,
             map.Y?.Labels ?? [string.Empty],
             map.Scores,

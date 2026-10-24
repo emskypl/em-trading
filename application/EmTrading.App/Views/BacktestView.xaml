@@ -31,14 +31,8 @@
 
                     <TextBlock Text="{loc:Tr Field_Strategy}" Style="{StaticResource FieldLabel}" />
                     <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}"
-                              DisplayMemberPath="DisplayName" ToolTip="{Binding SelectedStrategy.Description}">
-                        <!-- Without this, screen readers and UI automation see the record's ToString(). -->
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding DisplayName}" />
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
+                              ItemTemplate="{StaticResource StrategyNameItem}" ItemContainerStyle="{StaticResource StrategyComboItem}"
+                              ToolTip="{Binding SelectedStrategy, Converter={StaticResource StrategyText}, ConverterParameter=Description}" />
 
                     <!-- Generated from the strategy's [StrategyParameter] declarations. -->
                     <ItemsControl ItemsSource="{Binding StrategyParameters}">

@@ -29,7 +29,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="{loc:Tr History_Created}" Binding="{Binding CreatedAt.LocalDateTime, StringFormat=g}" Width="130" />
                 <DataGridTextColumn Header="{loc:Tr Field_Symbol}" Binding="{Binding Symbol}" Width="70" />
-                <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName}" Width="170" />
+                <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName, Converter={StaticResource StrategyText}}" Width="170" />
                 <DataGridTextColumn Header="{loc:Tr Field_StartDate}" Binding="{Binding Start, StringFormat=d}" Width="90" />
                 <DataGridTextColumn Header="{loc:Tr Field_EndDate}" Binding="{Binding End, StringFormat=d}" Width="90" />
                 <DataGridTextColumn Header="{loc:Tr Field_InitialCapital}" Binding="{Binding InitialCapital, StringFormat=N0}" Width="100" />

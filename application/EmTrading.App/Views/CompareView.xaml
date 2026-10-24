@@ -18,7 +18,8 @@
 
                     <TextBlock Text="{loc:Tr Field_Strategy}" Style="{StaticResource FieldLabel}" />
                     <ComboBox ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}"
-                              DisplayMemberPath="DisplayName" ToolTip="{Binding SelectedStrategy.Description}" />
+                              ItemTemplate="{StaticResource StrategyNameItem}" ItemContainerStyle="{StaticResource StrategyComboItem}"
+                              ToolTip="{Binding SelectedStrategy, Converter={StaticResource StrategyText}, ConverterParameter=Description}" />
 
                     <TextBlock Text="{loc:Tr Field_SymbolList}" Style="{StaticResource FieldLabel}" />
                     <controls:SymbolBox Text="{Binding SymbolList}" AllowMultiple="True"
@@ -75,7 +76,7 @@
                     </DataGrid.InputBindings>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="{loc:Tr Field_Symbol}" Binding="{Binding Symbol}" Width="70" />
-                        <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName}" Width="140" />
+                        <DataGridTextColumn Header="{loc:Tr Field_Strategy}" Binding="{Binding StrategyName, Converter={StaticResource StrategyText}}" Width="140" />
                         <DataGridTextColumn Header="{loc:Tr Compare_NetProfit}" Binding="{Binding NetProfitPercent, StringFormat=N2}" Width="Auto" MinWidth="60" />
                         <DataGridTextColumn Header="{loc:Tr Compare_MaxDrawdown}" Binding="{Binding MaxDrawdownPercent, StringFormat=N2}" Width="Auto" MinWidth="60" />
                         <DataGridTextColumn Header="{loc:Tr Compare_ReturnOverDrawdown}" Binding="{Binding ReturnOverDrawdown, StringFormat=N2}" Width="Auto" MinWidth="60" />

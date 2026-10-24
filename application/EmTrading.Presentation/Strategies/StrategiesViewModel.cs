@@ -59,7 +59,7 @@ public sealed partial class StrategiesViewModel : PageViewModel, IRecipient<Opti
     partial void OnSelectedStrategyChanged(StrategyDescriptor? value)
     {
         Sections = value is null ? [] : DocSections.Select(section => new StrategyDocSection(section, value.Name)).ToList();
-        Parameters = value?.Parameters.Select(ParameterGuide.From).ToList() ?? [];
+        Parameters = value?.Parameters.Select(p => new ParameterGuide(value.Name, p)).ToList() ?? [];
         _ = LoadBestResultsAsync();
     }
 
@@ -120,22 +120,29 @@ public sealed record StrategyDocSection(string Section, string StrategyName)
     public string Key => $"StrategyDoc_{StrategyName}_{Section}";
 }
 
-/// <param name="Allowed">Valid values, e.g. "2 – 100".</param>
-/// <param name="Suggested">Values worth testing in an optimization, e.g. "10 – 55, step 5", or "–".</param>
-public sealed record ParameterGuide(string DisplayName, string? Description, string Default, string Allowed, string Suggested)
+/// <summary>
+/// One row of the parameters table. Texts are read on every access: the rows outlive a language change, which only
+/// rebuilds the view.
+/// </summary>
+public sealed record ParameterGuide(string StrategyName, StrategyParameterDescriptor Parameter)
 {
-    public static ParameterGuide From(StrategyParameterDescriptor parameter) => new(
-        parameter.DisplayName,
-        parameter.Description,
-        parameter.FormatValue(parameter.DefaultValue),
-        (parameter.Minimum, parameter.Maximum) switch
-        {
-            ({ } min, { } max) => $"{parameter.FormatValue(min)} – {parameter.FormatValue(max)}",
-            ({ } min, null) => $"≥ {parameter.FormatValue(min)}",
-            (null, { } max) => $"≤ {parameter.FormatValue(max)}",
-            _ => "–"
-        },
-        parameter.Suggested is { } range
-            ? $"{parameter.FormatValue(range.From)} – {parameter.FormatValue(range.To)} / {parameter.FormatValue(range.Step)}"
-            : "–");
+    public string DisplayName => StrategyTexts.ParameterName(StrategyName, Parameter);
+
+    public string? Description => StrategyTexts.ParameterDescription(StrategyName, Parameter);
+
+    public string Default => Parameter.FormatValue(Parameter.DefaultValue);
+
+    /// <summary>Valid values, e.g. "2 – 100".</summary>
+    public string Allowed => (Parameter.Minimum, Parameter.Maximum) switch
+    {
+        ({ } min, { } max) => $"{Parameter.FormatValue(min)} – {Parameter.FormatValue(max)}",
+        ({ } min, null) => $"≥ {Parameter.FormatValue(min)}",
+        (null, { } max) => $"≤ {Parameter.FormatValue(max)}",
+        _ => "–"
+    };
+
+    /// <summary>Values worth testing in an optimization as "from – to / step", or "–".</summary>
+    public string Suggested => Parameter.Suggested is { } range
+        ? $"{Parameter.FormatValue(range.From)} – {Parameter.FormatValue(range.To)} / {Parameter.FormatValue(range.Step)}"
+        : "–";
 }

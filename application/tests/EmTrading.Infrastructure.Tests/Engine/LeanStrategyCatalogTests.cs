@@ -81,7 +81,36 @@ public class LeanStrategyCatalogTests
         }
     }
 
-    private static HashSet<string> ResourceKeys(string file)
+    /// <summary>
+    /// Names and descriptions of every strategy and parameter are translated, and the English resources repeat the
+    /// attributes word for word, so the attributes stay the one place to edit English texts.
+    /// </summary>
+    [Fact]
+    public void Strategy_and_parameter_names_are_translated_and_english_matches_the_attributes()
+    {
+        var expected = _catalog.GetAll()
+            .SelectMany(s => new[] { ($"Strategy_{s.Name}_Name", s.DisplayName), ($"Strategy_{s.Name}_Description", s.Description) }
+                .Concat(s.Parameters.SelectMany(p => new[]
+                {
+                    ($"StrategyParam_{s.Name}_{p.Name}_Name", p.DisplayName),
+                    ($"StrategyParam_{s.Name}_{p.Name}_Description", p.Description)
+                })))
+            .ToList();
+
+        var english = ResourceTexts("Strings.resx");
+        var polish = ResourceKeys("Strings.pl.resx");
+
+        var wrongEnglish = expected.Where(e => e.Item2 is null || !english.TryGetValue(e.Item1, out var text) || text != e.Item2)
+            .Select(e => e.Item1).ToList();
+        var missingPolish = expected.Select(e => e.Item1).Where(key => !polish.Contains(key)).ToList();
+
+        Assert.True(wrongEnglish.Count == 0, $"Strings.resx is missing or differs from the attributes: {string.Join(", ", wrongEnglish)}");
+        Assert.True(missingPolish.Count == 0, $"Strings.pl.resx is missing: {string.Join(", ", missingPolish)}");
+    }
+
+    private static HashSet<string> ResourceKeys(string file) => ResourceTexts(file).Keys.ToHashSet(StringComparer.Ordinal);
+
+    private static Dictionary<string, string> ResourceTexts(string file)
     {
         // The Presentation project targets Windows, so its resources are read from source rather than referenced.
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -91,8 +120,7 @@ public class LeanStrategyCatalogTests
 
         var path = Path.Combine(directory.FullName, "EmTrading.Presentation", "Resources", file);
         return System.Xml.Linq.XDocument.Load(path).Root!.Elements("data")
-            .Select(e => (string)e.Attribute("name")!)
-            .ToHashSet(StringComparer.Ordinal);
+            .ToDictionary(e => (string)e.Attribute("name")!, e => (string)e.Element("value")!, StringComparer.Ordinal);
     }
 
     [Fact]

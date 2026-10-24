@@ -536,4 +536,89 @@ Szacowana wartość: {6} USD.</value></data>
 • Wypróbuj w backteście otwiera stronę Backtest z wybraną strategią i jej wartościami domyślnymi.
 • Optymalizuj otwiera stronę Optymalizacja z wpisanymi już proponowanymi zakresami.
 • Twoje najlepsze wyniki pokazuje najlepsze parametry znalezione przez Twoje optymalizacje, dla symbolu i okresu; Użyj w backteście kopiuje je do formularza.</value></data>
+  <!-- Strategy and parameter texts (see StrategyTexts). -->
+  <data name="Strategy_SmaCrossStrategy_Name" xml:space="preserve"><value>Przecięcie EMA + trend ADX</value></data>
+  <data name="Strategy_SmaCrossStrategy_Description" xml:space="preserve"><value>Przecięcie EMA na 15-minutowych świecach, filtrowane przez ADX i zamknięcia sprzed 100/200 dni; kroczący stop ATR.</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_fast-period_Name" xml:space="preserve"><value>Okres szybkiej EMA</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_fast-period_Description" xml:space="preserve"><value>W świecach 15-minutowych.</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_slow-period_Name" xml:space="preserve"><value>Okres wolnej EMA</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_slow-period_Description" xml:space="preserve"><value>W świecach 15-minutowych.</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_adx-threshold_Name" xml:space="preserve"><value>Próg ADX</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_adx-threshold_Description" xml:space="preserve"><value>Handluje tylko, gdy trend jest co najmniej tak silny.</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_atr-stop-multiplier_Name" xml:space="preserve"><value>Mnożnik stopu ATR</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_atr-stop-multiplier_Description" xml:space="preserve"><value>Odległość stopu jako wielokrotność 14-świecowego ATR.</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_risk-percent_Name" xml:space="preserve"><value>Ryzyko na transakcję (%)</value></data>
+  <data name="StrategyParam_SmaCrossStrategy_risk-percent_Description" xml:space="preserve"><value>Część kapitału tracona, jeśli zadziała początkowy stop.</value></data>
+
+  <data name="Strategy_RsiMeanReversionStrategy_Name" xml:space="preserve"><value>Powrót do średniej RSI</value></data>
+  <data name="Strategy_RsiMeanReversionStrategy_Description" xml:space="preserve"><value>Godzinowy RSI: kupno przy wyprzedaniu, sprzedaż przy wykupieniu lub na stałym stop lossie. Tylko long.</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_rsi-period_Name" xml:space="preserve"><value>Okres RSI</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_rsi-period_Description" xml:space="preserve"><value>W świecach godzinowych.</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_oversold_Name" xml:space="preserve"><value>Poziom wyprzedania</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_oversold_Description" xml:space="preserve"><value>Kupno, gdy RSI zamknie się poniżej tego poziomu.</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_overbought_Name" xml:space="preserve"><value>Poziom wykupienia</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_overbought_Description" xml:space="preserve"><value>Sprzedaż, gdy RSI zamknie się powyżej tego poziomu.</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_stop-loss-percent_Name" xml:space="preserve"><value>Stop loss (%)</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_stop-loss-percent_Description" xml:space="preserve"><value>Wyjście, gdy cena spadnie o tyle poniżej ceny wejścia.</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_allocation-percent_Name" xml:space="preserve"><value>Alokacja (%)</value></data>
+  <data name="StrategyParam_RsiMeanReversionStrategy_allocation-percent_Description" xml:space="preserve"><value>Część kapitału zainwestowana w pozycję.</value></data>
+
+  <data name="Strategy_DonchianBreakoutStrategy_Name" xml:space="preserve"><value>Wybicie z kanału Donchiana (Turtle)</value></data>
+  <data name="Strategy_DonchianBreakoutStrategy_Description" xml:space="preserve"><value>Dzienne wybicie ponad maksimum z N dni; wyjście poniżej minimum z M dni lub na stopie ATR. Wielkość pozycji wg ryzyka. Tylko long.</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_entry-period_Name" xml:space="preserve"><value>Kanał wejścia (dni)</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_entry-period_Description" xml:space="preserve"><value>Kupno, gdy zamknięcie jest powyżej najwyższego maksimum z tylu poprzednich dni.</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_exit-period_Name" xml:space="preserve"><value>Kanał wyjścia (dni)</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_exit-period_Description" xml:space="preserve"><value>Sprzedaż, gdy zamknięcie jest poniżej najniższego minimum z tylu poprzednich dni.</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_atr-stop-multiplier_Name" xml:space="preserve"><value>Mnożnik stopu ATR</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_atr-stop-multiplier_Description" xml:space="preserve"><value>Początkowy stop poniżej ceny wejścia jako wielokrotność 20-dniowego ATR.</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_risk-percent_Name" xml:space="preserve"><value>Ryzyko na transakcję (%)</value></data>
+  <data name="StrategyParam_DonchianBreakoutStrategy_risk-percent_Description" xml:space="preserve"><value>Część kapitału tracona, jeśli zadziała początkowy stop; wyznacza wielkość pozycji.</value></data>
+
+  <data name="Strategy_MomentumTrendStrategy_Name" xml:space="preserve"><value>Momentum szeregu czasowego</value></data>
+  <data name="Strategy_MomentumTrendStrategy_Description" xml:space="preserve"><value>Trzyma pozycję, gdy stopa zwrotu z N dni jest dodatnia, a cena jest nad długą SMA; sprawdzane co K dni. Tylko long.</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_lookback-days_Name" xml:space="preserve"><value>Okres momentum (dni)</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_lookback-days_Description" xml:space="preserve"><value>Stopa zwrotu mierzona z tylu dni sesyjnych (126 ≈ 6 miesięcy).</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_trend-period_Name" xml:space="preserve"><value>SMA trendu (dni)</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_trend-period_Description" xml:space="preserve"><value>Trzyma pozycję tylko, gdy zamknięcie jest nad tą średnią kroczącą.</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_rebalance-days_Name" xml:space="preserve"><value>Sprawdzaj co (dni)</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_rebalance-days_Description" xml:space="preserve"><value>Dni sesyjne między decyzjami (21 ≈ co miesiąc).</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_allocation-percent_Name" xml:space="preserve"><value>Alokacja (%)</value></data>
+  <data name="StrategyParam_MomentumTrendStrategy_allocation-percent_Description" xml:space="preserve"><value>Część kapitału zainwestowana w czasie trzymania pozycji.</value></data>
+
+  <data name="Strategy_RsiPullbackStrategy_Name" xml:space="preserve"><value>Korekta RSI(2) (Connors)</value></data>
+  <data name="Strategy_RsiPullbackStrategy_Description" xml:space="preserve"><value>W trendzie wzrostowym (nad długą SMA) kupuje gwałtowny spadek 2-dniowego RSI; wychodzi nad krótką SMA lub po N dniach. Tylko long.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_rsi-period_Name" xml:space="preserve"><value>Okres RSI (dni)</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_rsi-period_Description" xml:space="preserve"><value>Bardzo krótki RSI reaguje już na kilka spadkowych dni.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_entry-level_Name" xml:space="preserve"><value>Wejście, gdy RSI poniżej</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_entry-level_Description" xml:space="preserve"><value>Kupno, gdy RSI zamknie się poniżej tego poziomu.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_trend-period_Name" xml:space="preserve"><value>SMA trendu (dni)</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_trend-period_Description" xml:space="preserve"><value>Kupuje tylko, gdy zamknięcie jest nad tą średnią kroczącą.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_exit-period_Name" xml:space="preserve"><value>SMA wyjścia (dni)</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_exit-period_Description" xml:space="preserve"><value>Sprzedaż, gdy zamknięcie wzrośnie ponad tę krótką średnią kroczącą.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_max-hold-days_Name" xml:space="preserve"><value>Maks. czas trzymania (dni)</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_max-hold-days_Description" xml:space="preserve"><value>Sprzedaż po tylu dniach, jeśli wyjście nie zadziałało wcześniej.</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_allocation-percent_Name" xml:space="preserve"><value>Alokacja (%)</value></data>
+  <data name="StrategyParam_RsiPullbackStrategy_allocation-percent_Description" xml:space="preserve"><value>Część kapitału zainwestowana w pozycję.</value></data>
+
+  <data name="Strategy_BollingerReversionStrategy_Name" xml:space="preserve"><value>Powrót do średniej (Bollinger)</value></data>
+  <data name="Strategy_BollingerReversionStrategy_Description" xml:space="preserve"><value>Godzinowo: kupno przy zamknięciu pod dolną wstęgą, sprzedaż na środkowej wstędze lub na stopie %. Tylko long.</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_band-period_Name" xml:space="preserve"><value>Okres wstęg (godziny)</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_band-period_Description" xml:space="preserve"><value>Średnia krocząca i odchylenie standardowe z tylu świec godzinowych.</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_band-width_Name" xml:space="preserve"><value>Szerokość wstęg (σ)</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_band-width_Description" xml:space="preserve"><value>Ile odchyleń standardowych poniżej średniej leży dolna wstęga.</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_stop-loss-percent_Name" xml:space="preserve"><value>Stop loss (%)</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_stop-loss-percent_Description" xml:space="preserve"><value>Wyjście, gdy cena spadnie o tyle poniżej ceny wejścia.</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_allocation-percent_Name" xml:space="preserve"><value>Alokacja (%)</value></data>
+  <data name="StrategyParam_BollingerReversionStrategy_allocation-percent_Description" xml:space="preserve"><value>Część kapitału zainwestowana w pozycję.</value></data>
+
+  <data name="Strategy_OpeningRangeBreakoutStrategy_Name" xml:space="preserve"><value>Wybicie z zakresu otwarcia</value></data>
+  <data name="Strategy_OpeningRangeBreakoutStrategy_Description" xml:space="preserve"><value>Intraday: kupno przy wybiciu ponad maksimum pierwszych N minut, stop na minimum zakresu, zamknięcie pozycji przed końcem sesji. Tylko long.</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_range-minutes_Name" xml:space="preserve"><value>Zakres otwarcia (minuty)</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_range-minutes_Description" xml:space="preserve"><value>Minuty po otwarciu o 9:30, które wyznaczają zakres.</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_exit-minutes-before-close_Name" xml:space="preserve"><value>Wyjście przed zamknięciem (minuty)</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_exit-minutes-before-close_Description" xml:space="preserve"><value>Sprzedaż najpóźniej tyle minut przed zamknięciem o 16:00.</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_min-range-percent_Name" xml:space="preserve"><value>Minimalny zakres (%)</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_min-range-percent_Description" xml:space="preserve"><value>Pomija dni, w których zakres otwarcia jest węższy niż ta część ceny (za mały ruch).</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_allocation-percent_Name" xml:space="preserve"><value>Alokacja (%)</value></data>
+  <data name="StrategyParam_OpeningRangeBreakoutStrategy_allocation-percent_Description" xml:space="preserve"><value>Część kapitału zainwestowana w pozycję.</value></data>
 </root>

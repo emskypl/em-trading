@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Presentation.Localization;
+using EmTrading.Presentation.Strategies;
 
 namespace EmTrading.Presentation.Backtesting;
 
@@ -9,17 +10,19 @@ namespace EmTrading.Presentation.Backtesting;
 /// </summary>
 public sealed partial class StrategyParameterInput : ObservableObject
 {
+    private readonly string _strategyName;
     private readonly StrategyParameterDescriptor _descriptor;
 
-    public StrategyParameterInput(StrategyParameterDescriptor descriptor)
+    public StrategyParameterInput(string strategyName, StrategyParameterDescriptor descriptor)
     {
+        _strategyName = strategyName;
         _descriptor = descriptor;
         _value = descriptor.FormatValue(descriptor.DefaultValue);
     }
 
     public string Name => _descriptor.Name;
 
-    public string DisplayName => _descriptor.DisplayName;
+    public string DisplayName => StrategyTexts.ParameterName(_strategyName, _descriptor);
 
     /// <summary>Description plus the allowed range, shown as a tooltip.</summary>
     public string Hint
@@ -33,7 +36,7 @@ public sealed partial class StrategyParameterInput : ObservableObject
                 (null, { } max) => $"≤ {_descriptor.FormatValue(max)}",
                 _ => null
             };
-            var parts = new[] { _descriptor.Description, range is null ? null : Loc.Format("Strategy_Range", range) };
+            var parts = new[] { StrategyTexts.ParameterDescription(_strategyName, _descriptor), range is null ? null : Loc.Format("Strategy_Range", range) };
             return string.Join(" ", parts.Where(p => p is not null));
         }
     }

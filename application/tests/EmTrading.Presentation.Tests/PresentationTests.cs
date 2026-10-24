@@ -8,6 +8,7 @@ using EmTrading.Presentation.Backtesting;
 using EmTrading.Presentation.Common;
 using EmTrading.Presentation.Logging;
 using EmTrading.Presentation.Optimization;
+using EmTrading.Presentation.Strategies;
 
 namespace EmTrading.Presentation.Tests;
 
@@ -81,13 +82,16 @@ public class LogFeedTests
 [Collection(nameof(CultureCollection))]
 public class StrategyParameterInputTests
 {
+    /// <summary>Has no resources, so its texts are the attribute texts in every language.</summary>
+    private const string TestStrategy = "TestStrategy";
+
     private static readonly StrategyParameterDescriptor Period =
         new("fast-period", "Fast EMA period", StrategyParameterKind.Integer, 26, 2, 500, null, "In 15-minute bars.");
 
     [Fact]
     public void Starts_with_the_default_and_no_error()
     {
-        var input = new StrategyParameterInput(Period);
+        var input = new StrategyParameterInput(TestStrategy, Period);
 
         Assert.Equal("26", input.Value);
         Assert.Null(input.Error);
@@ -99,7 +103,7 @@ public class StrategyParameterInputTests
     [InlineData("x", "Fast EMA period: 'x' is not a number.")]
     public void Shows_the_validation_message_as_soon_as_the_value_changes(string value, string expected)
     {
-        var input = new StrategyParameterInput(Period);
+        var input = new StrategyParameterInput(TestStrategy, Period);
         var errorChanged = false;
         input.PropertyChanged += (_, e) => errorChanged |= e.PropertyName == nameof(StrategyParameterInput.Error);
 
@@ -112,14 +116,69 @@ public class StrategyParameterInputTests
     [Fact]
     public void Hint_combines_description_and_range()
     {
-        Assert.Contains("In 15-minute bars.", new StrategyParameterInput(Period).Hint);
-        Assert.Contains("2 – 500", new StrategyParameterInput(Period).Hint);
+        Assert.Contains("In 15-minute bars.", new StrategyParameterInput(TestStrategy, Period).Hint);
+        Assert.Contains("2 – 500", new StrategyParameterInput(TestStrategy, Period).Hint);
     }
+}
+
+[Collection(nameof(CultureCollection))]
+public sealed class StrategyTextsTests : IDisposable
+{
+    private static readonly StrategyParameterDescriptor FastPeriod =
+        new("fast-period", "Fast EMA period", StrategyParameterKind.Integer, 26, 2, 500, null, "In 15-minute bars.");
+
+    private static readonly StrategyDescriptor SmaCross =
+        new("SmaCrossStrategy", "EMA Cross + ADX trend", "English description.", [FastPeriod]);
+
+    private readonly System.Globalization.CultureInfo _original = Loc.Instance.Culture;
+
+    [Fact]
+    public void Parameter_labels_follow_the_language()
+    {
+        var input = new StrategyParameterInput("SmaCrossStrategy", FastPeriod);
+        var optimization = new OptimizationParameterInput("SmaCrossStrategy", FastPeriod);
+
+        Loc.Instance.SetCulture(Loc.Polish);
+        Assert.Equal("Okres szybkiej EMA", input.DisplayName);
+        Assert.Contains("W świecach 15-minutowych.", input.Hint);
+        Assert.Equal(("Okres szybkiej EMA", "Fast EMA period"), (optimization.DisplayName, optimization.AutomationName));
+
+        Loc.Instance.SetCulture(Loc.English);
+        Assert.Equal("Fast EMA period", input.DisplayName);
+        Assert.Contains("In 15-minute bars.", input.Hint);
+    }
+
+    [Fact]
+    public void Strategy_names_are_translated_by_descriptor_or_class_name()
+    {
+        var converter = new StrategyTextConverter();
+        Loc.Instance.SetCulture(Loc.Polish);
+
+        Assert.Equal("Przecięcie EMA + trend ADX", converter.Convert(SmaCross, typeof(string), null, Loc.Polish));
+        Assert.Equal("Przecięcie EMA + trend ADX", converter.Convert("SmaCrossStrategy", typeof(string), null, Loc.Polish));
+        Assert.StartsWith("Przecięcie EMA na 15-minutowych", (string?)converter.Convert(SmaCross, typeof(string), "Description", Loc.Polish));
+    }
+
+    [Fact]
+    public void A_strategy_without_resources_shows_its_attribute_texts()
+    {
+        Loc.Instance.SetCulture(Loc.Polish);
+        var unknown = SmaCross with { Name = "UnknownStrategy" };
+
+        Assert.Equal("EMA Cross + ADX trend", StrategyTexts.Name(unknown));
+        Assert.Equal("English description.", StrategyTexts.Description(unknown));
+        Assert.Equal("UnknownStrategy", StrategyTexts.Name("UnknownStrategy"));
+        Assert.Equal("Fast EMA period", StrategyTexts.ParameterName("UnknownStrategy", FastPeriod));
+    }
+
+    public void Dispose() => Loc.Instance.SetCulture(_original);
 }
 
 [Collection(nameof(CultureCollection))]
 public class OptimizationParameterInputTests
 {
+    private const string TestStrategy = "TestStrategy";
+
     private static readonly StrategyParameterDescriptor Period =
         new("fast-period", "Fast EMA period", StrategyParameterKind.Integer, 26, 2, 500, null, null);
 
@@ -129,7 +188,7 @@ public class OptimizationParameterInputTests
     [Fact]
     public void Starts_fixed_at_the_default_with_a_five_value_range_ready()
     {
-        var input = new OptimizationParameterInput(Period);
+        var input = new OptimizationParameterInput(TestStrategy, Period);
 
         Assert.False(input.IsVaried);
         Assert.Equal("26", input.Value);
@@ -148,7 +207,7 @@ public class OptimizationParameterInputTests
     [Fact]
     public void Decimal_parameters_get_a_decimal_step()
     {
-        var input = new OptimizationParameterInput(Risk) { IsVaried = true };
+        var input = new OptimizationParameterInput(TestStrategy, Risk) { IsVaried = true };
 
         Assert.Equal(("1", "1.8", "0.2"), (input.From, input.To, input.Step));
         Assert.Equal(5, input.Count);
@@ -163,7 +222,7 @@ public class OptimizationParameterInputTests
     [InlineData("x", "20", "1")]
     public void Invalid_ranges_show_an_error_and_count_zero(string from, string to, string step)
     {
-        var input = new OptimizationParameterInput(Period) { IsVaried = true, From = from, To = to, Step = step };
+        var input = new OptimizationParameterInput(TestStrategy, Period) { IsVaried = true, From = from, To = to, Step = step };
 
         Assert.NotNull(input.Error);
         Assert.Equal(0, input.Count);
@@ -173,7 +232,7 @@ public class OptimizationParameterInputTests
     [Fact]
     public void Changing_a_bound_notifies_count_and_error()
     {
-        var input = new OptimizationParameterInput(Period) { IsVaried = true };
+        var input = new OptimizationParameterInput(TestStrategy, Period) { IsVaried = true };
         var changed = new List<string?>();
         input.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 

@@ -23,8 +23,9 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
-                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="Gray" FontSize="11" />
+                                <TextBlock Text="{Binding Converter={StaticResource StrategyText}}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Converter={StaticResource StrategyText}, ConverterParameter=Description}"
+                                           TextWrapping="Wrap" Foreground="Gray" FontSize="11" />
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -41,7 +42,7 @@
                         <Button Content="{loc:Tr Strategies_Optimize}" Command="{Binding OptimizeCommand}" Style="{StaticResource PrimaryButton}" />
                     </StackPanel>
                     <StackPanel>
-                        <TextBlock Text="{Binding SelectedStrategy.DisplayName}" Style="{StaticResource PageTitle}" Margin="0,0,0,2" />
+                        <TextBlock Text="{Binding SelectedStrategy, Converter={StaticResource StrategyText}}" Style="{StaticResource PageTitle}" Margin="0,0,0,2" />
                         <TextBlock Text="{Binding SelectedStrategy.Name}" Foreground="Gray" FontSize="11" />
                     </StackPanel>
                 </DockPanel>

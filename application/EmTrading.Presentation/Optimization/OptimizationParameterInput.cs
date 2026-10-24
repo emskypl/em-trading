@@ -4,6 +4,7 @@ using EmTrading.Application.Backtesting.Strategies;
 using EmTrading.Application.Optimization.StartOptimization;
 using EmTrading.Domain.Optimization;
 using EmTrading.Presentation.Localization;
+using EmTrading.Presentation.Strategies;
 
 namespace EmTrading.Presentation.Optimization;
 
@@ -14,10 +15,12 @@ public sealed partial class OptimizationParameterInput : ObservableObject
 {
     private const int DefaultValues = 5;
 
+    private readonly string _strategyName;
     private readonly StrategyParameterDescriptor _descriptor;
 
-    public OptimizationParameterInput(StrategyParameterDescriptor descriptor)
+    public OptimizationParameterInput(string strategyName, StrategyParameterDescriptor descriptor)
     {
+        _strategyName = strategyName;
         _descriptor = descriptor;
         _value = descriptor.FormatValue(descriptor.DefaultValue);
 
@@ -42,9 +45,12 @@ public sealed partial class OptimizationParameterInput : ObservableObject
 
     public string Name => _descriptor.Name;
 
-    public string DisplayName => _descriptor.DisplayName;
+    /// <summary>The English name, which stays the same in every language, for UI automation.</summary>
+    public string AutomationName => _descriptor.DisplayName;
 
-    public string? Description => _descriptor.Description;
+    public string DisplayName => StrategyTexts.ParameterName(_strategyName, _descriptor);
+
+    public string? Description => StrategyTexts.ParameterDescription(_strategyName, _descriptor);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Error), nameof(Count))]

@@ -104,7 +104,7 @@ public sealed partial class BacktestViewModel : PageViewModel, IRecipient<OpenBa
     {
         StrategyParameters.Clear();
         foreach (var parameter in value?.Parameters ?? [])
-            StrategyParameters.Add(new StrategyParameterInput(parameter));
+            StrategyParameters.Add(new StrategyParameterInput(value!.Name, parameter));
     }
 
     protected override void OnBusyChanged()
